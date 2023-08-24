@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "RDSTop Monitoring Solution"
+Description: "DBTop Monitoring Solution"
 Metadata: 
   AWS::CloudFormation::Interface: 
     ParameterGroups: 

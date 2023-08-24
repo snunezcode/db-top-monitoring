@@ -28,18 +28,24 @@ sh install.sh
 . ~/.nvm/nvm.sh
 nvm install 16.17
 
+
+
 #NodeJS API Core Installation
 cd /aws/apps/server/; npm install;
 
-
 #React Application Installation
 cd /aws/apps/frontend/; npm install; npm run build;
+
+
+#Copy build content to www folder
 cp -r /aws/apps/frontend/build/* /aws/apps/frontend/www/
 
+
 #Copy aws-exports
-cp /aws/apps/conf/aws-exports.json /aws/apps/frontend/build/
+cp /aws/apps/conf/aws-exports.json /aws/apps/frontend/www/
 cp /aws/apps/conf/aws-exports.json /aws/apps/server/
 
 
 #Re-Start Services
 sudo service api.core restart
+
