@@ -162,7 +162,7 @@ Resources:
                             "Action": [
                                 "elasticache:DescribeReplicationGroups"
                             ],
-                            "Resource": "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:replicationgroup:*"
+                            "Resource": "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:*"
                         }
                         
                         
