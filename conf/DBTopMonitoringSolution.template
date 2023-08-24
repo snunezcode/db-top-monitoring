@@ -156,6 +156,13 @@ Resources:
                                 "rds:DescribeDBInstances"
                             ],
                             "Resource": "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "elasticache:DescribeReplicationGroups"
+                            ],
+                            "Resource": "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:replicationgroup:*"
                         }
                         
                         
