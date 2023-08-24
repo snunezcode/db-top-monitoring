@@ -15,9 +15,12 @@ sudo cp conf/server.conf /etc/nginx/conf.d/
 sudo chkconfig nginx on
 sudo chkconfig api.core on
 
-
 #Change permissions
 sudo chown -R ec2-user:ec2-user /aws/apps
+
+#Start Services
+sudo service nginx restart
+
 
 #NodeJS Installation
 curl https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh --output install.sh
@@ -31,16 +34,12 @@ cd /aws/apps/server/; npm install;
 
 #React Application Installation
 cd /aws/apps/frontend/; npm install; npm run build;
+cp -r /aws/apps/frontend/build/ /aws/apps/frontend/www/
 
 #Copy aws-exports
 cp /aws/apps/conf/aws-exports.json /aws/apps/frontend/build/
 cp /aws/apps/conf/aws-exports.json /aws/apps/server/
 
 
-#Restart the services
-sudo service nginx restart
+#Re-Start Services
 sudo service api.core restart
-
-
-
-
