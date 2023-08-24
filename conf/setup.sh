@@ -18,7 +18,12 @@ sudo chkconfig api.core on
 #Change permissions
 sudo chown -R ec2-user:ec2-user /aws/apps
 
-#Start Services
+#Copy aws-exports.json
+cp /aws/apps/conf/aws-exports.json /aws/apps/frontend/public/
+cp /aws/apps/conf/aws-exports.json /aws/apps/server/
+
+#Re-Start Services
+sudo service api.core restart
 sudo service nginx restart
 
 
@@ -27,7 +32,6 @@ curl https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh --output in
 sh install.sh
 . ~/.nvm/nvm.sh
 nvm install 16.17
-
 
 
 #NodeJS API Core Installation
@@ -41,11 +45,4 @@ cd /aws/apps/frontend/; npm install; npm run build;
 cp -r /aws/apps/frontend/build/* /aws/apps/frontend/www/
 
 
-#Copy aws-exports
-cp /aws/apps/conf/aws-exports.json /aws/apps/frontend/www/
-cp /aws/apps/conf/aws-exports.json /aws/apps/server/
-
-
-#Re-Start Services
-sudo service api.core restart
 
