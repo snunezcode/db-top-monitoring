@@ -34,7 +34,7 @@ cd /aws/apps/server/; npm install;
 
 #React Application Installation
 cd /aws/apps/frontend/; npm install; npm run build;
-cp -r /aws/apps/frontend/build/ /aws/apps/frontend/www/
+cp -r /aws/apps/frontend/build/* /aws/apps/frontend/www/
 
 #Copy aws-exports
 cp /aws/apps/conf/aws-exports.json /aws/apps/frontend/build/
