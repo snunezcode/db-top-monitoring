@@ -22,8 +22,7 @@ sudo chown -R ec2-user:ec2-user /aws/apps
 cp /aws/apps/conf/aws-exports.json /aws/apps/frontend/public/
 cp /aws/apps/conf/aws-exports.json /aws/apps/server/
 
-#Re-Start Services
-sudo service api.core restart
+#Re-Start NGINX Services
 sudo service nginx restart
 
 
@@ -37,12 +36,12 @@ nvm install 16.17
 #NodeJS API Core Installation
 cd /aws/apps/server/; npm install;
 
+#Re-Start API Services
+sudo service api.core restart
+
 #React Application Installation
 cd /aws/apps/frontend/; npm install; npm run build;
 
 
 #Copy build content to www folder
 cp -r /aws/apps/frontend/build/* /aws/apps/frontend/www/
-
-
-
