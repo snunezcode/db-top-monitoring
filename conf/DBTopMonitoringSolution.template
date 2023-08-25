@@ -107,6 +107,8 @@ Resources:
             AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
             MaxSessionDuration: 3600
             Description: "Allows EC2 instance to call AWS services on your behalf."
+            ManagedPolicyArns:
+                - !Ref IAMPolicyEc2
             
     
     IAMRoleCognito:
@@ -126,6 +128,51 @@ Resources:
                     Action:
                       - "sns:publish"
                     Resource: "*"
+
+
+    IAMPolicyEc2:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+            PolicyName: !Join [ "-", ["policy-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+            PolicyDocument: !Sub |
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "logs:GetLogEvents"
+                            ],
+                            "Resource": [
+                                "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:RDSOSMetrics:log-stream:*"
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "cloudwatch:GetMetricData"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "rds:DescribeDBInstances"
+                            ],
+                            "Resource": "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "elasticache:DescribeReplicationGroups"
+                            ],
+                            "Resource": "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:*"
+                        }
+                        
+                        
+                    ]
+                }
+            
     
     IAMPolicy:
         Type: "AWS::IAM::Policy"

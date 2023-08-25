@@ -735,70 +735,76 @@ app.get("/api/redis/connection/open/", openRedisConnectionSingle);
 
 async function openRedisConnectionSingle(req, res) {
  
-    var params = req.query;
-    
-    var options = {};
-    var protocol = "redis://";
-    
-    if ( params.ssl == "required" )
-        protocol = "rediss://";
-    
-    switch (params.auth){
+    try {
         
-        case "modeIam" :
-                options = {
-                    url: protocol + params.instance + ":" + params.port,
-                    socket : { reconnectStrategy : false}
-                };
-                
-                break;
-        
-        case "modeAuth":
-                
-                options = {
-                    url: protocol + params.instance + ":" + params.port,
-                    password : params.password ,
-                    socket : { reconnectStrategy : false}
-                };
-                
-                break;
-
-
-
-        case "modeRbac" :
+            var params = req.query;
             
-                options = {
-                    url: protocol + params.username + ":" + params.password + "@" + params.instance + ":" + params.port,
-                    socket : { reconnectStrategy : false}
-                };
+            var options = {};
+            var protocol = "redis://";
+            
+            if ( params.ssl == "required" )
+                protocol = "rediss://";
+            
+            switch (params.auth){
                 
-                break;
+                case "modeIam" :
+                        options = {
+                            url: protocol + params.instance + ":" + params.port,
+                            socket : { reconnectStrategy : false}
+                        };
+                        
+                        break;
+                
+                case "modeAuth":
+                        
+                        options = {
+                            url: protocol + params.instance + ":" + params.port,
+                            password : params.password ,
+                            socket : { reconnectStrategy : false}
+                        };
+                        
+                        break;
         
-    }
-    
-    if (!(params.instance in dbRedis[params.connectionId])) {
-    
-        dbRedis[params.connectionId][params.instance] = redis.createClient(options);
+        
+        
+                case "modeRbac" :
                     
-        dbRedis[params.connectionId][params.instance].connect()
-            .then(()=> {
-                console.log("Redis Instance Connected : " + params.connectionId + "#" + params.instance )
-                res.status(200).send( {"result":"auth1" });
+                        options = {
+                            url: protocol + params.username + ":" + params.password + "@" + params.instance + ":" + params.port,
+                            socket : { reconnectStrategy : false}
+                        };
+                        
+                        break;
                 
-            })
-            .catch(()=> {
-                console.log("Redis Instance Connected with Errors : " + params.connectionId + "#" + params.instance )
-                res.status(200).send( {"result":"auth0" });
-            });
+            }
             
+            if (!(params.instance in dbRedis[params.connectionId])) {
+            
+                dbRedis[params.connectionId][params.instance] = redis.createClient(options);
+                            
+                dbRedis[params.connectionId][params.instance].connect()
+                    .then(()=> {
+                        console.log("Redis Instance Connected : " + params.connectionId + "#" + params.instance )
+                        res.status(200).send( {"result":"auth1" });
+                        
+                    })
+                    .catch(()=> {
+                        console.log("Redis Instance Connected with Errors : " + params.connectionId + "#" + params.instance )
+                        res.status(200).send( {"result":"auth0" });
+                    });
+                    
+            }
+            else {
+                console.log("Re-using - Redis Instance connection : " + params.connectionId + "#" + params.instance )
+                res.status(200).send( {"result":"auth0" });
+            }
     }
-    else {
-        console.log("Re-using - Redis Instance connection : " + params.connectionId + "#" + params.instance )
-        res.status(200).send( {"result":"auth0" });
-    }
+    catch (error) {
+        console.log(error)
+        res.status(500).send(error);
+    }}
     
-    
-}
+
 
 
 
