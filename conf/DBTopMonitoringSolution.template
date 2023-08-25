@@ -92,48 +92,22 @@ Parameters:
 Resources:
     InstanceProfile: 
         Type: "AWS::IAM::InstanceProfile"
-        #DependsOn: IAMRoleEC2
+        DependsOn: IAMRoleEC2
         Properties: 
           Path: "/"
           Roles:  [!Ref IAMRoleEC2]
     
     IAMRoleEC2:
         Type: "AWS::IAM::Role"
-        #DependsOn: IAMPolicyEc2
         Properties:
             Path: "/"
             RoleName: !Join [ "-", ["role-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
             AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
             MaxSessionDuration: 3600
             Description: "Allows EC2 instance to call AWS services on your behalf."
-            ManagedPolicyArns:
-                - !Ref IAMPolicyEc2
-            
-    
-    IAMRoleCognito:
-        Type: "AWS::IAM::Role"
-        Properties:
-            Path: "/"
-            RoleName: !Join [ "-", ["role-cognito-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
-            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cognito-idp.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
-            MaxSessionDuration: 3600
-            Description: "Allows Cognito to use SMS MFA on your behalf."
             Policies:
-            - PolicyName: "CognitoPolicy"
-              PolicyDocument: 
-                Version: "2012-10-17"
-                Statement: 
-                  - Effect: "Allow"
-                    Action:
-                      - "sns:publish"
-                    Resource: "*"
-
-
-    IAMPolicyEc2:
-        Type: AWS::IAM::ManagedPolicy
-        Properties:
-            ManagedPolicyName: !Join [ "-", ["policy-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
-            PolicyDocument: !Sub |
+            - PolicyName: "EC2Policy"
+              PolicyDocument: !Sub |
                 {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -171,7 +145,25 @@ Resources:
                         
                     ]
                 }
-            
+    
+    IAMRoleCognito:
+        Type: "AWS::IAM::Role"
+        Properties:
+            Path: "/"
+            RoleName: !Join [ "-", ["role-cognito-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"cognito-idp.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            Description: "Allows Cognito to use SMS MFA on your behalf."
+            Policies:
+            - PolicyName: "CognitoPolicy"
+              PolicyDocument: 
+                Version: "2012-10-17"
+                Statement: 
+                  - Effect: "Allow"
+                    Action:
+                      - "sns:publish"
+                    Resource: "*"
+
     EC2Instance:
         Type: "AWS::EC2::Instance"
         DependsOn: CognitoUserPool
