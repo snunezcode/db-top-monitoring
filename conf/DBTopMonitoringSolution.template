@@ -229,6 +229,7 @@ Resources:
             Tenancy: "default"
             EbsOptimized: true
             SourceDestCheck: true
+            #KeyName: "key-01-kappa"
             BlockDeviceMappings: 
               - 
                 DeviceName: "/dev/xvda"
