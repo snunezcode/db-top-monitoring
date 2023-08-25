@@ -180,7 +180,6 @@ Resources:
             ImageId: !Ref AMIId
             InstanceType: !Ref InstanceType
             Tenancy: "default"
-            KeyName: "key-01-kappa"
             EbsOptimized: true
             SourceDestCheck: true
             BlockDeviceMappings: 
