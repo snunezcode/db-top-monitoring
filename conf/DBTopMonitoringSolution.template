@@ -92,16 +92,14 @@ Parameters:
 Resources:
     InstanceProfile: 
         Type: "AWS::IAM::InstanceProfile"
-        DependsOn: IAMRoleEC2
+        #DependsOn: IAMRoleEC2
         Properties: 
           Path: "/"
-          Roles: 
-            - 
-              Ref: IAMRoleEC2
-          
+          Roles:  [!Ref IAMRoleEC2]
+    
     IAMRoleEC2:
         Type: "AWS::IAM::Role"
-        DependsOn: IAMPolicyEc2
+        #DependsOn: IAMPolicyEc2
         Properties:
             Path: "/"
             RoleName: !Join [ "-", ["role-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
@@ -183,7 +181,6 @@ Resources:
             Tenancy: "default"
             EbsOptimized: true
             SourceDestCheck: true
-            #KeyName: "key-01-kappa"
             BlockDeviceMappings: 
               - 
                 DeviceName: "/dev/xvda"
