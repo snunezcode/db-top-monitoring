@@ -133,7 +133,7 @@ Resources:
     IAMPolicyEc2:
         Type: AWS::IAM::ManagedPolicy
         Properties:
-            PolicyName: !Join [ "-", ["policy-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+            ManagedPolicyName: !Join [ "-", ["policy-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
             PolicyDocument: !Sub |
                 {
                     "Version": "2012-10-17",
