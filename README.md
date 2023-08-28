@@ -1,17 +1,17 @@
-# RDSTop Monitoring Solution for AWS RDS
+# DBTop Monitoring Solution for AWS RDS
 
 > **Disclaimer:** The sample code; software libraries; command line tools; proofs of concept; templates; or other related technology (including any of the foregoing that are provided by our personnel) is provided to you as AWS Content under the AWS Customer Agreement, or the relevant written agreement between you and AWS (whichever applies). You are responsible for testing, securing, and optimizing the AWS Content, such as sample code, as appropriate for production grade use based on your specific quality control practices and standards. Deploying AWS Content may incur AWS charges for creating or using AWS chargeable resources, such as running Amazon EC2 instances, using Amazon CloudWatch or Amazon Cognito.
 
 
-## What is RDSTop Monitoring ?
+## What is DBTop Monitoring ?
 
-RDSTop is lightweight application to perform realtime monitoring for AWS RDS and Amazon Aurora instances. 
+DBTop is lightweight application to perform realtime monitoring for AWS Database Resources. 
 Based on same simplicity concept of Unix top utility, provide quick and fast view of database performance, just all in one screen.
 
 <img width="1089" alt="image" src="./images/img01.png">
 
 
-## How looks like RDSTop Monitoring ?
+## How looks like DBTop Monitoring ?
 
 <img width="1089" alt="image" src="./images/img04.png">
 
@@ -27,22 +27,25 @@ https://github.com/aws-samples/rds-top-monitoring/assets/135755418/6bd2d036-78cc
 
 ## Database engine support
 
-RDSTop Monitoring Solution currently supports following database engines:
+DBTop Monitoring Solution currently supports following database engines:
 
 - AWS RDS for MySQL
 - AWS RDS for PostgreSQL
 - AWS RDS for MariaDB
-- Amazon Aurora MySQL-Compatible Edition
-- Amazon Aurora PostgreSQL-Compatible Edition
+- Amazon Aurora MySQL-Compatible Edition (Instance Level)
+- Amazon Aurora PostgreSQL-Compatible Edition (Instance Level)
 - AWS RDS for Oracle
 - AWS RDS for SQLServer
 
 
 Additional expanded support coming later to :
 
-- Amazon DocumentDB
 - Amazon ElastiCache for Redis
 - Amazon MemoryDB for Redis
+- Amazon Aurora Clusters
+- Amazon DocumentDB
+
+
 
 
 
@@ -76,15 +79,15 @@ Additional expanded support coming later to :
 
 #### Amazon RDS Enhanced Monitoring
 
-Amazon RDS provides metrics in real time for the operating system (OS) that your DB instance runs on. RDSTop Monitoring solution integrate metrics from Enhanced Monitoring and it has to be enabled. 
+Amazon RDS provides metrics in real time for the operating system (OS) that your DB instance runs on. DBTop Monitoring solution integrate metrics from Enhanced Monitoring and it has to be enabled. 
 Follow procedure below to turn on Enhanced Monitoring.
 
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.OS.Enabling.html
 
 
-#### VPC Network Access to AWS RDS Instances
+#### VPC Network Access to AWS Database Instances
 
-RDSTop Monitoring Solution needs to access privately AWS RDS Instances, grant access inboud rules and security groups.
+DBTop Monitoring Solution needs to access privately AWS Database resources, grant access inboud rules and security groups.
 
 
 
@@ -138,7 +141,7 @@ GRANT CREATE SESSION,SELECT ANY DICTIONARY TO monitor;
 Follow the step-by-step instructions to configure and deploy the RDSTop into your account.
 
 1. Make sure you have sign in AWS Console already.
-2. Click the following button to launch the CloudFormation Console in your account and use Cloudformation template (RdsMonitoringSolution.template) located on conf folder.
+2. Click the following button to launch the CloudFormation Console in your account and use Cloudformation template (DBMonitoringSolution.template) located on conf folder.
 
 [![Launch Stack](./images/launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=RDSTopMonitoringSolution)
 
@@ -147,9 +150,9 @@ Follow the step-by-step instructions to configure and deploy the RDSTop into you
 5. Input **AWS Linux AMI** parameter, this parameter specify AWS AMI to build App EC2 Server. Keep default value.
 6. Select **Instance Type** parameter, indicate what instance size is needed.
 7. Select **VPC Name** parameter, indicate VPC to be used to deploy application server.
-8. Select **Subnet Name** parameter, indicate private subnet to be used to deploy application server. This private subnet needs to have internet access, also application server needs to be able to reach AWS RDS Instances, add appropiate inboud rules and security groups.
+8. Select **Subnet Name** parameter, indicate private subnet to be used to deploy application server. This private subnet needs to have internet access, also application server needs to be able to reach AWS Database Resources, add appropiate inboud rules and security groups.
 9. Select **PublicAccess** parameter, indicate if Public Address is needed. 
-10. Input CIDR Inbound access rule for RDSTop Monitoring Solution.
+10. Input CIDR Inbound access rule for DBTop Monitoring Solution.
 11. Click **Next**, Click **Next**, select **acknowledge that AWS CloudFormation might create IAM resources with custom names**. and Click **Submit**.
 12. Once Cloudformation has been deployed, gather application URL from output stack section. Username will be same you introduce on step 4 and temporary password will be sent by AWS Cognito Service.
 13. Application deployment will take around 5 minutes to be completed.

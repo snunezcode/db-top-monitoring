@@ -96,18 +96,13 @@ Resources:
         Properties: 
           Path: "/"
           Roles:  [!Ref IAMRoleEC2]
-    
-    IAMRoleEC2:
-        Type: "AWS::IAM::Role"
+          
+          
+    IAMPolicyEc2:
+        Type: AWS::IAM::ManagedPolicy
         Properties:
-            Path: "/"
-            RoleName: !Join [ "-", ["role-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
-            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
-            MaxSessionDuration: 3600
-            Description: "Allows EC2 instance to call AWS services on your behalf."
-            Policies:
-            - PolicyName: "EC2Policy"
-              PolicyDocument: !Sub |
+            ManagedPolicyName: !Join [ "-", ["policy-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+            PolicyDocument: !Sub |
                 {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -145,7 +140,20 @@ Resources:
                         
                     ]
                 }
-    
+        
+        
+    IAMRoleEC2:
+        Type: "AWS::IAM::Role"
+        DependsOn: IAMPolicyEc2
+        Properties:
+            Path: "/"
+            RoleName: !Join [ "-", ["role-ec2-db-top-solution", !Select [4, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]]]
+            AssumeRolePolicyDocument: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
+            MaxSessionDuration: 3600
+            Description: "Allows EC2 instance to call AWS services on your behalf."
+            ManagedPolicyArns:
+                - !Ref IAMPolicyEc2
+                
     IAMRoleCognito:
         Type: "AWS::IAM::Role"
         Properties:
@@ -166,7 +174,7 @@ Resources:
 
     EC2Instance:
         Type: "AWS::EC2::Instance"
-        DependsOn: CognitoUserPool
+        DependsOn: [CognitoUserPool,IAMRoleEC2]
         Properties:
             ImageId: !Ref AMIId
             InstanceType: !Ref InstanceType
