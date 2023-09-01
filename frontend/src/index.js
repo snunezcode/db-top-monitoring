@@ -15,8 +15,9 @@ import Axios from "axios";
 //-- Pages
 import Authentication from "./pages/Authentication";
 import Home from "./pages/Home";
-import RdsInstances from "./pages/RdsInstances";
-import ClustersElasticache from "./pages/ClustersElasticache";
+import SmRdsInstances from "./pages/Sm-rdsInstances-01";
+import SmClustersElasticache from "./pages/Sm-clustersElasticache-01";
+import SmClustersMemoryDB from "./pages/Sm-clustersMemorydb-01";
 import Logout from "./pages/Logout";
 import SmMysql01 from "./pages/Sm-mysql-01";
 import SmMysql02 from "./pages/Sm-mysql-02";
@@ -58,8 +59,9 @@ Axios.get(`/aws-exports.json`,).then((data)=>{
                 <Routes>
                     <Route path="/" element={<ProtectedApp><Home /> </ProtectedApp>} />
                     <Route path="/authentication" element={<Authentication />} />
-                    <Route path="/rds/instances" element={<ProtectedApp><RdsInstances /> </ProtectedApp>} />
-                    <Route path="/clusters/elasticache" element={<ProtectedApp><ClustersElasticache /> </ProtectedApp>} />
+                    <Route path="/rds/instances" element={<ProtectedApp><SmRdsInstances /> </ProtectedApp>} />
+                    <Route path="/clusters/elasticache" element={<ProtectedApp><SmClustersElasticache /> </ProtectedApp>} />
+                    <Route path="/clusters/memorydb" element={<ProtectedApp><SmClustersMemoryDB /> </ProtectedApp>} />
                     <Route path="/logout" element={<ProtectedApp><Logout /> </ProtectedApp>} />
                     <Route path="/sm-mysql-01" element={<ProtectedApp><ProtectedDb> <SmMysql01 /> </ProtectedDb> </ProtectedApp>}  />
                     <Route path="/sm-mysql-02" element={<ProtectedApp><ProtectedDb> <SmMysql02 /></ProtectedDb> </ProtectedApp>} />

@@ -66,8 +66,7 @@ const redis = require("redis");
 const redisInfo = require('redis-info');
 var redisClient=[];
 var elasticache = new AWS.ElastiCache();
-
-//let dbRedis = Array.from(Array(1), () => new Array(1));
+var memorydb = new AWS.MemoryDB();
 var dbRedis = {};
 
 
@@ -1088,6 +1087,36 @@ app.get("/api/aws/region/elasticache/cluster/nodes/", (req,res)=>{
       }
       else {
             res.status(200).send({ csrfToken: req.csrfToken(), ReplicationGroups : data.ReplicationGroups})
+          }
+    });
+
+
+});
+
+// AWS : MemoryDB List nodes
+app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
+
+    // Token Validation
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+    if (cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid"});
+
+
+    var params = req.query;
+
+    var parameter = {
+      MaxRecords: 100,
+      ClusterName: params.cluster,
+      ShowShardDetails: true
+    };
+    elasticache.describeClusters(parameter, function(err, data) {
+      if (err) {
+            console.log(err, err.stack); // an error occurred
+            res.status(401).send({ Clusters : []});
+      }
+      else {
+            res.status(200).send({ csrfToken: req.csrfToken(), Clusters : data.Clusters})
           }
     });
 

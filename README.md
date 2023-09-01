@@ -5,8 +5,11 @@
 
 ## What is DBTop Monitoring ?
 
-DBTop is lightweight application to perform realtime monitoring for AWS Database Resources. 
+DBTop Monitoring is evolution of [RDSTop Monitoring Solution](https://github.com/aws-samples/rds-top-monitoring) initiative.
+
+DBTop Monitoring is lightweight application to perform realtime monitoring for AWS Database Resources. 
 Based on same simplicity concept of Unix top utility, provide quick and fast view of database performance, just all in one screen.
+
 
 <img width="1089" alt="image" src="./images/img01.png">
 

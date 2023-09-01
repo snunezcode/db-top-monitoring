@@ -6,7 +6,7 @@ const App = () => {
   
   const { signOut } = useAuthenticator((context) => [context.user]);
   signOut();
-  navigate('/login');  
+  navigate('/');  
 
   return (
     <div>
