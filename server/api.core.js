@@ -337,6 +337,8 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
                     switch (params.auth){
                         
                         case "modeIam" :
+                        case "modeNonAuth":
+                            
                                 options = {
                                         url: protocol + params.host + ":" + params.port,
                                         socket : { reconnectStrategy : false}
@@ -747,6 +749,7 @@ async function openRedisConnectionSingle(req, res) {
             switch (params.auth){
                 
                 case "modeIam" :
+                case "modeNonAuth":
                         options = {
                             url: protocol + params.instance + ":" + params.port,
                             socket : { reconnectStrategy : false}

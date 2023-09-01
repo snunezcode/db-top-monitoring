@@ -121,8 +121,13 @@ function Login() {
                                         userId = "IAM Integrated";
                                         break;
                                         
+                        case "modeNonAuth":
+                                        userId = "NON-AUTH Token";
+                                        break;
+                                        
                         case "modeAuth":
                                         userId = "AUTH Token";
+                                        
                                         break;
                         case "modeRbac":
                                         userId = txtUser;
@@ -411,6 +416,7 @@ function Login() {
                             onDismiss={() => setModalConnectVisible(false)}
                             visible={modalConnectVisible}
                             closeAriaLabel="Close modal"
+                            size="large"
                             footer={
                               <Box float="right">
                                 <SpaceBetween direction="horizontal" size="xs">
@@ -448,7 +454,14 @@ function Login() {
                                                                 when your cluster is configured to use Redis version 7 or above.
                                                           </>
                                                 },
-                                                
+                                                {
+                                                  label: "NON-AUTH Mode",
+                                                  id: "modeNonAuth",
+                                                  content: 
+                                                          <>
+                                                                With NON-AUTH Mode you can connect without authenticate a connection to ElastiCache for Redis.
+                                                          </>
+                                                },
                                                 {
                                                   label: "AUTH Mode",
                                                   id: "modeAuth",
