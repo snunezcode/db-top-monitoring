@@ -37,12 +37,12 @@ DBTop Monitoring Solution currently supports following database engines:
 - Amazon Aurora PostgreSQL-Compatible Edition (Instance Level)
 - AWS RDS for Oracle
 - AWS RDS for SQLServer
+- Amazon ElastiCache for Redis
+- Amazon MemoryDB for Redis
 
 
 Additional expanded support coming later to :
 
-- Amazon ElastiCache for Redis
-- Amazon MemoryDB for Redis
 - Amazon Aurora Clusters
 - Amazon DocumentDB
 

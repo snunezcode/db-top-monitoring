@@ -673,21 +673,6 @@ async function oracleOpenConnection(session_id,host,port,user,password,instance)
 //--#################################################################################################### 
 //   ---------------------------------------- REDIS
 //--#################################################################################################### 
-async function validateRedisConnection(req, res, dbconn) {
-    try {
-          
-          var command = await dbconn.sendCommand(['INFO','Commandstats']);
-          console.log("Connection validated success." )
-          return true;
-                        
-    }
-    catch(err) {
-        console.log(err)
-        console.log("Connection validated failed." )
-        return false;
-        
-    }
-}
 
 
 // REDIS : Auth Connection
@@ -746,7 +731,6 @@ async function authRedisConnection(req, res) {
                     
                     var dbconnection = redis.createClient(options);
                     dbconnection.on('error', err => {       
-                              console.log("Redis event raised - auth");
                               console.log(err.message);
                     });   
                 
@@ -825,7 +809,6 @@ async function openRedisConnectionSingle(req, res) {
                 dbRedis[params.connectionId][params.instance] = redis.createClient(options);
                             
                 dbRedis[params.connectionId][params.instance].on('error', err => {       
-                              console.log("Redis event raised");
                               console.log(err.message);
                 });   
 
