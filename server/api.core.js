@@ -6,6 +6,7 @@ var configData = JSON.parse(fs.readFileSync('./aws-exports.json'));
 const express = require('express');
 const cors = require('cors')
 const uuid = require('uuid');
+const axios = require('axios');
 
 const app = express();
 const port = configData.aws_api_port;
@@ -1127,6 +1128,10 @@ app.get("/api/aws/region/elasticache/cluster/nodes/", (req,res)=>{
 
 // AWS : MemoryDB List nodes
 app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
+    
+    // Gather Metrics
+    // gatherTelemetry({});
+    
 
     // Token Validation
     var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
@@ -1153,6 +1158,30 @@ app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
 
 
 });
+
+
+//--#################################################################################################### 
+//   ---------------------------------------- TELEMETRY
+//--#################################################################################################### 
+
+async function gatherTelemetry(telemtryObject) {
+    
+        try {
+                axios.post(`${configData.aws_region}dbtop/telemetry/app/usage/`,{
+                              params: { engine : "memorydb", event : "evt-metrics", value : 520 }
+                          }).then((data)=>{
+                              console.log(data);
+                          })
+                          .catch((err) => {
+                              console.log('Timeout API Call : /dbtop/telemetry/app/usage/');
+                              console.log(err)
+                          });
+        }
+        catch (err){
+            console.log(err)
+        }
+  
+}
 
 
 //--#################################################################################################### 

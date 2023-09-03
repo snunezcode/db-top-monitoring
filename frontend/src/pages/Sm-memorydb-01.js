@@ -1,5 +1,4 @@
 import { useState,useEffect,useRef } from 'react';
-import ElasticCluster  from '../components/elasticache/CompElasticCluster01';
 import Axios from 'axios';
 import { configuration } from './Configs';
 import {classMetric} from '../components/Functions';
