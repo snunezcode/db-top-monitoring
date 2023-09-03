@@ -325,63 +325,7 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
                 
                     break;
                     
-            //-- REDIS CONNECTION
-            case 'elasticache:redis':
-                    
-                    var options = {};
-                    var protocol = "redis://";
-                    
-                    if ( params.ssl == "required" )
-                        protocol = "rediss://";
-    
-                    switch (params.auth){
-                        
-                        case "modeIam" :
-                        case "modeNonAuth":
-                            
-                                options = {
-                                        url: protocol + params.host + ":" + params.port,
-                                        socket : { reconnectStrategy : false}
-                                };
-                                break;
-                                
-                                
-                        
-                        case "modeAuth":
-                        
-                                options = {
-                                        url: protocol + params.host + ":" + params.port,
-                                        password : params.password,
-                                        socket : { reconnectStrategy : false}
-                                };
-                                break;
-                
-                        case "modeRbac" :
-                                
-                                options = {
-                                        url: protocol + params.username + ":" + params.password + "@" + params.host + ":" + params.port,
-                                        socket : { reconnectStrategy : false}
-                                };
-                                break;
-                        
-                    }
-                    
-                    var dbconnection = redis.createClient(options);
-                    
-                    var session_id=uuid.v4();
-                    var token = generateToken({ session_id: session_id});
-                        
-                    dbconnection.connect()
-                        .then(()=> {
-                            dbRedis[session_id] = {}
-                            res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token });
-                            
-                        })
-                        .catch(()=> {
-                            res.status(200).send( {"result":"auth0", "session_id": session_id, "session_token": token });
-                        });
             
-                    break;
   
         }
         
@@ -729,6 +673,100 @@ async function oracleOpenConnection(session_id,host,port,user,password,instance)
 //--#################################################################################################### 
 //   ---------------------------------------- REDIS
 //--#################################################################################################### 
+async function validateRedisConnection(req, res, dbconn) {
+    try {
+          
+          var command = await dbconn.sendCommand(['INFO','Commandstats']);
+          console.log("Connection validated success." )
+          return true;
+                        
+    }
+    catch(err) {
+        console.log(err)
+        console.log("Connection validated failed." )
+        return false;
+        
+    }
+}
+
+
+// REDIS : Auth Connection
+app.post("/api/redis/connection/auth/", authRedisConnection);
+
+async function authRedisConnection(req, res) {
+ 
+    var params = req.body.params;
+    
+    try {
+        
+            
+                    var options = {};
+                    var protocol = "redis://";
+                    
+                    if ( params.ssl == "required" )
+                        protocol = "rediss://";
+    
+                    switch (params.auth){
+                        
+                        case "modeIam" :
+                        case "modeNonAuth":
+                        case "modeOpen":
+                                options = {
+                                        url: protocol + params.host + ":" + params.port,
+                                        socket : { reconnectStrategy : false},
+                                        
+                                };
+                                break;
+                                
+                                
+                        
+                        case "modeAuth":
+                        
+                                options = {
+                                        url: protocol + params.host + ":" + params.port,
+                                        password : params.password,
+                                        socket : { reconnectStrategy : false},
+                                        
+                                };
+                                break;
+                
+                        case "modeRbac" :
+                        case "modeAcl" :
+                                
+                                options = {
+                                        url: protocol + params.username + ":" + params.password + "@" + params.host + ":" + params.port,
+                                        socket : { reconnectStrategy : false},
+                                        
+                                };
+                                break;
+                        
+                    }
+                    
+                    
+                    
+                    var dbconnection = redis.createClient(options);
+                    dbconnection.on('error', err => {       
+                              console.log("Redis event raised - auth");
+                              console.log(err.message);
+                    });   
+                
+                    var session_id=uuid.v4();
+                    var token = generateToken({ session_id: session_id});
+                    await dbconnection.connect();
+                    var command = await dbconnection.info();
+                    dbRedis[session_id] = {}
+                    dbconnection.quit();
+                    res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token });
+                   
+                   
+      } catch (error) {
+        console.log(error);
+        res.status(200).send( {"result":"auth0", "session_id": session_id, "session_token": token });
+    }
+    
+    
+}
+
 
 
 // REDIS : Open Connection - Single
@@ -736,9 +774,10 @@ app.get("/api/redis/connection/open/", openRedisConnectionSingle);
 
 async function openRedisConnectionSingle(req, res) {
  
+    var params = req.query;
+         
     try {
         
-            var params = req.query;
             
             var options = {};
             var protocol = "redis://";
@@ -750,6 +789,7 @@ async function openRedisConnectionSingle(req, res) {
                 
                 case "modeIam" :
                 case "modeNonAuth":
+                case "modeOpen":
                         options = {
                             url: protocol + params.instance + ":" + params.port,
                             socket : { reconnectStrategy : false}
@@ -770,7 +810,7 @@ async function openRedisConnectionSingle(req, res) {
         
         
                 case "modeRbac" :
-                    
+                case "modeAcl" :    
                         options = {
                             url: protocol + params.username + ":" + params.password + "@" + params.instance + ":" + params.port,
                             socket : { reconnectStrategy : false}
@@ -784,6 +824,11 @@ async function openRedisConnectionSingle(req, res) {
             
                 dbRedis[params.connectionId][params.instance] = redis.createClient(options);
                             
+                dbRedis[params.connectionId][params.instance].on('error', err => {       
+                              console.log("Redis event raised");
+                              console.log(err.message);
+                });   
+
                 dbRedis[params.connectionId][params.instance].connect()
                     .then(()=> {
                         console.log("Redis Instance Connected : " + params.connectionId + "#" + params.instance )
@@ -798,8 +843,10 @@ async function openRedisConnectionSingle(req, res) {
             }
             else {
                 console.log("Re-using - Redis Instance connection : " + params.connectionId + "#" + params.instance )
-                res.status(200).send( {"result":"auth0" });
+                res.status(200).send( {"result":"auth1" });
             }
+    
+        
     }
     catch (error) {
         console.log(error)
@@ -841,11 +888,10 @@ app.get("/api/redis/commandstats/single/", getRedisCommandStatsSingle);
 async function getRedisCommandStatsSingle(req, res) {
  
     var params = req.query;
-    
+
     try {
           
           var command = await dbRedis[params.connectionId][params.instance].sendCommand(['INFO','Commandstats']);
-          
           var iRowLine = 0;
           var dataResult = "";
           command.split(/\r?\n/).forEach((line) => {
@@ -1109,11 +1155,10 @@ app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
     var params = req.query;
 
     var parameter = {
-      MaxRecords: 100,
       ClusterName: params.cluster,
       ShowShardDetails: true
     };
-    elasticache.describeClusters(parameter, function(err, data) {
+    memorydb.describeClusters(parameter, function(err, data) {
       if (err) {
             console.log(err, err.stack); // an error occurred
             res.status(401).send({ Clusters : []});

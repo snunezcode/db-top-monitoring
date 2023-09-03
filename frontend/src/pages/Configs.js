@@ -11,22 +11,29 @@ export const configuration =
     }
 };
 
-export const SideMainLayoutHeader = { text: 'Service', href: '#/' };
+export const SideMainLayoutHeader = { text: 'Database Services', href: '#/' };
 
 export const SideMainLayoutMenu = [
+    { type: "link", text: "Home", href: "/" },
     {
-      text: 'Explore resources',
+      text: 'Resources',
       type: 'section',
       defaultExpanded: true,
       items: [
-        { type: 'link', text: 'Home', href: '/' },
         { type: 'link', text: 'RDS Instances', href: '/rds/instances/' },
         { type: 'link', text: 'Aurora Clusters', href: '#'},
         { type: 'link', text: 'ElastiCache Clusters', href: '/clusters/elasticache/' },
-        { type: 'link', text: 'Memory Clusters', href: '#'},
-        { type: 'link', text: 'DocumentDB Clusters', href: '#'},
-        { type: 'link', text: 'Logout', href: '/logout' }
+        { type: 'link', text: 'Memory Clusters', href: '/clusters/memorydb/'},
+        { type: 'link', text: 'DocumentDB Clusters', href: '#'}
       ],
+    },
+    { type: "divider" },
+    {
+          type: "link",
+          text: "Documentation",
+          href: "https://github.com/aws-samples/rds-top-monitoring",
+          external: true,
+          externalIconAriaLabel: "Opens in a new tab"
     }
   ];
 

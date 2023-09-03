@@ -282,7 +282,6 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
     }
 
     function fetchData() {
-
         fetchCommandStats();
         fetchClusterStats();
 

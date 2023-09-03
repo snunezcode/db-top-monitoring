@@ -152,21 +152,122 @@ function App() {
         
         var api_url = configuration["apps-settings"]["api_url"];
         
-        await Axios.get(`${api_url}/api/aws/region/elasticache/cluster/nodes/`,{
+        await Axios.get(`${api_url}/api/aws/region/memorydb/cluster/nodes/`,{
                       params: { cluster : cnf_identifier }
                   }).then((data)=>{
                     console.log(data);
-                    if (data.data.ReplicationGroups.length> 0) {
+                    if (data.data.Clusters.length> 0) {
                             
+                            /*
+                              {
+                                "Clusters": [
+                                    {
+                                        "Name": "cls500",
+                                        "Status": "available",
+                                        "NumberOfShards": 1,
+                                        "Shards": [
+                                            {
+                                                "Name": "0001",
+                                                "Status": "available",
+                                                "Slots": "0-16383",
+                                                "Nodes": [
+                                                    {
+                                                        "Name": "cls500-0001-001",
+                                                        "Status": "available",
+                                                        "AvailabilityZone": "us-east-1a",
+                                                        "CreateTime": "2023-08-26T09:08:20.322000-06:00",
+                                                        "Endpoint": {
+                                                            "Address": "cls500-0001-001.cls500.9aldbm.memorydb.us-east-1.amazonaws.com",
+                                                            "Port": 6379
+                                                        }
+                                                    },
+                                                    {
+                                                        "Name": "cls500-0001-002",
+                                                        "Status": "available",
+                                                        "AvailabilityZone": "us-east-1b",
+                                                        "CreateTime": "2023-08-26T09:08:20.322000-06:00",
+                                                        "Endpoint": {
+                                                            "Address": "cls500-0001-002.cls500.9aldbm.memorydb.us-east-1.amazonaws.com",
+                                                            "Port": 6379
+                                                        }
+                                                    }
+                                                ],
+                                                "NumberOfNodes": 2
+                                            }
+                                        ],
+                                        "ClusterEndpoint": {
+                                            "Address": "clustercfg.cls500.9aldbm.memorydb.us-east-1.amazonaws.com",
+                                            "Port": 6379
+                                        },
+                                        "NodeType": "db.t4g.small",
+                                        "EngineVersion": "7.0",
+                                        "EnginePatchVersion": "7.0.7",
+                                        "ParameterGroupName": "default.memorydb-redis7",
+                                        "ParameterGroupStatus": "in-sync",
+                                        "SecurityGroups": [
+                                            {
+                                                "SecurityGroupId": "sg-0c86ade11c3c33805",
+                                                "Status": "active"
+                                            }
+                                        ],
+                                        "SubnetGroupName": "subnet-memory-db",
+                                        "TLSEnabled": true,
+                                        "ARN": "arn:aws:memorydb:us-east-1:039783469744:cluster/cls500",
+                                        "SnapshotRetentionLimit": 0,
+                                        "MaintenanceWindow": "fri:09:00-fri:10:00",
+                                        "SnapshotWindow": "07:00-08:00",
+                                        "ACLName": "grp01",
+                                        "AutoMinorVersionUpgrade": true,
+                                        "DataTiering": "false"
+                                    }
+                                ]
+                            }
+                            */
                             
-                            var rg = data.data.ReplicationGroups[0];
+                            var rg = data.data.Clusters[0];
                             
                             var nodeList = [];
                             var clwDimensions = "";
-                            var nodePort;
-                            var clusterEndpoint;
-                            //-- Cluster Enable Mode
+                            var clusterEndpoint = rg['ClusterEndpoint']['Address'];
+                            var nodePort = rg['ClusterEndpoint']['Port'];
                             
+                            
+                            
+                            rg['Shards'].forEach(function(shard) {
+                                
+                                    shard['Nodes'].forEach(function(node) {
+                                        
+                                        nodeList.push({
+                                                        nodeId : node['Name'],
+                                                        endPoint : node['Endpoint']['Address']
+                                                        });
+                                        
+                                        nodeMembers.current[node['Name']] = { 
+                                                                        cpu : Array(historyChartDetails).fill(null), 
+                                                                        memory : Array(historyChartDetails).fill(null),
+                                                                        operations : Array(historyChartDetails).fill(null), 
+                                                                        getCalls : Array(historyChartDetails).fill(null), 
+                                                                        setCalls : Array(historyChartDetails).fill(null), 
+                                                                        getLatency : Array(historyChartDetails).fill(null), 
+                                                                        setLatency : Array(historyChartDetails).fill(null), 
+                                                                        connections : Array(historyChartDetails).fill(null),
+                                                                        cacheHits : Array(historyChartDetails).fill(null),
+                                                                        cacheHitRate : Array(historyChartDetails).fill(null),
+                                                                                                    
+                                                                        };
+                                                                        
+                                        clwDimensions = clwDimensions + ( rg['Name'] + "|" + node['Name'] ) + "," 
+                                
+                                    });
+                                    
+                                    
+                                        
+                                
+                                
+                            });
+                            
+                            
+                            /*
                             if( rg['ClusterEnabled'] == true ){
                             
                                 nodePort = rg.ConfigurationEndpoint.Port;
@@ -242,21 +343,23 @@ function App() {
                                 });
                                 
                             }
+                            */
                             
-                            
+                            console.log(nodeList);
+                            console.log(clwDimensions);
                             
                             setDataNodes({
                                     MemberClusters : nodeList,
                                     ConfigurationEndpoint : clusterEndpoint,
                                     ConfigurationUid : "",
                                     Port : nodePort,
-                                    CacheNodeType : rg.CacheNodeType,
-                                    ReplicationGroupId : rg.ReplicationGroupId,
-                                    Shards : rg.NodeGroups.length,
-                                    Status : rg.Status,
-                                    ClusterEnabled : String(rg.ClusterEnabled),
-                                    MultiAZ : rg.MultiAZ,
-                                    DataTiering : rg.DataTiering, 
+                                    CacheNodeType : rg['NodeType'],
+                                    ReplicationGroupId : rg['Name'],
+                                    Shards : rg['NumberOfShards'],
+                                    Status : rg['Status'],
+                                    Ssl : String(rg['TLSEnabled']),
+                                    Acl : rg['ACLName'],
+                                    DataTiering : String(rg['DataTiering']), 
                                     clwDimensions : clwDimensions.slice(0, -1)
                                     }
                             );  
@@ -268,7 +371,7 @@ function App() {
                   
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/aws/region/elasticache/cluster/nodes/' );
+                  console.log('Timeout API Call : /api/aws/region/memorydb/cluster/nodes/' );
                   console.log(err);
                   
               });
@@ -420,7 +523,7 @@ function App() {
             nodes++;
 
         }
-        
+      
         metricObjectGlobal.current.addPropertyValue('Operations', metrics.operations);
         metricObjectGlobal.current.addPropertyValue('GetCalls', metrics.getCalls);
         metricObjectGlobal.current.addPropertyValue('SetCalls', metrics.setCalls);
@@ -452,6 +555,7 @@ function App() {
             metricDetails : metricDetails,
         });
         
+       
         
     }
     
@@ -868,8 +972,8 @@ function App() {
                                                                   subtitle="Average" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="CPUUtilization"
                                                                   stat_type="Average"
@@ -886,8 +990,8 @@ function App() {
                                                                   subtitle="Average" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="EngineCPUUtilization"
                                                                   stat_type="Average"
@@ -904,8 +1008,8 @@ function App() {
                                                                   subtitle="Average" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="DatabaseMemoryUsagePercentage"
                                                                   stat_type="Average"
@@ -918,14 +1022,32 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
-                                                                  title="Database Capacity Usage Percentage % " 
+                                                                  title="BytesUsedForMemoryDB" 
                                                                   subtitle="Average" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DatabaseCapacityUsagePercentage"
+                                                                  metric_name="BytesUsedForMemoryDB"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart
+                                                                  title="FreeableMemory" 
+                                                                  subtitle="Total" 
+                                                                  height="180px" 
+                                                                  color="purple" 
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="FreeableMemory"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
@@ -940,8 +1062,8 @@ function App() {
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="NetworkBytesIn"
                                                                   stat_type="Average"
@@ -958,8 +1080,8 @@ function App() {
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="NetworkBytesOut"
                                                                   stat_type="Average"
@@ -976,8 +1098,8 @@ function App() {
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="CurrConnections"
                                                                   stat_type="Average"
@@ -994,8 +1116,8 @@ function App() {
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="CurrItems"
                                                                   stat_type="Average"
@@ -1012,8 +1134,8 @@ function App() {
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="GetTypeCmds"
                                                                   stat_type="Average"
@@ -1030,8 +1152,8 @@ function App() {
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="SetTypeCmds"
                                                                   stat_type="Average"
@@ -1044,14 +1166,14 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
-                                                                  title="GetTypeCmdsLatency" 
+                                                                  title="ReplicationBytes" 
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="GetTypeCmdsLatency"
+                                                                  metric_name="ReplicationBytes"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
@@ -1062,32 +1184,14 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
-                                                                  title="SetTypeCmdsLatency" 
+                                                                  title="KeyspaceHits" 
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="SetTypeCmdsLatency"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="CacheHits" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="CacheHits"
+                                                                  metric_name="KeyspaceHits"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
@@ -1098,14 +1202,14 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
-                                                                  title="CacheMisses" 
+                                                                  title="KeyspaceMisses" 
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="CacheMisses"
+                                                                  metric_name="KeyspaceMisses"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
@@ -1116,14 +1220,14 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
-                                                                  title="CacheHitRate" 
+                                                                  title="MemoryFragmentationRatio" 
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="CacheHitRate"
+                                                                  metric_name="MemoryFragmentationRatio"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
@@ -1138,8 +1242,8 @@ function App() {
                                                                   subtitle="Total" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
+                                                                  namespace="AWS/MemoryDB" 
+                                                                  dimension_name={"ClusterName|NodeName"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="Evictions"
                                                                   stat_type="Average"
@@ -1195,8 +1299,8 @@ function App() {
                                                                             <div>{dataNodes['Status']}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <Box variant="awsui-key-label">ClusterEnabled</Box>
-                                                                            <div>{dataNodes['ClusterEnabled']}</div>
+                                                                            <Box variant="awsui-key-label">ACLName</Box>
+                                                                            <div>{dataNodes['Acl']}</div>
                                                                         </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">Shards</Box>
@@ -1211,8 +1315,8 @@ function App() {
                                                                     <br/>
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                         <div>
-                                                                            <Box variant="awsui-key-label">MultiAZ</Box>
-                                                                            <div>{dataNodes['MultiAZ']}</div>
+                                                                            <Box variant="awsui-key-label">SSL</Box>
+                                                                            <div>{dataNodes['Ssl']}</div>
                                                                         </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">DataTiering</Box>

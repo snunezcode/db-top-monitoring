@@ -11,6 +11,7 @@ User=ec2-user
 WorkingDirectory=/aws/apps/server/
 ExecStart=/home/ec2-user/.nvm/versions/node/v16.17.1/bin/node api.core.js
 Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

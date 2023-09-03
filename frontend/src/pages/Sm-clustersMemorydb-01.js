@@ -71,12 +71,12 @@ function Login() {
                     { id: "status",header: "Status",cell: item => ( <> <StatusIndicator type={item.status === 'available' ? 'success' : 'error'}> {item.status} </StatusIndicator> </> ),sortingField: "status",isRowHeader: true },
                     { id: "size",header: "Size",cell: item => item['size'] || "-",sortingField: "size",isRowHeader: true },
                     { id: "engine",header: "Engine",cell: item => item['engine'] || "-",sortingField: "engine",isRowHeader: true },
+                    { id: "version",header: "Version",cell: item => item['version'] || "-",sortingField: "version",isRowHeader: true },
                     { id: "shards",header: "Total Shards",cell: item => item['shards'] || "-",sortingField: "shards",isRowHeader: true },
                     { id: "nodes",header: "Total Nodes",cell: item => item['nodes'] || "-",sortingField: "nodes",isRowHeader: true },
-                    { id: "mode",header: "Cluster Mode",cell: item => item['mode'] || "-",sortingField: "mode",isRowHeader: true },
-                    { id: "multiaz",header: "MultiAz",cell: item => item['multiaz'] || "-",sortingField: "multiaz",isRowHeader: true },
+                    { id: "tier",header: "DataTiering",cell: item => item['tier'] || "-",sortingField: "tier",isRowHeader: true },
                     { id: "ssl",header: "SSL",cell: item => item['ssl'] || "-",sortingField: "ssl",isRowHeader: true },
-                    { id: "auth",header: "AUTH",cell: item => item['auth'] || "-",sortingField: "auth",isRowHeader: true },
+                    { id: "acl",header: "ACLName",cell: item => item['acl'] || "-",sortingField: "acl",isRowHeader: true },
                     ];
     
     
@@ -98,8 +98,8 @@ function Login() {
             // Add CSRF Token
             Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
 
-            // Get Authentication
-            Axios.post(`${configuration["apps-settings"]["api_url"]}/api/security/rds/auth/`,{
+            // Get Authentication 
+            Axios.post(`${configuration["apps-settings"]["api_url"]}/api/redis/connection/auth/`,{
                 params: { 
                           cluster : selectedItems[0]['identifier'],
                           host: selectedItems[0]['endpoint'], 
@@ -121,10 +121,10 @@ function Login() {
                                         userId = "IAM Integrated";
                                         break;
                                         
-                        case "modeAuth":
-                                        userId = "AUTH Token";
+                        case "modeOpen":
+                                        userId = "Open-Access";
                                         break;
-                        case "modeRbac":
+                        case "modeAcl":
                                         userId = txtUser;
                                         break;
                           
@@ -146,8 +146,8 @@ function Login() {
                      var path_name = "";
                      switch (selectedItems[0]['engine']) {
                          
-                          case "elasticache:redis":
-                            path_name = "/sm-elasticache-01";
+                          case "memorydb:redis":
+                            path_name = "/sm-memorydb-01";
                             break;
                           
                           default:
@@ -175,7 +175,7 @@ function Login() {
             })
             .catch((err) => {
                 
-                console.log('Timeout API Call : /api/security/auth/');
+                console.log('Timeout API Call : /api/redis/connection/auth/');
                 console.log(err)
             });
             
@@ -193,9 +193,14 @@ function Login() {
                    
            
             const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/region/memorydb/cluster/nodes/`);
-            console.log(data.Clusters);
             sessionStorage.setItem("x-csrf-token", data.csrfToken );
+            
             data.Clusters.forEach(function(item) {
+                            
+                            var nodes = 0;                
+                            item['Shards'].forEach(function(shards) {
+                                nodes = nodes + shards['NumberOfNodes'];
+                            });
                             /*
                               {
                                 "Clusters": [
@@ -268,14 +273,14 @@ function Login() {
                                                 status : item['Status'] ,
                                                 size : item['NodeType'] ,
                                                 engine : "memorydb:redis" ,
-                                                shards : item['NumberOfShards'].length,
-                                                nodes: 200,
-                                                mode: item['ClusterMode'],
-                                                endpoint: "",
-                                                port : "",
-                                                multiaz : item['MultiAZ'],
-                                                ssl : item['TransitEncryptionMode'],
-                                                auth : String(item['AuthTokenEnabled'])
+                                                shards : item['NumberOfShards'],
+                                                nodes: nodes,
+                                                version: item['EnginePatchVersion'],
+                                                endpoint: item['ClusterEndpoint']['Address'],
+                                                port : item['ClusterEndpoint']['Port'],
+                                                tier : item['DataTiering'],
+                                                ssl : ( String(item['TLSEnabled']) == "true" ? "required" : "-" ),
+                                                acl : item['ACLName']
                                   });
                                   
                                   
@@ -293,7 +298,7 @@ function Login() {
         catch{
           console.log('Timeout API error : /api/aws/region/elasticache/cluster/nodes/');                  
         }
-        
+
         setDataRds(rdsItems);
         if (rdsItems.length > 0 ) {
           setSelectedItems([rdsItems[0]]);
@@ -371,8 +376,8 @@ function Login() {
                                   {selectedItems[0]['engine']}
                               </div>
                               <div>
-                                  <Box variant="awsui-key-label">MultiAZ</Box>
-                                  {selectedItems[0]['multiaz']}
+                                  <Box variant="awsui-key-label">DataTiering</Box>
+                                  {selectedItems[0]['tier']}
                               </div>
                               <div>
                                   <Box variant="awsui-key-label">Total Shards</Box>
@@ -383,8 +388,8 @@ function Login() {
                                   {selectedItems[0]['nodes']}
                               </div>
                               <div>
-                                  <Box variant="awsui-key-label">Cluster Mode</Box>
-                                  {selectedItems[0]['mode']}
+                                  <Box variant="awsui-key-label">ACLName</Box>
+                                  {selectedItems[0]['acl']}
                               </div>
                               <div>
                                   <Box variant="awsui-key-label">Endpoint</Box>
@@ -491,32 +496,30 @@ function Login() {
                                     activeTabId={activeTabId}
                                     tabs={[
                                                 {
-                                                  label: "IAM Integration",
+                                                  label: "IAM Integration Mode",
                                                   id: "modeIam",
                                                   content: 
                                                           <>
-                                                                With IAM Authentication you can authenticate a connection to ElastiCache for Redis using AWS IAM identities, 
+                                                                With IAM Authentication you can authenticate a connection to MemoryDB for Redis using AWS IAM identities, 
                                                                 when your cluster is configured to use Redis version 7 or above.
                                                           </>
                                                 },
                                                 
                                                 {
-                                                  label: "AUTH Mode",
-                                                  id: "modeAuth",
+                                                  label: "Open Access Mode",
+                                                  id: "modeOpen",
                                                   content: 
                                                           <>
                                                                 
-                                                                <FormField label="Auth Token">
-                                                                  <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
-                                                                         type="password"
-                                                                  />
-                                                                </FormField>
+                                                                With Open-Access mode you can authenticate a connection to MemoryDB for Redis, 
+                                                                when your cluster is configured to use open access.
+                                                          
                                                                 
                                                           </>
                                                 },
                                                 {
-                                                  label: "RBAC Mode",
-                                                  id: "modeRbac",
+                                                  label: "ACL Mode",
+                                                  id: "modeAcl",
                                                   content: 
                                                           <>
                                                                 

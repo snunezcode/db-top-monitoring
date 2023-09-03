@@ -26,6 +26,7 @@ import SmPostgresql02 from "./pages/Sm-postgresql-02";
 import SmMssql01 from "./pages/Sm-mssql-01";
 import SmOracle01 from "./pages/Sm-oracle-01";
 import SmElasticache01 from "./pages/Sm-elasticache-01";
+import SmMemoryDB01 from "./pages/Sm-memorydb-01";
 
 //-- Components
 import ProtectedDb from "./components/ProtectedDb";
@@ -70,6 +71,7 @@ Axios.get(`/aws-exports.json`,).then((data)=>{
                     <Route path="/sm-mssql-01" element={<ProtectedApp><ProtectedDb> <SmMssql01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-oracle-01" element={<ProtectedApp><ProtectedDb> <SmOracle01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-elasticache-01" element={<ProtectedApp><ProtectedDb> <SmElasticache01 /></ProtectedDb> </ProtectedApp>} />
+                    <Route path="/sm-memorydb-01" element={<ProtectedApp><ProtectedDb> <SmMemoryDB01 /></ProtectedDb> </ProtectedApp>} />
                 </Routes>
               </BrowserRouter>
           </Authenticator.Provider>

@@ -99,7 +99,7 @@ function Login() {
             Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
 
             // Get Authentication
-            Axios.post(`${configuration["apps-settings"]["api_url"]}/api/security/rds/auth/`,{
+            Axios.post(`${configuration["apps-settings"]["api_url"]}/api/redis/connection/auth/`,{
                 params: { 
                           cluster : selectedItems[0]['identifier'],
                           host: selectedItems[0]['endpoint'], 
@@ -180,7 +180,7 @@ function Login() {
             })
             .catch((err) => {
                 
-                console.log('Timeout API Call : /api/security/auth/');
+                console.log('Timeout API Call : /api/redis/connection/auth/');
                 console.log(err)
             });
             
