@@ -48,9 +48,6 @@ Additional expanded support coming later to :
 
 
 
-
-
-
 ## Solution Components
 
 - **Frontend.** React Developed Application to provide user interface to visualize performance database information.
