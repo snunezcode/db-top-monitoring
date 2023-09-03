@@ -135,8 +135,12 @@ Resources:
                                 "elasticache:DescribeReplicationGroups"
                             ],
                             "Resource": "arn:aws:elasticache:${AWS::Region}:${AWS::AccountId}:replicationgroup:*"
-                        }
-                        
+                        },
+                        {
+                			"Effect": "Allow",
+                			"Action": "memorydb:DescribeClusters",
+                			"Resource": "arn:aws:memorydb:${AWS::Region}:${AWS::AccountId}:cluster/*"
+                		}
                         
                     ]
                 }
@@ -153,6 +157,7 @@ Resources:
             Description: "Allows EC2 instance to call AWS services on your behalf."
             ManagedPolicyArns:
                 - !Ref IAMPolicyEc2
+                - "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
                 
     IAMRoleCognito:
         Type: "AWS::IAM::Role"
