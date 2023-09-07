@@ -57,9 +57,7 @@ function Login() {
     //-- Variable for Active Tabs
     const [activeTabId, setActiveTabId] = useState("modeIam");
     const currentTabId = useRef("modeIam");
-
-
-  
+    
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
@@ -201,72 +199,7 @@ function Login() {
                             item['Shards'].forEach(function(shards) {
                                 nodes = nodes + shards['NumberOfNodes'];
                             });
-                            /*
-                              {
-                                "Clusters": [
-                                    {
-                                        "Name": "cls500",
-                                        "Status": "available",
-                                        "NumberOfShards": 1,
-                                        "Shards": [
-                                            {
-                                                "Name": "0001",
-                                                "Status": "available",
-                                                "Slots": "0-16383",
-                                                "Nodes": [
-                                                    {
-                                                        "Name": "cls500-0001-001",
-                                                        "Status": "available",
-                                                        "AvailabilityZone": "us-east-1a",
-                                                        "CreateTime": "2023-08-26T09:08:20.322000-06:00",
-                                                        "Endpoint": {
-                                                            "Address": "cls500-0001-001.cls500.9aldbm.memorydb.us-east-1.amazonaws.com",
-                                                            "Port": 6379
-                                                        }
-                                                    },
-                                                    {
-                                                        "Name": "cls500-0001-002",
-                                                        "Status": "available",
-                                                        "AvailabilityZone": "us-east-1b",
-                                                        "CreateTime": "2023-08-26T09:08:20.322000-06:00",
-                                                        "Endpoint": {
-                                                            "Address": "cls500-0001-002.cls500.9aldbm.memorydb.us-east-1.amazonaws.com",
-                                                            "Port": 6379
-                                                        }
-                                                    }
-                                                ],
-                                                "NumberOfNodes": 2
-                                            }
-                                        ],
-                                        "ClusterEndpoint": {
-                                            "Address": "clustercfg.cls500.9aldbm.memorydb.us-east-1.amazonaws.com",
-                                            "Port": 6379
-                                        },
-                                        "NodeType": "db.t4g.small",
-                                        "EngineVersion": "7.0",
-                                        "EnginePatchVersion": "7.0.7",
-                                        "ParameterGroupName": "default.memorydb-redis7",
-                                        "ParameterGroupStatus": "in-sync",
-                                        "SecurityGroups": [
-                                            {
-                                                "SecurityGroupId": "sg-0c86ade11c3c33805",
-                                                "Status": "active"
-                                            }
-                                        ],
-                                        "SubnetGroupName": "subnet-memory-db",
-                                        "TLSEnabled": true,
-                                        "ARN": "arn:aws:memorydb:us-east-1:039783469744:cluster/cls500",
-                                        "SnapshotRetentionLimit": 0,
-                                        "MaintenanceWindow": "fri:09:00-fri:10:00",
-                                        "SnapshotWindow": "07:00-08:00",
-                                        "ACLName": "grp01",
-                                        "AutoMinorVersionUpgrade": true,
-                                        "DataTiering": "false"
-                                    }
-                                ]
-                            }
-                            */
-
+                           
                             try{
                                   rdsItems.push({
                                                 identifier : item['Name'],
@@ -280,7 +213,8 @@ function Login() {
                                                 port : item['ClusterEndpoint']['Port'],
                                                 tier : item['DataTiering'],
                                                 ssl : ( String(item['TLSEnabled']) == "true" ? "required" : "-" ),
-                                                acl : item['ACLName']
+                                                acl : item['ACLName'],
+                                                authmode : ( String(item['ACLName']) == "open-access" ? "modeOpen" : "modeAcl" ) 
                                   });
                                   
                                   
@@ -302,6 +236,8 @@ function Login() {
         setDataRds(rdsItems);
         if (rdsItems.length > 0 ) {
           setSelectedItems([rdsItems[0]]);
+          setActiveTabId(rdsItems[0]['authmode']);
+          currentTabId.current = rdsItems[0]['authmode'];
           setsplitPanelShow(true);
         }
 
@@ -315,9 +251,7 @@ function Login() {
       }
     }
     
-    
-    
-    
+
     
     //-- Init Function
       
@@ -359,7 +293,6 @@ function Login() {
                           } 
                           i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
                           onSplitPanelToggle={({ detail }) => {
-                                        console.log(detail);
                                         }
                                       }
                       >
@@ -424,6 +357,8 @@ function Login() {
                           onSelectionChange={({ detail }) => {
                             setSelectedItems(detail.selectedItems);
                             setsplitPanelShow(true);
+                            setActiveTabId(detail.selectedItems[0]['authmode']);
+                            currentTabId.current=detail.selectedItems[0]['authmode'];
                             }
                           }
                           selectedItems={selectedItems}
@@ -484,9 +419,8 @@ function Login() {
                               
                             }
                           >
-                                
-                                
-                                
+                            
+                                { activeTabId === "modeAcl" &&
                                 <Tabs
                                     onChange={({ detail }) => {
                                           setActiveTabId(detail.activeTabId);
@@ -496,29 +430,7 @@ function Login() {
                                     activeTabId={activeTabId}
                                     tabs={[
                                                 {
-                                                  label: "IAM Integration Mode",
-                                                  id: "modeIam",
-                                                  content: 
-                                                          <>
-                                                                With IAM Authentication you can authenticate a connection to MemoryDB for Redis using AWS IAM identities, 
-                                                                when your cluster is configured to use Redis version 7 or above.
-                                                          </>
-                                                },
-                                                
-                                                {
-                                                  label: "Open Access Mode",
-                                                  id: "modeOpen",
-                                                  content: 
-                                                          <>
-                                                                
-                                                                With Open-Access mode you can authenticate a connection to MemoryDB for Redis, 
-                                                                when your cluster is configured to use open access.
-                                                          
-                                                                
-                                                          </>
-                                                },
-                                                {
-                                                  label: "ACL Mode",
+                                                  label: "ACL Mode - Password Auth",
                                                   id: "modeAcl",
                                                   content: 
                                                           <>
@@ -535,12 +447,40 @@ function Login() {
                                                                 </FormField>
                                                                 
                                                           </>
+                                                }
+                                      ]}
+                                />
+                                
+                                }
+                                
+                                
+                                { activeTabId === "modeOpen" &&
+                                <Tabs
+                                    onChange={({ detail }) => {
+                                          setActiveTabId(detail.activeTabId);
+                                          currentTabId.current=detail.activeTabId;
+                                      }
+                                    }
+                                    activeTabId={activeTabId}
+                                    tabs={[
+                                                
+                                                {
+                                                      label: "Open Access Mode",
+                                                      id: "modeOpen",
+                                                      content: 
+                                                              <>
+                                                                    
+                                                                    With Open-Access mode you can authenticate a connection to MemoryDB for Redis, 
+                                                                    when your cluster is configured to use open access.
+                                                              
+                                                                    
+                                                              </>
                                                 },
                                                 
                                       ]}
                                 />
                                 
-                                
+                                }
                                 
                                 
                           </Modal>

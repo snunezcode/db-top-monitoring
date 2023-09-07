@@ -9,9 +9,7 @@ import CompMetric04 from '../Metric04';
 import { configuration } from '../../pages/Configs';
 import { classMetric } from '../Functions';
 import Badge from "@cloudscape-design/components/badge";
-import Modal from "@cloudscape-design/components/modal";
-import Button from "@cloudscape-design/components/button";
-import Box from "@cloudscape-design/components/box";
+import Link from "@cloudscape-design/components/link";
 
 
 const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port, syncClusterEvent, username, password, auth, ssl }) => {
@@ -348,11 +346,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         <Badge color="red"> S </Badge>
                     }
                     &nbsp;
-                    <a href="#/" onClick={onClickNode} style={{"font-size": "12px", "font-weight": "600", "color": "#C6C2C1" }} > 
-                        {nodeId}    
-                    </a>
-                    
-                    
+                    <Link  fontSize="body-s" onFollow={() => onClickNode()}>{nodeId}</Link>
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric04
@@ -364,7 +358,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         history={20}
                         type={"line"}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                         chartColorLine={"#D69855"}
                     />
                 </td>
@@ -378,7 +372,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         history={20}
                         type={"line"}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                         chartColorLine={"#D69855"}
                     />
                 </td>
@@ -392,7 +386,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         history={20}
                         type={"line"}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                         chartColorLine={"#D69855"}
                     />
                 </td>
@@ -403,7 +397,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         precision={2}
                         format={1}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
@@ -413,7 +407,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         precision={0}
                         format={3}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
@@ -425,7 +419,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         precision={0}
                         format={1}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
@@ -437,7 +431,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         precision={0}
                         format={1}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
@@ -447,7 +441,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         precision={0}
                         format={1}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                     />
                     
                 </td>
@@ -458,7 +452,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         precision={0}
                         format={1}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
@@ -468,7 +462,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         precision={0}
                         format={1}
                         fontSizeValue={"14px"}
-                        fontColorValue={"#F6CE55"}
+                        fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
             </tr>

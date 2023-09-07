@@ -1,4 +1,8 @@
 import {useState,useEffect} from 'react'
+import * as awsui from '@cloudscape-design/design-tokens';
+import Link from "@cloudscape-design/components/link";
+
+
 
 function Metric({ value, title, precision, format=1, fontSizeTitle = "11px", fontSizeValue = "22px", fontColorTitle = "#C6C2C1", fontColorValue = "orange" }) {
 
@@ -69,7 +73,7 @@ function Metric({ value, title, precision, format=1, fontSizeTitle = "11px", fon
                     {counterValue}
                 </span>
                 <br/>
-                <span style={{"font-size": fontSizeTitle,"font-weight": "450","font-family": "Verdana", "color": fontColorTitle }}>
+                <span style={{"font-size": fontSizeTitle,"font-weight": "450","font-family": "Verdana", }}>
                     {title}
                 </span>
           

@@ -7,7 +7,7 @@ function ChartLine({series,history, height, width="100%", title, colors=[], bord
               chart: {
                 height: height,
                 type: 'line',
-                foreColor: '#C6C2C1',
+                foreColor: '#9e9b9a',
                 zoom: {
                   enabled: false
                 },
@@ -22,8 +22,8 @@ function ChartLine({series,history, height, width="100%", title, colors=[], bord
                     show: false,
                  },
                  dropShadow: {
-                  enabled: true,
-                  top: 3,
+                  enabled: false,
+                  top: 2,
                   left: 2,
                   blur: 4,
                   opacity: 1,
@@ -33,6 +33,8 @@ function ChartLine({series,history, height, width="100%", title, colors=[], bord
               markers: {
                   size: 4,
                   strokeColors: '#29313e',
+                  radius: 1,
+                  strokeWidth: 0.2,
               },
               dataLabels: {
                 enabled: false
@@ -50,7 +52,7 @@ function ChartLine({series,history, height, width="100%", title, colors=[], bord
                   fontSize:  '13px',
                   fontWeight:  'bold',
                   fontFamily:  undefined,
-                  color : "#C6C2C1"
+                  /*color : "#C6C2C1"*/
                 }
                 
               },
@@ -111,7 +113,7 @@ function ChartLine({series,history, height, width="100%", title, colors=[], bord
         
                                         },    
                             style: {
-                                  colors: ['#C6C2C1'],
+                                  /*colors: ['#C6C2C1'],*/
                                   fontSize: '11px',
                                   fontFamily: 'Helvetica, Arial, sans-serif',
                              },

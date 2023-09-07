@@ -1,8 +1,30 @@
 import TopNavigation from '@cloudscape-design/components/top-navigation';
 import { Authenticator } from "@aws-amplify/ui-react";
 import { configuration } from '../pages/Configs';
+import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 
 export default function App() {
+
+    const handleClickMenu = ({detail}) => {
+            console.log(detail);
+            
+            switch (detail.id) {
+              
+              case 'themeDark':
+                  applyMode(Mode.Dark);
+                  sessionStorage.setItem("themeMode", Mode.Dark);
+                  break;
+                
+              case 'themeLight':
+                    applyMode(Mode.Light);
+                    sessionStorage.setItem("themeMode", Mode.Light);
+                    break;
+                
+              
+            }
+
+    };
+
 
     const i18nStrings = {
       searchIconAriaLabel: 'Search',
@@ -15,7 +37,15 @@ export default function App() {
 
     const profileActions = [
       { type: 'button', id: 'profile', text: 'AppVersion : ' + configuration["apps-settings"]["version"]},
-      { type: 'button', id: 'preferences', text: 'Preferences' },
+      {
+        type: 'menu-dropdown',
+        id: 'preferences',
+        text: 'Preferences',
+        items: [
+          { type: 'button', id: 'themeDark', text: 'Theme Dark' },
+          { type: 'button', id: 'themeLight', text: 'Theme Light'},
+        ]
+      },
       {
         type: 'menu-dropdown',
         id: 'support-group',
@@ -27,6 +57,7 @@ export default function App() {
         ],
       }
     ];
+    
     
    
   return (
@@ -55,7 +86,8 @@ export default function App() {
                   type: 'menu-dropdown',
                   text:  user.signInUserSession.idToken.payload.email /*"admin@example.com"*/,
                   iconName: 'user-profile',
-                  items: profileActions
+                  items: profileActions,
+                  onItemClick : handleClickMenu
                 },
                 {
                   type: 'button',

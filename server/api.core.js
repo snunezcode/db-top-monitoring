@@ -75,6 +75,7 @@ var dbRedis = {};
 gatherPemKeys(issCognitoIdp);
 
 
+
 //--#################################################################################################### 
 //   ---------------------------------------- SECURITY
 //--#################################################################################################### 
@@ -196,6 +197,10 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
 
     // API Call
     var params = req.body.params;
+    
+    // Gather App Telemetry Usage
+    gatherTelemetry({ engine : params.engine , event : "evt-instance-auth", value : 1});
+    
     
     try {
         
@@ -681,7 +686,11 @@ app.post("/api/redis/connection/auth/", authRedisConnection);
 
 async function authRedisConnection(req, res) {
  
+
     var params = req.body.params;
+
+     // Gather App Telemetry Usage
+    gatherTelemetry({ engine : params.engine , event : "evt-cluster-auth", value : 1});
     
     try {
         
@@ -846,22 +855,27 @@ app.get("/api/redis/connection/close/", closeRedisConnectionAll);
 
 async function closeRedisConnectionAll(req, res) {
  
-    var params = req.query;
-    var instances = dbRedis[params.connectionId];
-    for (index of Object.keys(instances)) {
-            try
-              {
-                    console.log("Redis Disconnection : " + params.connectionId + "#" + index );
-                    instances[index].quit();
-              }
-              catch{
-                  console.log("Redis Disconnection error : " + params.connectionId + "#" + index );
-              }
-    }
-    
-    delete dbRedis[params.connectionId];
-    res.status(200).send( {"result":"disconnected"});
-    
+        try
+            {
+                var params = req.query;
+                var instances = dbRedis[params.connectionId];
+                for (index of Object.keys(instances)) {
+                        try
+                          {
+                                console.log("Redis Disconnection : " + params.connectionId + "#" + index );
+                                instances[index].quit();
+                          }
+                          catch{
+                              console.log("Redis Disconnection error : " + params.connectionId + "#" + index );
+                          }
+                }
+                
+                delete dbRedis[params.connectionId];
+                res.status(200).send( {"result":"disconnected"});
+        }
+        catch(err){
+                console.log(err);
+        }
 }
 
 
@@ -1100,6 +1114,7 @@ app.get("/api/aws/clw/region/logs/", (req,res)=>{
 // AWS : Elasticache List nodes
 app.get("/api/aws/region/elasticache/cluster/nodes/", (req,res)=>{
 
+    
     // Token Validation
     var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
     
@@ -1126,13 +1141,14 @@ app.get("/api/aws/region/elasticache/cluster/nodes/", (req,res)=>{
 
 });
 
+
+
+
+
 // AWS : MemoryDB List nodes
 app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
     
-    // Gather Metrics
-    // gatherTelemetry({});
     
-
     // Token Validation
     var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
     
@@ -1164,21 +1180,26 @@ app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
 //   ---------------------------------------- TELEMETRY
 //--#################################################################################################### 
 
-async function gatherTelemetry(telemtryObject) {
+async function gatherTelemetry(telemetryObject) {
     
-        try {
-                axios.post(`${configData.aws_region}dbtop/telemetry/app/usage/`,{
-                              params: { engine : "memorydb", event : "evt-metrics", value : 520 }
-                          }).then((data)=>{
-                              console.log(data);
-                          })
-                          .catch((err) => {
-                              console.log('Timeout API Call : /dbtop/telemetry/app/usage/');
-                              console.log(err)
-                          });
-        }
-        catch (err){
-            console.log(err)
+        if ( configData.aws_telemetry_enabled == true ) {
+            
+            try {
+                    axios.post(`${configData.aws_telemetry_api_url}dbtop/telemetry/app/usage`,{
+                                  timeout: 5000, 
+                                  params: { guid : configData.aws_telemetry_guid , engine : telemetryObject.engine , event : telemetryObject.event , value : telemetryObject.value }
+                              }).then((data)=>{
+                                  console.log("API Telemetry Usage done.");
+                              })
+                              .catch((err) => {
+                                  console.log('Timeout API Call : /dbtop/telemetry/app/usage/');
+                                  console.log(err)
+                              });
+            }
+            catch (err){
+                console.log(err)
+            }
+        
         }
   
 }

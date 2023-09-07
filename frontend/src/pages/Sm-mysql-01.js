@@ -27,8 +27,6 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import Toggle from "@cloudscape-design/components/toggle";
 import { SplitPanel } from '@cloudscape-design/components';
 
-import { applyMode,  Mode } from '@cloudscape-design/global-styles';
-
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -48,8 +46,6 @@ var CryptoJS = require("crypto-js");
 
 export default function App() {
     
-    //-- Apply Theme
-    applyMode(Mode.Dark);
 
     //--######## Global Settings
     
@@ -650,64 +646,72 @@ export default function App() {
                                                             title={"CPU Usage (%)"}
                                                             precision={0}
                                                             format={3}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                           <ProgressBar value={dataEnhancedMonitor['counters']['cpu'][0]['value']}
                                                           />
                                                       </td>
-                                                      <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                      <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
                                                             value={dataEnhancedMonitor['counters']['memory'][0]['value']}
                                                             title={"Memory Usage(%)"}
                                                             precision={0}
                                                             format={3}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                           <ProgressBar value={dataEnhancedMonitor['counters']['memory'][0]['value']}
                                                           />
                                                       </td>
-                                                      <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                      <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
                                                             value={dataEnhancedMonitor['counters']['tps'][0]['value']}
                                                             title={"I/O TPS"}
                                                             precision={0}
                                                             format={3}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                       </td>
-                                                      <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                      <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
                                                             value={dataEnhancedMonitor['counters']['io_queue'][0]['value']}
                                                             title={"DiskQueue"}
                                                             precision={2}
                                                             format={2}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                       </td>
-                                                      <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                      <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
                                                             value={dataEnhancedMonitor['counters']['io_reads'][0]['value'] + dataEnhancedMonitor['counters']['io_reads'][1]['value']}
                                                             title={"Reads (IOPS)"}
                                                             precision={0}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                       </td>
-                                                      <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                      <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
                                                             value={dataEnhancedMonitor['counters']['io_writes'][0]['value'] + dataEnhancedMonitor['counters']['io_writes'][1]['value']}
                                                             title={"Write (IOPS)"}
                                                             precision={0}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                       </td>
-                                                      <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                      <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
                                                             value={dataEnhancedMonitor['counters']['network'][0]['value']}
                                                             title={"Network TX(Bytes/sec)"}
                                                             precision={0}
                                                             format={2}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                       </td>
-                                                      <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                      <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
                                                             value={dataEnhancedMonitor['counters']['network'][1]['value']}
                                                             title={"Network RX(Bytes/sec)"}
                                                             precision={0}
                                                             format={2}
+                                                            fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                       </td>
                                                       
@@ -723,65 +727,73 @@ export default function App() {
                                                           value={dataMetricRealTime.refObject.getDelta('Queries')}
                                                           title={"Queries/sec"}
                                                           precision={0}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
  
                                                     </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
                                                           value={dataMetricRealTime.refObject.getDelta('Com_select')}
                                                           title={"Selects/sec"}
                                                           type={1}
                                                           precision={0}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
                                                     </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
                                                           value={dataMetricRealTime.refObject.getDelta('Com_insert')}
                                                           title={"Insert/sec"}
                                                           type={1}
                                                           precision={0}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
                                                     </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
                                                           value={dataMetricRealTime.refObject.getDelta('Com_update')}
                                                           title={"Update/sec"}
                                                           type={1}
                                                           precision={0}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
                                                     </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
                                                           value={dataMetricRealTime.refObject.getDelta('Com_delete')}
                                                           title={"Delete/sec"}
                                                           type={1}
                                                           precision={0}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
                                                     </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
                                                           value={dataMetricRealTime.refObject.getValue('Threads_connected')}
                                                           title={"Threads"}
                                                           type={2}
                                                           precision={0}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
                                                     </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
                                                           value={dataMetricRealTime.refObject.getDelta('Bytes_received')}
                                                           title={"BytesReceived/sec"}
                                                           type={1}
                                                           precision={0}
                                                           format={2}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
                                                     </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
+                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
                                                           value={dataMetricRealTime.refObject.getDelta('Bytes_sent')}
                                                           title={"BytesSent/sec"}
                                                           type={1}
                                                           precision={0}
                                                           format={2}
+                                                          fontColorValue={configuration.colors.fonts.metric100}
                                                         />
                                                     </td>
                                                    
@@ -900,6 +912,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={0}
                                                                               format={3}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                             />
                                                           
                                                         </div>
@@ -918,6 +931,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={0}
                                                                               format={2}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                             />
                                                                             
                                                         
@@ -947,6 +961,7 @@ export default function App() {
                                                                             metric_per_second={0}
                                                                             metric_precision={0}
                                                                             format={1}
+                                                                            font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                                             
                                                         
@@ -967,6 +982,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={0}
                                                                               format={1}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                                             
                                                         
@@ -994,6 +1010,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={2}
                                                                               format={3}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                                             
                                                         
@@ -1014,6 +1031,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={2}
                                                                               format={3}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                                             
                                                         
@@ -1041,6 +1059,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={0}
                                                                               format={2}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                              
                                                         </div>
@@ -1060,6 +1079,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={0}
                                                                               format={2}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                           
                                                         </div>
@@ -1085,6 +1105,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={0}
                                                                               format={2}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                              
                                                         </div>
@@ -1104,6 +1125,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={0}
                                                                               format={2}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                                             
                                                         
@@ -1130,6 +1152,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={2}
                                                                               format={1}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                           
                                                         </div>
@@ -1149,6 +1172,7 @@ export default function App() {
                                                                               metric_per_second={0}
                                                                               metric_precision={2}
                                                                               format={1}
+                                                                              font_color_value={configuration.colors.fonts.metric100}
                                                                           />
                                                           
                                                         </div>
@@ -1182,13 +1206,14 @@ export default function App() {
                                   <table style={{"width":"100%"}}>
                                       <tr>  
                                          <td style={{"width":"15%", "text-align":"center"}}>        
-                                                <Box variant="h4">CPU Usage</Box>
                                                 <CompMetric02
                                                   value={dataEnhancedMonitor['counters']['cpu'][0]['value']}
-                                                  title={"( % )"}
+                                                  title={"Usage %"}
                                                   precision={0}
                                                   format={3}
+                                                  fontColorValue={configuration.colors.fonts.metric100}
                                                 />
+                                                <Box variant="h4">CPU</Box>
                                           </td>
                                           <td style={{"width":"25%", "text-align":"center", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                 
@@ -1198,6 +1223,7 @@ export default function App() {
                                                       title={"User"}
                                                       precision={1}
                                                       format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                     
                                                     <CompMetric03
@@ -1205,6 +1231,7 @@ export default function App() {
                                                       title={"System"}
                                                       precision={1}
                                                       format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                     
                                                     <CompMetric03
@@ -1212,6 +1239,7 @@ export default function App() {
                                                       title={"Wait"}
                                                       precision={1}
                                                       format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                     
                                                     <CompMetric03
@@ -1219,6 +1247,7 @@ export default function App() {
                                                       title={"Steal"}
                                                       precision={1}
                                                       format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                     
                                                     <CompMetric03
@@ -1226,6 +1255,7 @@ export default function App() {
                                                       title={"Nice"}
                                                       precision={1}
                                                       format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                     
                                                     <CompMetric03
@@ -1233,6 +1263,7 @@ export default function App() {
                                                       title={"Guest"}
                                                       precision={1}
                                                       format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                   
                                                 </ColumnLayout>
@@ -1254,13 +1285,14 @@ export default function App() {
                                   <table style={{"width":"100%"}}>
                                       <tr>  
                                          <td style={{"width":"15%", "text-align":"center"}}>        
-                                                 <Box variant="h4">Memory Usage</Box>
                                                  <CompMetric02
                                                   value={dataEnhancedMonitor['counters']['memory'][0]['value']}
-                                                  title={"( % )"}
+                                                  title={"Usage %"}
                                                   precision={0}
                                                   format={3}
+                                                  fontColorValue={configuration.colors.fonts.metric100}
                                                 />
+                                                <Box variant="h4">Memory</Box>
                                           </td>
                                           <td style={{"width":"25%", "text-align":"center", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                 
@@ -1270,6 +1302,7 @@ export default function App() {
                                                       title={"Total"}
                                                       precision={0}
                                                       format={2}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                   
                                                     <CompMetric03
@@ -1277,6 +1310,7 @@ export default function App() {
                                                         title={"Active"}
                                                         precision={0}
                                                         format={2}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                     
                                                     <CompMetric03
@@ -1284,6 +1318,7 @@ export default function App() {
                                                         title={"Inactive"}
                                                         precision={0}
                                                         format={2}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                     
                                                     <CompMetric03
@@ -1291,6 +1326,7 @@ export default function App() {
                                                         title={"Free"}
                                                         precision={0}
                                                         format={2}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
                                                     />
                                                   
                                                 </ColumnLayout>
@@ -1312,22 +1348,23 @@ export default function App() {
                                       <tr>  
                                       
                                           <td style={{"width":"15%", "text-align":"center"}}>      
-                                              
-                                              <Box variant="h4">I/O Reads</Box>
                                               <CompMetric02
                                                 value={dataEnhancedMonitor['counters']['io_reads'][0]['value'] + dataEnhancedMonitor['counters']['io_reads'][1]['value']}
                                                 title={"IOPS"}
                                                 precision={0}
+                                                fontColorValue={configuration.colors.fonts.metric100}
                                               />
+                                              <Box variant="h4">I/O Reads</Box>
                                           </td>
                                          
                                           <td style={{"width":"15%", "text-align":"center", "border-left": "2px solid red"}}>  
-                                              <Box variant="h4">I/O Writes</Box>
                                               <CompMetric02
                                                 value={dataEnhancedMonitor['counters']['io_writes'][0]['value'] + dataEnhancedMonitor['counters']['io_writes'][1]['value']}
                                                 title={"IOPS"}
                                                 precision={0}
+                                                fontColorValue={configuration.colors.fonts.metric100}
                                               />
+                                              <Box variant="h4">I/O Writes</Box>
                                           </td>
                           
                                           <td style={{"width":"35%"}}>    
@@ -1355,23 +1392,25 @@ export default function App() {
                                       <tr>  
                                       
                                           <td style={{"width":"15%", "text-align":"center"}}>        
-                                              <Box variant="h4">Network(TX)</Box>
                                               <CompMetric02
                                                 value={dataEnhancedMonitor['counters']['network'][0]['value']}
                                                 title={"Bytes/sec"}
                                                 precision={0}
                                                 format={2}
+                                                fontColorValue={configuration.colors.fonts.metric100}
                                               />
+                                              <Box variant="h4">Network(TX)</Box>
                                           </td>
                                          
                                           <td style={{"width":"15%", "text-align":"center", "border-left": "2px solid red"}}>  
-                                              <Box variant="h4">Network(RX)</Box>
                                               <CompMetric02
                                                 value={ dataEnhancedMonitor['counters']['network'][1]['value'] }
                                                 title={"Bytes/sec"}
                                                 precision={0}
                                                 format={2}
+                                                fontColorValue={configuration.colors.fonts.metric100}
                                               />
+                                              <Box variant="h4">Network(RX)</Box>
                                           </td>
                           
                                           <td style={{"width":"35%"}}>        

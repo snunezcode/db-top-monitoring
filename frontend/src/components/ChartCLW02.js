@@ -3,7 +3,7 @@ import Axios from 'axios'
 import { configuration } from '../pages/Configs';
 import Chart from 'react-apexcharts';
 
-const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dimension_value,metric_name,stat_type,period,interval,metric_precision,format,current_metric_mode}) => {
+const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dimension_value,metric_name,stat_type,period,interval,metric_precision,format,current_metric_mode,font_color_value="#4595dd"}) => {
     
     const [chartData, setChartData] = useState({
                                                 dataset : [],
@@ -17,7 +17,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
               chart: {
                 height: height,
                 type: 'line',
-                foreColor: '#C6C2C1',
+                foreColor: '#9e9b9a',
                 zoom: {
                   enabled: false
                 },
@@ -36,6 +36,8 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
               markers: {
                   size: 4,
                   strokeColors: '#29313e',
+                  radius: 1,
+                  strokeWidth: 0.2,
               },
               dataLabels: {
                 enabled: false
@@ -96,7 +98,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
         
                                         },    
                             style: {
-                                  colors: ['#C6C2C1'],
+                                  /*colors: ['#C6C2C1'],*/
                                   fontSize: '12px',
                                   fontFamily: 'Helvetica, Arial, sans-serif',
                              },
@@ -303,33 +305,33 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                     <table style={{"width":"100%"}}>
                         <tr>  
                            <td style={{"width":"30%", "text-align":"center"}}>  
-                            <span style={{"font-size": "24px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>{chartData.metric}</span>
+                            <span style={{"font-size": "26px", "font-weight": "500","font-family": "Orbitron", "color": font_color_value }}>{chartData.metric}</span>
                             <br/>  
-                            <span style={{"font-size": "10px", "font-weight": "700", "color": "#C6C2C1"}}>{subtitle}</span>
+                            <span style={{"font-size": "10px", "font-weight": "500", }}>{subtitle}</span>
                             <br/>  
-                            <span style={{"font-size": "14px", "font-weight": "700", "color": "white"}}>{title}</span>
+                            <span style={{"font-size": "14px", "font-weight": "700", }}>{title}</span>
                             <br/>
                             <br/>  
-                            <table style={{"width":"100%", "line-height": "20px", "border-collapse": "separate","border-spacing":"0","border": "1px solid #29313e","border-radius": ".25rem"}}>
+                            <table style={{"width":"100%", "line-height": "20px", "border-collapse": "separate","border-spacing":"0","border": "1px solid " + font_color_value,"border-radius": ".25rem"}}>
                                  <tr>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "background": "#595f69","color": "#C6C2C1","border": "none"}}>
+                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
                                         Max
                                     </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "background": "#414853","color": "#C6C2C1","border": "none"}}>
+                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
                                         Min
                                     </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "background": "#29313e","color": "#C6C2C1","border": "none"}}>
+                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
                                         Avg
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{"font-size": "12px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>
+                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
                                         {chartData.stats.max}
                                     </td>
-                                    <td style={{"font-size": "12px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>
+                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
                                         {chartData.stats.min}
                                     </td>
-                                    <td style={{"font-size": "12px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>
+                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
                                         {chartData.stats.avg}
                                     </td>
                                 </tr>

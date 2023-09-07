@@ -1,6 +1,7 @@
 import TopNavigation from '@cloudscape-design/components/top-navigation';
 import { useNavigate } from 'react-router-dom';
 import { configuration } from '../pages/Configs';
+import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 
 export default function App({sessionInformation,onClickMenu, onClickDisconnect}) {
 
@@ -16,12 +17,40 @@ export default function App({sessionInformation,onClickMenu, onClickDisconnect})
       overflowMenuBackIconAriaLabel: 'Back',
       overflowMenuDismissIconAriaLabel: 'Close menu',
     };
+    
+    const handleClickMenu = ({detail}) => {
+            console.log(detail);
+            
+            switch (detail.id) {
+              
+              case 'themeDark':
+                  applyMode(Mode.Dark);
+                  sessionStorage.setItem("themeMode", Mode.Dark);
+                  break;
+                
+              case 'themeLight':
+                    applyMode(Mode.Light);
+                    sessionStorage.setItem("themeMode", Mode.Light);
+                    break;
+                
+              
+            }
+
+    };
 
     //-- Navigate Profiling
     const profileActions = [
       { type: 'button', id: 'profile', text: 'SessionID : ' + sessionInformation["session_id"]},
       { id: 'version', text: 'AppVersion : ' + configuration["apps-settings"]["version"]},
-      { type: 'button', id: 'preferences', text: 'Preferences' },
+      {
+        type: 'menu-dropdown',
+        id: 'preferences',
+        text: 'Preferences',
+        items: [
+          { type: 'button', id: 'themeDark', text: 'Theme Dark' },
+          { type: 'button', id: 'themeLight', text: 'Theme Light'},
+        ]
+      },
       {
         type: 'menu-dropdown',
         id: 'support-group',
@@ -58,7 +87,7 @@ export default function App({sessionInformation,onClickMenu, onClickDisconnect})
               text: sessionInformation["rds_user"] + " : " + sessionInformation["rds_id"] + " (" + sessionInformation["rds_engine"] + ")",
               iconName: 'user-profile',
               items: profileActions,
-              onItemClick : onClickMenu
+              onItemClick : handleClickMenu
             },
             {
               type: 'button',

@@ -1,6 +1,6 @@
 import {useState,useEffect} from 'react'
 
-function Metric({value,title,precision,format=1}) {
+function Metric({value,title,precision,format=1, fontSizeTitle = "11px", fontSizeValue = "22px", fontColorTitle = "#C6C2C1", fontColorValue = "orange"}) {
 
     const [counterValue,setCountervalue] = useState(0);
     
@@ -65,12 +65,13 @@ function Metric({value,title,precision,format=1}) {
     
     return (
             <div>
-                <div style={{"font-size": "18px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>
-                  {counterValue}
-                </div>
-                <div style={{"font-size": "12px", "color": "#C6C2C1", "font-weight": "450" }}>
-                  {title}
-                </div>
+                <span style={{"font-size": fontSizeValue, "font-weight": "500","font-family": "Orbitron", "color": fontColorValue }}>
+                    {counterValue}
+                </span>
+                <br/>
+                <span style={{"font-size": fontSizeTitle,"font-weight": "450","font-family": "Verdana", }}>
+                    {title}
+                </span>
                 
             </div>
            )

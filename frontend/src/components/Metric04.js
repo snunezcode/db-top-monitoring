@@ -137,10 +137,10 @@ function Metric({ value, title, precision, format=1, history = 20, height, width
                 <table style={{"width":"100%"}}>
                     <tr>
                         <td style={{"text-align":"center", "padding-left": "1em"}}>
-                              <div style={{"font-size": fontSizeValue, "font-weight": "500","font-family": "Orbitron", "color": fontColorValue}}>
+                              <div style={{"font-size": fontSizeValue, "font-weight": "500","font-family": "Orbitron",  }}>
                                   {dataset.value}
                               </div>
-                              <div style={{"font-size": fontSizeTitle,"font-weight": "450","font-family": "Verdana", "color": fontColorTitle }}>
+                              <div style={{"font-size": fontSizeTitle,"font-weight": "450","font-family": "Verdana",  }}>
                                   {title}
                               </div>      
                         </td>

@@ -5,6 +5,12 @@ Metadata:
     ParameterGroups: 
       - 
         Label: 
+          default: "Application Usage Metrics - Disclaimer"
+        Parameters:
+          - MetricUsageCollection
+
+      - 
+        Label: 
           default: "General Configuration"
         Parameters:
           - Username
@@ -38,6 +44,8 @@ Metadata:
         default: "Specify CIDR Inbound Access Rule"
       GitHubRepository:
         default: "Specify AWS Github Repository source used for deployment "
+      MetricUsageCollection:
+        default: "Disclaimer : This Application could able to collect modules usage for statistical purposes, it will help to identify most popular modules and to keep growing this open-source application. This collection is limited and exclusive for statistics. Customer can review the code and validate data scope. Selecting (true) I acknowledge that this Application will send statistical data."
       
         
 Parameters:
@@ -87,7 +95,13 @@ Parameters:
       Description: AWS Github Repository
       Default: aws-samples
       
-  
+  MetricUsageCollection:
+      Type: String
+      Description: Application Metric Usage Collection
+      Default: "true"
+      AllowedValues:
+      - "true"
+      - "false"
       
 Resources:
     InstanceProfile: 
@@ -214,7 +228,8 @@ Resources:
                     cd db-top-monitoring
                     sudo cp -r server frontend conf /aws/apps
                     
-                    echo '{ "aws_region": "${AWS::Region}","aws_cognito_user_pool_id": "${CognitoUserPool}","aws_cognito_user_pool_web_client_id": "${CognitoUserPoolClient}","aws_api_port": 3000,  "aws_token_expiration":24 }' > /aws/apps/conf/aws-exports.json
+                    export guid=$(uuidgen -t)
+                    echo '{ "aws_region": "${AWS::Region}","aws_cognito_user_pool_id": "${CognitoUserPool}","aws_cognito_user_pool_web_client_id": "${CognitoUserPoolClient}","aws_api_port": 3000,  "aws_token_expiration":24, "aws_telemetry_api_url" : "https://iwpeiaj68k.execute-api.us-east-1.amazonaws.com/", "aws_telemetry_enabled" : "${MetricUsageCollection}", "aws_telemetry_guid" : "$guid" }' > /aws/apps/conf/aws-exports.json
                     cd /aws/apps
                     sudo -u ec2-user sh conf/setup.sh
        

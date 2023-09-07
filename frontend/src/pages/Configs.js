@@ -8,6 +8,17 @@ export const configuration =
         "api_url": "",
         "version" : "0.1.2",
         "application-title": "DBTop Monitoring Solution"
+    },
+    "colors": {
+        "fonts" : {
+            "metric102" : "#4595dd",
+            "metric101" : "#e59400",
+            "metric100" : "#e59400",
+        },
+        "lines" : {
+            "separator100" : "#737c85"
+            
+        }
     }
 };
 
@@ -39,4 +50,7 @@ export const SideMainLayoutMenu = [
 
 
 export const breadCrumbs = [{text: 'Service',href: '#',},{text: 'Resource search',href: '#',},];
+
+
+
   

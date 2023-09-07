@@ -25,12 +25,6 @@ import '@aws-amplify/ui-react/styles.css';
 
 import { SplitPanel } from '@cloudscape-design/components';
 
-import { applyMode,  Mode } from '@cloudscape-design/global-styles';
-
-// Apply a color mode
-//applyMode(Mode.Dark);
-applyMode(Mode.Light);
-
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -76,7 +70,7 @@ function Login() {
                     { id: "mode",header: "Cluster Mode",cell: item => item['mode'] || "-",sortingField: "mode",isRowHeader: true },
                     { id: "multiaz",header: "MultiAz",cell: item => item['multiaz'] || "-",sortingField: "multiaz",isRowHeader: true },
                     { id: "ssl",header: "SSL",cell: item => item['ssl'] || "-",sortingField: "ssl",isRowHeader: true },
-                    { id: "auth",header: "AUTH",cell: item => item['auth'] || "-",sortingField: "auth",isRowHeader: true },
+                    { id: "auth",header: "AuthMode",cell: item => item['auth'] || "-",sortingField: "auth",isRowHeader: true },
                     ];
     
     
@@ -117,9 +111,6 @@ function Login() {
                      sessionStorage.setItem(data.data.session_id, data.data.session_token );
                      var userId;
                      switch(currentTabId.current){
-                        case "modeIam":
-                                        userId = "IAM Integrated";
-                                        break;
                                         
                         case "modeNonAuth":
                                         userId = "NON-AUTH Token";
@@ -129,7 +120,7 @@ function Login() {
                                         userId = "AUTH Token";
                                         
                                         break;
-                        case "modeRbac":
+                        case "modeAcl":
                                         userId = txtUser;
                                         break;
                           
@@ -217,6 +208,23 @@ function Login() {
                                       port = item['NodeGroups'][0]['PrimaryEndpoint']['Port'];
                                     
                                   }
+                                  
+                                  var authMode = "";
+                                  
+                                  if ( String(item['AuthTokenEnabled']) == "true")
+                                      authMode = "modeAuth";
+                                  
+                                  if ( String(item['AuthTokenEnabled']) == "false")
+                                  {
+                                      if ( String(item["UserGroupIds"]) != "" )
+                                          authMode = "modeAcl";
+                                      else
+                                          authMode = "modeNonAuth";
+                                  }
+                                      
+                                  
+                                      
+                                  
                                   rdsItems.push({
                                                 identifier : item['ReplicationGroupId'],
                                                 status : item['Status'] ,
@@ -229,7 +237,8 @@ function Login() {
                                                 port : port,
                                                 multiaz : item['MultiAZ'],
                                                 ssl : item['TransitEncryptionMode'],
-                                                auth : String(item['AuthTokenEnabled'])
+                                                auth : authMode,
+                                                authmode : authMode
                                   });
                                   
                                   
@@ -251,6 +260,8 @@ function Login() {
         setDataRds(rdsItems);
         if (rdsItems.length > 0 ) {
           setSelectedItems([rdsItems[0]]);
+          setActiveTabId(rdsItems[0]['authmode']);
+          currentTabId.current = rdsItems[0]['authmode'];
           setsplitPanelShow(true);
         }
 
@@ -373,6 +384,8 @@ function Login() {
                           onSelectionChange={({ detail }) => {
                             setSelectedItems(detail.selectedItems);
                             setsplitPanelShow(true);
+                            setActiveTabId(detail.selectedItems[0]['authmode']);
+                            currentTabId.current=detail.selectedItems[0]['authmode'];
                             }
                           }
                           selectedItems={selectedItems}
@@ -435,8 +448,7 @@ function Login() {
                             }
                           >
                                 
-                                
-                                
+                                { activeTabId === "modeAcl" &&
                                 <Tabs
                                     onChange={({ detail }) => {
                                           setActiveTabId(detail.activeTabId);
@@ -446,39 +458,8 @@ function Login() {
                                     activeTabId={activeTabId}
                                     tabs={[
                                                 {
-                                                  label: "IAM Integration",
-                                                  id: "modeIam",
-                                                  content: 
-                                                          <>
-                                                                With IAM Authentication you can authenticate a connection to ElastiCache for Redis using AWS IAM identities, 
-                                                                when your cluster is configured to use Redis version 7 or above.
-                                                          </>
-                                                },
-                                                {
-                                                  label: "NON-AUTH Mode",
-                                                  id: "modeNonAuth",
-                                                  content: 
-                                                          <>
-                                                                With NON-AUTH Mode you can connect without authenticate a connection to ElastiCache for Redis.
-                                                          </>
-                                                },
-                                                {
-                                                  label: "AUTH Mode",
-                                                  id: "modeAuth",
-                                                  content: 
-                                                          <>
-                                                                
-                                                                <FormField label="Auth Token">
-                                                                  <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
-                                                                         type="password"
-                                                                  />
-                                                                </FormField>
-                                                                
-                                                          </>
-                                                },
-                                                {
-                                                  label: "RBAC Mode",
-                                                  id: "modeRbac",
+                                                  label: "ACL Mode - Password Auth",
+                                                  id: "modeAcl",
                                                   content: 
                                                           <>
                                                                 
@@ -498,8 +479,61 @@ function Login() {
                                                 
                                       ]}
                                 />
+                                }
+                                
+                                { activeTabId === "modeNonAuth" &&
+                                <Tabs
+                                    onChange={({ detail }) => {
+                                          setActiveTabId(detail.activeTabId);
+                                          currentTabId.current=detail.activeTabId;
+                                      }
+                                    }
+                                    activeTabId={activeTabId}
+                                    tabs={[
+                                                
+                                                {
+                                                  label: "NON-AUTH Mode",
+                                                  id: "modeNonAuth",
+                                                  content: 
+                                                          <>
+                                                                With NON-AUTH Mode you can connect without authenticate a connection to ElastiCache for Redis.
+                                                          </>
+                                                }
+                                                
+                                      ]}
+                                />
+                                }
                                 
                                 
+                                
+                                
+                                { activeTabId === "modeAuth" &&
+                                <Tabs
+                                    onChange={({ detail }) => {
+                                          setActiveTabId(detail.activeTabId);
+                                          currentTabId.current=detail.activeTabId;
+                                      }
+                                    }
+                                    activeTabId={activeTabId}
+                                    tabs={[
+                                                {
+                                                  label: "AUTH Mode",
+                                                  id: "modeAuth",
+                                                  content: 
+                                                          <>
+                                                                
+                                                                <FormField label="Auth Token">
+                                                                  <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
+                                                                         type="password"
+                                                                  />
+                                                                </FormField>
+                                                                
+                                                          </>
+                                                }
+                                                
+                                      ]}
+                                />
+                                }
                                 
                                 
                           </Modal>

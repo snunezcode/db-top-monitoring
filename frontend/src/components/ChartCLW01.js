@@ -2,8 +2,9 @@ import {useState,useEffect,useRef,memo} from 'react'
 import Axios from 'axios'
 import { configuration } from '../pages/Configs';
 import Chart from 'react-apexcharts';
+import Box from "@cloudscape-design/components/box";
 
-const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dimension_value,metric_name,stat_type,period,interval,metric_per_second,metric_precision,format}) => {
+const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dimension_value,metric_name,stat_type,period,interval,metric_per_second,metric_precision,format, font_color_value="orange"}) => {
     
     const [chartData, setChartData] = useState({
                                                 dataset : [],
@@ -35,6 +36,8 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
               markers: {
                   size: 4,
                   strokeColors: '#29313e',
+                  radius: 1,
+                  strokeWidth: 0.2,
               },
               dataLabels: {
                 enabled: false
@@ -233,32 +236,34 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                     <table style={{"width":"100%"}}>
                         <tr>  
                            <td style={{"width":"30%", "text-align":"center"}}>  
-                            
-                            <div style={{"font-size": "24px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>{chartData.metric}</div>
+                            <span style={{"font-size": "26px", "font-weight": "500","font-family": "Orbitron", "color": font_color_value }}>{chartData.metric}</span>
                             <br/>  
-                            <div style={{"font-size": "12px", "font-weight": "700", "color": "#C6C2C1"}}>{title}({subtitle})</div>
+                            <span style={{"font-size": "10px", "font-weight": "500", }}>{subtitle}</span>
                             <br/>  
-                            <table style={{"width":"100%", "line-height": "20px", "border-collapse": "separate","border-spacing":"0","border": "1px solid #29313e","border-radius": ".25rem"}}>
+                            <Box variant="h4">{title}</Box>
+                            <br/>
+                            <br/>  
+                            <table style={{"width":"100%", "line-height": "20px", "border-collapse": "separate","border-spacing":"0","border": "1px solid " + font_color_value,"border-radius": ".25rem"}}>
                                  <tr>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "background": "#29313e","color": "#C6C2C1","border": "none"}}>
-                                        Avg
-                                    </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "background": "#414853","color": "#C6C2C1","border": "none"}}>
+                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
                                         Max
                                     </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "background": "#595f69","color": "#C6C2C1","border": "none"}}>
+                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
                                         Min
+                                    </td>
+                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
+                                        Avg
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style={{"font-size": "12px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>
-                                        {chartData.stats.avg}
-                                    </td>
-                                    <td style={{"font-size": "12px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>
+                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
                                         {chartData.stats.max}
                                     </td>
-                                    <td style={{"font-size": "12px", "font-weight": "500","font-family": "Orbitron", "color": "orange"}}>
+                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
                                         {chartData.stats.min}
+                                    </td>
+                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
+                                        {chartData.stats.avg}
                                     </td>
                                 </tr>
                             </table>
@@ -271,6 +276,10 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                            </td>
                         </tr>
                     </table>
+                    <br/>
+                    <br/>  
+                    <br/>
+                    <br/>  
                 </div>
     )
 });

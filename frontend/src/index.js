@@ -32,14 +32,15 @@ import SmMemoryDB01 from "./pages/Sm-memorydb-01";
 import ProtectedDb from "./components/ProtectedDb";
 import ProtectedApp from "./components/ProtectedApp";
 
-//import { applyMode,  Mode } from '@cloudscape-design/global-styles';
+import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 
-// Apply a color mode
-//applyMode(Mode.Dark);
-//applyMode(Mode.Light);
+if (sessionStorage.getItem("themeMode") === null )
+  sessionStorage.setItem("themeMode", Mode.Dark);
+
+applyMode(sessionStorage.getItem("themeMode"));
 
 
-
+  
 Axios.get(`/aws-exports.json`,).then((data)=>{
 
     var configData = data.data;

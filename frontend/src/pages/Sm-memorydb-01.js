@@ -10,6 +10,7 @@ import Tabs from "@cloudscape-design/components/tabs";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import { SplitPanel } from '@cloudscape-design/components';
 
+import Link from "@cloudscape-design/components/link";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import ElasticNode  from '../components/elasticache/CompElasticNode01';
@@ -40,7 +41,6 @@ var CryptoJS = require("crypto-js");
 
 
 function App() {
-    
     
     //-- Apply Theme
     applyMode(Mode.Dark);
@@ -543,7 +543,7 @@ function App() {
                                                                                     title={"Operations/sec"}
                                                                                     precision={0}
                                                                                     format={1}
-                                                                                    fontColorValue={"#F6CE55"}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
                                                                                     fontSizeValue={"36px"}
                                                                                 />
                                                                         </td>
@@ -553,7 +553,7 @@ function App() {
                                                                                     title={"getLatency(us)"}
                                                                                     precision={0}
                                                                                     format={1}
-                                                                                    fontColorValue={"#F6CE55"}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                                 <br/>        
                                                                                 <br/> 
@@ -562,7 +562,7 @@ function App() {
                                                                                     title={"setLatency(us)"}
                                                                                     precision={0}
                                                                                     format={1}
-                                                                                    fontColorValue={"#F6CE55"}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
@@ -614,7 +614,7 @@ function App() {
                                                                                 title={"getCalls/sec"}
                                                                                 precision={0}
                                                                                 format={1}
-                                                                                fontColorValue={"#F6CE55"}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
@@ -623,7 +623,7 @@ function App() {
                                                                                 title={"setCalls/sec"}
                                                                                 precision={0}
                                                                                 format={1}
-                                                                                fontColorValue={"#F6CE55"}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
@@ -632,7 +632,7 @@ function App() {
                                                                                     title={"MemoryTotal"}
                                                                                     precision={0}
                                                                                     format={2}
-                                                                                    fontColorValue={"#F6CE55"}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
@@ -641,7 +641,7 @@ function App() {
                                                                                 title={"Cache Hits/sec"}
                                                                                 precision={0}
                                                                                 format={1}
-                                                                                fontColorValue={"#F6CE55"}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
@@ -650,7 +650,7 @@ function App() {
                                                                                 title={"NetworkIn"}
                                                                                 precision={0}
                                                                                 format={2}
-                                                                                fontColorValue={"#F6CE55"}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
@@ -659,7 +659,7 @@ function App() {
                                                                                 title={"NetworkOut"}
                                                                                 precision={0}
                                                                                 format={2}
-                                                                                fontColorValue={"#F6CE55"}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
@@ -668,7 +668,7 @@ function App() {
                                                                                     title={"Connections/sec"}
                                                                                     precision={0}
                                                                                     format={1}
-                                                                                    fontColorValue={"#F6CE55"}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
@@ -677,7 +677,7 @@ function App() {
                                                                                 title={"CurConnections"}
                                                                                 precision={0}
                                                                                 format={3}
-                                                                                fontColorValue={"#F6CE55"}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
                                                                         
@@ -728,54 +728,34 @@ function App() {
                                                                                     NodeId
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('operations','Operations/sec') }} > 
-                                                                                    Operations/sec 
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('operations','Operations/sec')}>Operations/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('getCalls','getCalls/sec') }} > 
-                                                                                    getCalls/sec
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('getCalls','getCalls/sec')}>getCalls/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('setCalls','setCalls/sec') }} > 
-                                                                                    setCalls/sec
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('setCalls','setCalls/sec')}>setCalls/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('cacheHitRate','CacheHitRate(%)') }} > 
-                                                                                    CacheHitRate(%)
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHitRate','CacheHitRate(%)')}>CacheHitRate(%)</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('cacheHits','CacheHits/sec') }} > 
-                                                                                    CacheHits/sec
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHits','CacheHits/sec')}>CacheHits/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('getLatency','getLatency(us)') }} > 
-                                                                                    getLatency(us)
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('getLatency','getLatency(us)')}> getLatency(us)</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('setLatency','setLatency(us)') }} > 
-                                                                                    setLatency(us)
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('setLatency','setLatency(us)')}>setLatency(us)</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('connections','Connections') }} > 
-                                                                                    Connections
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connections','Connections')}>Connections</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('cpu','CPU Usage(%)') }} > 
-                                                                                    CPU Usage(%)
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() =>  onClickMetric('cpu','CPU Usage(%)')}>CPU Usage(%)</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <a style={{"font-size": "12px", "font-weight": "550", "color": "#C6C2C1"}} href = "#" onClick={()=>{ onClickMetric('memory','Memory Usage(%)') }} > 
-                                                                                    Memory Usage(%)
-                                                                                </a>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('memory','Memory Usage(%)')}>Memory Usage(%)</Link>
                                                                             </td>
                                                                         </tr>
                                                                                 
@@ -832,7 +812,11 @@ function App() {
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -850,7 +834,11 @@ function App() {
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -868,7 +856,11 @@ function App() {
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -886,7 +878,11 @@ function App() {
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -904,7 +900,11 @@ function App() {
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -922,7 +922,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -940,7 +944,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -958,7 +966,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={3}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -976,7 +988,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -994,7 +1010,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -1012,7 +1032,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -1030,7 +1054,11 @@ function App() {
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -1048,7 +1076,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -1066,7 +1098,11 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -1084,7 +1120,11 @@ function App() {
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
                                                             <br/>
                                                             <br/>
                                                             <CLWChart
@@ -1102,6 +1142,7 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
                                                             />
                                                         </Container>
                                                 
