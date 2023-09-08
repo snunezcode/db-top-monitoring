@@ -89,9 +89,9 @@ export default function App() {
     //-- Performance Counters
     const initProcess = useRef(0);
     const metricObjectGlobal = useRef(new classMetric([
-                                                        {name : "Transactions", history : 50 },
-                                                        {name : "Sessions", history : 50 },
-                                                        {name : "Requests", history : 50 },
+                                                        {name : "Transactions", history : 30 },
+                                                        {name : "Sessions", history : 30 },
+                                                        {name : "Requests", history : 30 },
                                                         {name : "Cpu_user", history : 50 },
                                                         {name : "Cpu_kern", history : 50 },
                                                         {name : "Memory_total", history : 50 },
@@ -118,8 +118,8 @@ export default function App() {
                                                                   dataCounters: [],
                                                                   timestamp : 0,
                                                                   refObject : new classMetric([
-                                                                                                {name : "Transactions", history : 50 },
-                                                                                                {name : "Requests", history : 50 }
+                                                                                                {name : "Transactions", history : 30 },
+                                                                                                {name : "Requests", history : 30 }
                                                                                               ])
                                                                 });
     

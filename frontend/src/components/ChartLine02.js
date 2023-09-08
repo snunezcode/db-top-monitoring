@@ -32,9 +32,10 @@ function ChartLine({series,history, height, width="100%", title, colors=[], bord
               },
               markers: {
                   size: 4,
-                  strokeColors: '#29313e',
-                  radius: 1,
-                  strokeWidth: 0.2,
+                  radius: 0,
+                  strokeWidth: 0.1,
+                  fillOpacity: 1,
+                  shape: "circle",
               },
               dataLabels: {
                 enabled: false

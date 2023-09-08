@@ -91,12 +91,12 @@ export default function App() {
     //-- Performance Counters
     const initProcess = useRef(0);
     const metricObjectGlobal = useRef(new classMetric([
-                                                        {name : "Com_select", history : 50 },
-                                                        {name : "Com_update", history : 50 },
-                                                        {name : "Com_delete", history : 50 },
-                                                        {name : "Com_insert", history : 50 },
-                                                        {name : "Sessions", history : 50 },
-                                                        {name : "Queries", history : 50 },
+                                                        {name : "Com_select", history : 30 },
+                                                        {name : "Com_update", history : 30 },
+                                                        {name : "Com_delete", history : 30 },
+                                                        {name : "Com_insert", history : 30 },
+                                                        {name : "Sessions", history : 30 },
+                                                        {name : "Queries", history : 30 },
                                                         {name : "Cpu_total", history : 50 },
                                                         {name : "Cpu_user", history : 50 },
                                                         {name : "Cpu_system", history : 50 },
@@ -128,11 +128,11 @@ export default function App() {
                                                                   dataCounters: [],
                                                                   timestamp : 0,
                                                                   refObject : new classMetric([
-                                                                                                {name : "Com_select", history : 50 },
-                                                                                                {name : "Com_update", history : 50 },
-                                                                                                {name : "Com_delete", history : 50 },
-                                                                                                {name : "Com_insert", history : 50 },
-                                                                                                {name : "Queries", history : 50 }
+                                                                                                {name : "Com_select", history : 30 },
+                                                                                                {name : "Com_update", history : 30 },
+                                                                                                {name : "Com_delete", history : 30 },
+                                                                                                {name : "Com_insert", history : 30 },
+                                                                                                {name : "Queries", history : 30 }
                                                                                               ])
                                                                 });
     

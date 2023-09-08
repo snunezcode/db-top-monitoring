@@ -6,18 +6,17 @@ import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 export default function App() {
 
     const handleClickMenu = ({detail}) => {
-            console.log(detail);
-            
+        
             switch (detail.id) {
               
               case 'themeDark':
                   applyMode(Mode.Dark);
-                  sessionStorage.setItem("themeMode", Mode.Dark);
+                  localStorage.setItem("themeMode", "dark");
                   break;
                 
               case 'themeLight':
                     applyMode(Mode.Light);
-                    sessionStorage.setItem("themeMode", Mode.Light);
+                    localStorage.setItem("themeMode", "light");
                     break;
                 
               

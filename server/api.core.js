@@ -962,6 +962,39 @@ async function getRedisClusterStats(req, res) {
 
 
 // AWS : List Instances - by Region
+app.get("/api/aws/aurora/cluster/region/list/", (req,res)=>{
+   
+    // Token Validation
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+    if (cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid"});
+
+    // API Call
+    var rds_region = new AWS.RDS({region: configData.aws_region});
+    
+    var params = {
+        MaxRecords: 100
+    };
+
+    try {
+        rds_region.describeDBClusters(params, function(err, data) {
+            if (err) 
+                console.log(err, err.stack); // an error occurred
+            res.status(200).send({ csrfToken: req.csrfToken(), data:data });
+        });
+
+    } catch(error) {
+        console.log(error)
+                
+    }
+
+});
+
+
+
+
+// AWS : List Instances - by Region
 app.get("/api/aws/rds/instance/region/list/", (req,res)=>{
    
     // Token Validation

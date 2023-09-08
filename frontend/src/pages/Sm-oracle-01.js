@@ -89,9 +89,9 @@ export default function App() {
     //-- Performance Counters
     const initProcess = useRef(0);
     const metricObjectGlobal = useRef(new classMetric([
-                                                        {name : "user calls", history : 50 },
-                                                        {name : "user commits", history : 50 },
-                                                        {name : "Sessions", history : 50 },
+                                                        {name : "user calls", history : 30 },
+                                                        {name : "user commits", history : 30 },
+                                                        {name : "Sessions", history : 30 },
                                                         {name : "Cpu_total", history : 50 },
                                                         {name : "Cpu_user", history : 50 },
                                                         {name : "Cpu_system", history : 50 },
@@ -123,8 +123,8 @@ export default function App() {
                                                                   dataCounters: [],
                                                                   timestamp : 0,
                                                                   refObject : new classMetric([
-                                                                                                {name : "user calls", history : 50 },
-                                                                                                {name : "user commits", history : 50 }
+                                                                                                {name : "user calls", history : 30 },
+                                                                                                {name : "user commits", history : 30 }
                                                                                               ])
                                                                 });
     

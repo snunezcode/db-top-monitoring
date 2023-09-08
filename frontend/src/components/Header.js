@@ -25,12 +25,12 @@ export default function App({sessionInformation,onClickMenu, onClickDisconnect})
               
               case 'themeDark':
                   applyMode(Mode.Dark);
-                  sessionStorage.setItem("themeMode", Mode.Dark);
+                  localStorage.setItem("themeMode", "dark");
                   break;
                 
               case 'themeLight':
                     applyMode(Mode.Light);
-                    sessionStorage.setItem("themeMode", Mode.Light);
+                    localStorage.setItem("themeMode", "light");
                     break;
                 
               

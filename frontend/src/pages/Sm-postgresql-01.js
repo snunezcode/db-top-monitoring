@@ -93,13 +93,13 @@ export default function App() {
 
     const initProcess = useRef(0);
     const metricObjectGlobal = useRef(new classMetric([
-                                                        {name : "xact_commit", history : 50 },
-                                                        {name : "tup_returned", history : 50 },
-                                                        {name : "tup_fetched", history : 50 },
-                                                        {name : "tup_inserted", history : 50 },
-                                                        {name : "tup_deleted", history : 50 },
-                                                        {name : "tup_updated", history : 50 },
-                                                        {name : "Sessions", history : 50 },
+                                                        {name : "xact_commit", history : 30 },
+                                                        {name : "tup_returned", history : 30 },
+                                                        {name : "tup_fetched", history : 30 },
+                                                        {name : "tup_inserted", history : 30 },
+                                                        {name : "tup_deleted", history : 30},
+                                                        {name : "tup_updated", history : 30 },
+                                                        {name : "Sessions", history : 30 },
                                                         {name : "Cpu_total", history : 50 },
                                                         {name : "Cpu_user", history : 50 },
                                                         {name : "Cpu_system", history : 50 },
@@ -131,13 +131,13 @@ export default function App() {
                                                                   dataCounters: [],
                                                                   timestamp : 0,
                                                                   refObject : new classMetric([
-                                                                                                {name : "xact_commit", history : 50 },
-                                                                                                {name : "tup_returned", history : 50 },
-                                                                                                {name : "tup_fetched", history : 50 },
-                                                                                                {name : "tup_inserted", history : 50 },
-                                                                                                {name : "tup_deleted", history : 50 },
-                                                                                                {name : "tup_updated", history : 50 },
-                                                                                                {name : "Queries", history : 50 }
+                                                                                                {name : "xact_commit", history : 30 },
+                                                                                                {name : "tup_returned", history : 30 },
+                                                                                                {name : "tup_fetched", history : 30 },
+                                                                                                {name : "tup_inserted", history : 30 },
+                                                                                                {name : "tup_deleted", history : 30 },
+                                                                                                {name : "tup_updated", history : 30 },
+                                                                                                {name : "Queries", history : 30 }
                                                                                               ])
                                                                 });
                                                                 

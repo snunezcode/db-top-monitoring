@@ -18,6 +18,7 @@ import Home from "./pages/Home";
 import SmRdsInstances from "./pages/Sm-rdsInstances-01";
 import SmClustersElasticache from "./pages/Sm-clustersElasticache-01";
 import SmClustersMemoryDB from "./pages/Sm-clustersMemorydb-01";
+import SmClustersAurora from "./pages/Sm-clustersAurora-01";
 import Logout from "./pages/Logout";
 import SmMysql01 from "./pages/Sm-mysql-01";
 import SmMysql02 from "./pages/Sm-mysql-02";
@@ -27,6 +28,9 @@ import SmMssql01 from "./pages/Sm-mssql-01";
 import SmOracle01 from "./pages/Sm-oracle-01";
 import SmElasticache01 from "./pages/Sm-elasticache-01";
 import SmMemoryDB01 from "./pages/Sm-memorydb-01";
+import SmAuroraMysql01 from "./pages/Sm-aurora-mysql-01";
+
+
 
 //-- Components
 import ProtectedDb from "./components/ProtectedDb";
@@ -34,13 +38,16 @@ import ProtectedApp from "./components/ProtectedApp";
 
 import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 
-if (sessionStorage.getItem("themeMode") === null )
-  sessionStorage.setItem("themeMode", Mode.Dark);
+if (localStorage.getItem("themeMode") === null ){
+    localStorage.setItem("themeMode", "dark");
+}
 
-applyMode(sessionStorage.getItem("themeMode"));
+if (localStorage.getItem("themeMode") == "dark")
+    applyMode(Mode.Dark);
+else
+    applyMode(Mode.Light);
+    
 
-
-  
 Axios.get(`/aws-exports.json`,).then((data)=>{
 
     var configData = data.data;
@@ -64,6 +71,7 @@ Axios.get(`/aws-exports.json`,).then((data)=>{
                     <Route path="/rds/instances" element={<ProtectedApp><SmRdsInstances /> </ProtectedApp>} />
                     <Route path="/clusters/elasticache" element={<ProtectedApp><SmClustersElasticache /> </ProtectedApp>} />
                     <Route path="/clusters/memorydb" element={<ProtectedApp><SmClustersMemoryDB /> </ProtectedApp>} />
+                    <Route path="/clusters/aurora" element={<ProtectedApp><SmClustersAurora /> </ProtectedApp>} />
                     <Route path="/logout" element={<ProtectedApp><Logout /> </ProtectedApp>} />
                     <Route path="/sm-mysql-01" element={<ProtectedApp><ProtectedDb> <SmMysql01 /> </ProtectedDb> </ProtectedApp>}  />
                     <Route path="/sm-mysql-02" element={<ProtectedApp><ProtectedDb> <SmMysql02 /></ProtectedDb> </ProtectedApp>} />
@@ -73,6 +81,7 @@ Axios.get(`/aws-exports.json`,).then((data)=>{
                     <Route path="/sm-oracle-01" element={<ProtectedApp><ProtectedDb> <SmOracle01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-elasticache-01" element={<ProtectedApp><ProtectedDb> <SmElasticache01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-memorydb-01" element={<ProtectedApp><ProtectedDb> <SmMemoryDB01 /></ProtectedDb> </ProtectedApp>} />
+                    <Route path="/sm-aurora-mysql-01" element={<ProtectedApp><ProtectedDb> <SmAuroraMysql01 /></ProtectedDb> </ProtectedApp>} />
                 </Routes>
               </BrowserRouter>
           </Authenticator.Provider>

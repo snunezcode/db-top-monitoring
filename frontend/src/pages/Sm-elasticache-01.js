@@ -22,6 +22,7 @@ import ChartLine02  from '../components/ChartLine02';
 import CLWChart  from '../components/ChartCLW02';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
 import ChartBar01 from '../components/ChartBar01';
+import ChartColumn01 from '../components/ChartColumn01';
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -150,7 +151,6 @@ function App() {
         await Axios.get(`${api_url}/api/aws/region/elasticache/cluster/nodes/`,{
                       params: { cluster : cnf_identifier }
                   }).then((data)=>{
-                    console.log(data);
                     if (data.data.ReplicationGroups.length> 0) {
                             
                             
@@ -524,6 +524,40 @@ function App() {
                                                       
     }
     
+    function metricDetailsToColumns(series){
+        
+        var seriesRaw = [];  
+        var seriesData = { categories : [], data : [] };  
+        try {  
+                if (series.length > 0){
+                    series.forEach(function(item, index) {
+                        seriesRaw.push({ name : item.name, value : item.data[item.data.length-1]  }  );
+                    });
+                
+                    var itemLimit = 0;
+                    var data = [];
+                    var categories = [];
+                    seriesRaw.sort((a, b) => b.value - a.value);
+                    seriesRaw.forEach(function(item, index) {
+                        if (itemLimit < 5) {
+                            categories.push(item.name);
+                            data.push(Math.trunc(item.value));
+                        }
+                        itemLimit++;
+                    });
+                    
+                    seriesData = { categories : categories, data : data };  
+                    
+                
+                }
+        }
+        catch{
+            
+        }
+        
+        return seriesData;
+    }
+    
  
 
   return (
@@ -548,8 +582,27 @@ function App() {
                                   }
                   >
                      
-                     <ChartLine02 series={dataMetrics.metricDetails[metricDetailsIndex.index]} timestamp={metricDetailsIndex.timestamp} title={metricDetailsIndex.title} height="200px" />
+                    { splitPanelShow === true &&
+                    
+                    <table style={{"width":"100%", "padding": "1em"}}>
+                        <tr>  
+                            <td style={{"width":"30%", "padding-left": "1em"}}>  
+                                <ChartColumn01 
+                                    series={metricDetailsToColumns(dataMetrics.metricDetails[metricDetailsIndex.index])} 
+                                    height="200px" 
+                                />
+                            </td>
+                            <td style={{"width":"70%", "padding-left": "1em"}}>  
+                                 <ChartLine02 
+                                    series={dataMetrics.metricDetails[metricDetailsIndex.index]} 
+                                    timestamp={metricDetailsIndex.timestamp} 
+                                    height="200px" 
+                                  />
+                            </td>
+                        </tr>
+                    </table>
                      
+                    }
                         
                         
                   </SplitPanel>

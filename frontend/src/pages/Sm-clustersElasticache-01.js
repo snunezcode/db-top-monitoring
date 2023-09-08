@@ -53,7 +53,6 @@ function Login() {
     const currentTabId = useRef("modeIam");
 
 
-  
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
@@ -189,7 +188,6 @@ function Login() {
                    
            
             const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/region/elasticache/cluster/nodes/`);
-            console.log(data.ReplicationGroups);
             sessionStorage.setItem("x-csrf-token", data.csrfToken );
             data.ReplicationGroups.forEach(function(item) {
                             
