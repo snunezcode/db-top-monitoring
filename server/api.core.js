@@ -591,7 +591,7 @@ function mysqlOpenConnection(session_id,host,port,user,password){
 }
 
 // MYSQL : Create Connection per cluster node
-app.get("/api/mysql/cluster/connection/open", (req,res)=>{
+app.post("/api/mysql/cluster/connection/open", (req,res)=>{
 
     // Token Validation
     var standardToken = verifyToken(req.headers['x-token']);
@@ -602,7 +602,7 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
 
 
     // API Call
-    var params = req.query;
+    var params = req.body.params;
     var sessionId =  "$" + standardToken.session_id;
     var instanceId = "$" + params.instance;
     try {
@@ -886,11 +886,11 @@ async function authRedisConnection(req, res) {
 
 
 // REDIS : Open Connection - Single
-app.get("/api/redis/connection/open/", openRedisConnectionSingle);
+app.post("/api/redis/connection/open/", openRedisConnectionSingle);
 
 async function openRedisConnectionSingle(req, res) {
  
-    var params = req.query;
+    var params = req.body.params;;
          
     try {
         

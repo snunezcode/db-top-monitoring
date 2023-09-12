@@ -115,7 +115,8 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
 
         var api_url = configuration["apps-settings"]["api_url"];
 
-        await Axios.get(`${api_url}/api/redis/connection/open/`, {
+        Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
+        await Axios.post(`${api_url}/api/redis/connection/open/`, {
                 params: { connectionId: connectionId, cluster: clusterId, instance: instance, port: port, username: username, password: password, auth: auth, ssl: ssl }
             }).then((data) => {
                 //console.log(data);

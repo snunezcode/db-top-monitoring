@@ -94,7 +94,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
         var api_url = configuration["apps-settings"]["api_url"];
 
         Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
-        await Axios.get(`${api_url}/api/mysql/cluster/connection/open`, {
+        await Axios.post(`${api_url}/api/mysql/cluster/connection/open`, {
                 params: {  instance : instance, host : host,  port : port, username : username, password : password }
             }).then((data) => {
                 
