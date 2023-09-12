@@ -603,14 +603,14 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
 
     // API Call
     var params = req.query;
-    var sessionId =  "$" + standardToken.session_id;
-    var instanceId = "$" + params.instance;
+    var sessionId =  standardToken.session_id;
+    var instanceId = params.instance;
     try {
         
             if (!(params.instance in aurora[standardToken.session_id])) {
                     aurora[sessionId][instanceId]= function() {}
                     aurora[sessionId][instanceId]["connection"]= function() {}
-                    /*
+                    
                      aurora[sessionId][instanceId]["connection"]  = mysql.createPool({
                             host: params.host,
                             user: params.username,
@@ -620,7 +620,7 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
                             port: params.port,
                             connectionLimit:2
                     })
-                    */
+                    
                     console.log("Mysql Connection opened for session_id : " + standardToken.session_id + "#" + params.instance);
                     res.status(200).send( {"result":"connection opened", "session_id": standardToken.session_id });
             }
