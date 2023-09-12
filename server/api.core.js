@@ -610,7 +610,6 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
             if (!(params.instance in aurora[standardToken.session_id])) {
                     aurora[sessionId][instanceId]= function() {}
                     aurora[sessionId][instanceId]["connection"]= function() {}
-                    
                      aurora[sessionId][instanceId]["connection"]  = mysql.createPool({
                             host: params.host,
                             user: params.username,
@@ -689,7 +688,10 @@ app.get("/api/mysql/cluster/sql/", (req,res)=>{
     var params = req.query;
     try {
         
-        aurora[standardToken.session_id][params.instance]["connection"].query(params.sql_statement, (err,result)=>{
+        var sessionId =  "$" + standardToken.session_id;
+        var instanceId = "$" + params.instance;
+    
+        aurora[sessionId][instanceId]["connection"].query(params.sql_statement, (err,result)=>{
                         if(err) {
                             console.log(err)
                             res.status(404).send(err);
