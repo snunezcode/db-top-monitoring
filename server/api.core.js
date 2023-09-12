@@ -222,7 +222,7 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
                         var session_id=uuid.v4();
                         
                         if (params.mode == "cluster")
-                            aurora[session_id] = {};
+                            aurora["$" + session_id] = {};
                         else
                             mysqlOpenConnection(session_id,params.host,params.port,params.username,params.password);
                         
@@ -607,7 +607,7 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
     var instanceId = "$" + params.instance;
     try {
         
-            if (!(params.instance in aurora[standardToken.session_id])) {
+            if (!(("$" + params.instance) in aurora[sessionId])) {
                     aurora[sessionId][instanceId]= function() {}
                     aurora[sessionId][instanceId]["connection"]= function() {}
                      aurora[sessionId][instanceId]["connection"]  = mysql.createPool({
@@ -630,6 +630,7 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
             
     }
     catch(err) {
+        console.log(err)
         res.status(404).send(err);
     }
    
