@@ -91,7 +91,6 @@ function Login() {
     //-- Handle Click Events
     const handleClickLogin = () => {
             
-            console.log(selectedItems[0]['engine']);
             // Add CSRF Token
             Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
 
