@@ -13,7 +13,7 @@ import { SplitPanel } from '@cloudscape-design/components';
 import Link from "@cloudscape-design/components/link";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
-import ElasticNode  from '../components/elasticache/CompElasticNode01';
+import AuroraNode  from '../components/CompAuroraNode01';
 import CompSparkline01  from '../components/ChartSparkline01';
 import CompMetric01  from '../components/Metric01';
 import CompMetric04  from '../components/Metric04';
@@ -60,11 +60,17 @@ function App() {
     //-- Configuration variables
     const cnf_connection_id=parameter_object_values["session_id"];  
     const cnf_identifier=parameter_object_values["rds_id"];  
-    const cnf_engine=parameter_object_values["engine"];
+    const cnf_engine=parameter_object_values["rds_engine"];
+    const cnf_engine_class=parameter_object_values["rds_class"];
+    const cnf_az=parameter_object_values["rds_az"];
+    const cnf_version=parameter_object_values["rds_version"];
+    const cnf_resource_id=parameter_object_values["rds_resource_id"];
+    const cnf_nodes=parameter_object_values["rds_nodes"];
+    const cnf_endpoint=parameter_object_values["rds_host"];
+    const cnf_endpoint_port=parameter_object_values["rds_port"];
     const cnf_username=parameter_object_values["rds_user"];
     const cnf_password=parameter_object_values["rds_password"];
-    const cnf_auth=parameter_object_values["rds_auth"];
-    const cnf_ssl=parameter_object_values["rds_ssl"];
+    
     
     //-- Add token header
     Axios.defaults.headers.common['x-token'] = sessionStorage.getItem(cnf_connection_id);
@@ -84,44 +90,60 @@ function App() {
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
     
     const metricObjectGlobal = useRef(new classMetric([
-                                                        {name : "Operations", history : historyChartDetails },
-                                                        {name : "GetCalls", history : historyChartDetails },
-                                                        {name : "SetCalls", history : historyChartDetails },
-                                                        {name : "GetLatency", history : historyChartDetails },
-                                                        {name : "SetLatency", history : historyChartDetails },
-                                                        {name : "CacheHits", history : historyChartDetails },
-                                                        {name : "CacheMisses", history : historyChartDetails },
+                                                        {name : "cpu", history : historyChartDetails },
+                                                        {name : "memory", history : historyChartDetails },
+                                                        {name : "ioreads", history : historyChartDetails },
+                                                        {name : "iowrites", history : historyChartDetails },
+                                                        {name : "netin", history : historyChartDetails },
+                                                        {name : "netout", history : historyChartDetails },
+                                                        {name : "queries", history : historyChartDetails },
+                                                        {name : "questions", history : historyChartDetails },
+                                                        {name : "comSelect", history : historyChartDetails },
+                                                        {name : "comInsert", history : historyChartDetails },
+                                                        {name : "comDelete", history : historyChartDetails },
+                                                        {name : "comUpdate", history : historyChartDetails },
+                                                        {name : "threads", history : historyChartDetails },
+                                                        {name : "threadsRunning", history : historyChartDetails },
+                                                        
     ]));
     
+   
     var nodeMetrics = useRef([]);
     var nodeMembers = useRef([]);
     const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
     const [dataMetrics,setDataMetrics] = useState({ 
-                                                cpu : 0,
-                                                memory : 0,
-                                                memoryUsed : 0,
-                                                memoryTotal : 0,
-                                                operations : 0,
-                                                getCalls : 0,
-                                                setCalls : 0,
-                                                getLatency : 0,
-                                                setLatency : 0,
-                                                connections : 0,
-                                                keyspaceHits : 0,
-                                                keyspaceMisses : 0,
-                                                totalNetInputBytes : 0,
-                                                totalNetOutputBytes : 0,
-                                                totalConnectionsReceived : 0,
-                                                totalCommandsProcessed : 0,
+                                                cpu: 0,
+                                                memory: 0,
+                                                ioreads: 0,
+                                                iowrites: 0,
+                                                iops : 0,
+                                                netin: 0,
+                                                netout: 0,
+                                                network : 0,
+                                                queries: 0,
+                                                questions: 0,
+                                                comSelect: 0,
+                                                comInsert: 0,
+                                                comDelete: 0,
+                                                comUpdate: 0,
+                                                threads : 0,
+                                                threadsRunning : 0,
                                                 timestamp : 0,
                                                 refObject : new classMetric([
-                                                                                    {name : "Operations", history : historyChartDetails },
-                                                                                    {name : "GetCalls", history : historyChartDetails },
-                                                                                    {name : "SetCalls", history : historyChartDetails },
-                                                                                    {name : "GetLatency", history : historyChartDetails },
-                                                                                    {name : "SetLatency", history : historyChartDetails },
-                                                                                    {name : "CacheHits", history : historyChartDetails },
-                                                                                    {name : "CacheMisses", history : historyChartDetails },
+                                                                                {name : "cpu", history : historyChartDetails },
+                                                                                {name : "memory", history : historyChartDetails },
+                                                                                {name : "ioreads", history : historyChartDetails },
+                                                                                {name : "iowrites", history : historyChartDetails },
+                                                                                {name : "netin", history : historyChartDetails },
+                                                                                {name : "netout", history : historyChartDetails },
+                                                                                {name : "queries", history : historyChartDetails },
+                                                                                {name : "questions", history : historyChartDetails },
+                                                                                {name : "comSelect", history : historyChartDetails },
+                                                                                {name : "comInsert", history : historyChartDetails },
+                                                                                {name : "comDelete", history : historyChartDetails },
+                                                                                {name : "comUpdate", history : historyChartDetails },
+                                                                                {name : "threads", history : historyChartDetails },
+                                                                                {name : "threadsRunning", history : historyChartDetails },
                                                                                 ]),
                                                 metricDetails : []
                                                 
@@ -148,77 +170,64 @@ function App() {
         
         var api_url = configuration["apps-settings"]["api_url"];
         
-        await Axios.get(`${api_url}/api/aws/region/memorydb/cluster/nodes/`,{
+        await Axios.get(`${api_url}/api/aws/aurora/cluster/region/endpoints/`,{
                       params: { cluster : cnf_identifier }
                   }).then((data)=>{
-                    if (data.data.Clusters.length> 0) {
-                            
-                            var rg = data.data.Clusters[0];
+                    
+                    if (data.data.data.DBInstances.length > 0) {
+                        
+                            var clusterNodes = data.data.data.DBInstances;
                             
                             var nodeList = [];
                             var clwDimensions = "";
-                            var clusterEndpoint = rg['ClusterEndpoint']['Address'];
-                            var nodePort = rg['ClusterEndpoint']['Port'];
-                            
-                            
-                            
-                            rg['Shards'].forEach(function(shard) {
+                       
+                            clusterNodes.forEach(function(node) {
                                 
-                                    shard['Nodes'].forEach(function(node) {
-                                        
-                                        nodeList.push({
-                                                        nodeId : node['Name'],
-                                                        endPoint : node['Endpoint']['Address']
-                                                        });
-                                        
-                                        nodeMembers.current[node['Name']] = { 
-                                                                        cpu : Array(historyChartDetails).fill(null), 
-                                                                        memory : Array(historyChartDetails).fill(null),
-                                                                        operations : Array(historyChartDetails).fill(null), 
-                                                                        getCalls : Array(historyChartDetails).fill(null), 
-                                                                        setCalls : Array(historyChartDetails).fill(null), 
-                                                                        getLatency : Array(historyChartDetails).fill(null), 
-                                                                        setLatency : Array(historyChartDetails).fill(null), 
-                                                                        connections : Array(historyChartDetails).fill(null),
-                                                                        cacheHits : Array(historyChartDetails).fill(null),
-                                                                        cacheHitRate : Array(historyChartDetails).fill(null),
-                                                                                                    
-                                                                        };
-                                                                        
-                                        clwDimensions = clwDimensions + ( rg['Name'] + "|" + node['Name'] ) + "," 
+                                nodeList.push({
+                                                instance : node['DBInstanceIdentifier'],
+                                                host : node['Endpoint']['Address'],
+                                                port : node['Endpoint']['Port'],
+                                                status : node['DBInstanceStatus'],
+                                                size : node['DBInstanceClass'],
+                                                az : node['AvailabilityZone'],
+                                                monitoring :  ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
+                                                resourceId : node['DbiResourceId'],
+                                                });
                                 
-                                    });
-                                    
-                                    
-                                        
-                                
-                                
+                                nodeMembers.current[node['DBInstanceIdentifier']] = { 
+                                                                                        cpu: Array(historyChartDetails).fill(null), 
+                                                                                        memory: Array(historyChartDetails).fill(null), 
+                                                                                        ioreads: Array(historyChartDetails).fill(null), 
+                                                                                        iowrites: Array(historyChartDetails).fill(null), 
+                                                                                        iops : Array(historyChartDetails).fill(null), 
+                                                                                        netin: Array(historyChartDetails).fill(null), 
+                                                                                        netout: Array(historyChartDetails).fill(null), 
+                                                                                        network : Array(historyChartDetails).fill(null), 
+                                                                                        queries: Array(historyChartDetails).fill(null), 
+                                                                                        questions: Array(historyChartDetails).fill(null), 
+                                                                                        comSelect: Array(historyChartDetails).fill(null), 
+                                                                                        comInsert: Array(historyChartDetails).fill(null), 
+                                                                                        comDelete: Array(historyChartDetails).fill(null), 
+                                                                                        comUpdate: Array(historyChartDetails).fill(null), 
+                                                                                        threads : Array(historyChartDetails).fill(null),
+                                                                                        threadsRunning : Array(historyChartDetails).fill(null), 
+                                                                };
+                                                                
+                                clwDimensions = clwDimensions +  node['DBInstanceIdentifier']  + "," 
+                        
                             });
                             
                             setDataNodes({
                                     MemberClusters : nodeList,
-                                    ConfigurationEndpoint : clusterEndpoint,
-                                    ConfigurationUid : "",
-                                    Port : nodePort,
-                                    CacheNodeType : rg['NodeType'],
-                                    ReplicationGroupId : rg['Name'],
-                                    Shards : rg['NumberOfShards'],
-                                    Status : rg['Status'],
-                                    Ssl : String(rg['TLSEnabled']),
-                                    Acl : rg['ACLName'],
-                                    DataTiering : String(rg['DataTiering']), 
                                     clwDimensions : clwDimensions.slice(0, -1)
                                     }
                             );  
                     }
                     
                     
-                     
-                    
-                  
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/aws/region/memorydb/cluster/nodes/' );
+                  console.log('Timeout API Call : /api/aws/aurora/cluster/region/endpoints/' );
                   console.log(err);
                   
               });
@@ -227,32 +236,28 @@ function App() {
     
     
     
-    
     function syncData(childNode) {
     
         nodeMetrics.current[childNode.name] = { 
-                                    name : childNode.name,  
-                                    cpu_sys : childNode.cpu_sys,
-                                    cpu_user : childNode.cpu_user, 
-                                    memory : childNode.memory ,
-                                    memoryUsed : childNode.memoryUsed , 
-                                    memoryTotal : childNode.memoryTotal , 
-                                    operations : childNode.operations, 
-                                    getCalls : childNode.getCalls, 
-                                    setCalls : childNode.setCalls,
-                                    getLatency : childNode.getLatency, 
-                                    setLatency : childNode.setLatency,
-                                    connections : childNode.connected_clients,
-                                    keyspaceHits : childNode.keyspace_hits,
-                                    keyspaceMisses : childNode.keyspace_misses,
-                                    totalNetInputBytes : childNode.total_net_input_bytes,
-                                    totalNetOutputBytes : childNode.total_net_output_bytes,
-                                    totalConnectionsReceived : childNode.total_connections_received,
-                                    totalCommandsProcessed : childNode.total_commands_processed
+                                        name: childNode.name,
+                                        cpu: childNode.cpu,
+                                        memory: childNode.memory,
+                                        ioreads: childNode.ioreads,
+                                        iowrites: childNode.iowrites,
+                                        netin: childNode.netin,
+                                        netout: childNode.netout,
+                                        queries: childNode.queries,
+                                        questions: childNode.questions,
+                                        comSelect: childNode.comSelect,
+                                        comUpdate: childNode.comUpdate,
+                                        comDelete: childNode.comDelete,
+                                        cpuInsert: childNode.comInsert,
+                                        threads: childNode.threads,
+                                        threadsRunning: childNode.threadsRunning,
         
         };
         
-        
+    
         
     }
     
@@ -264,22 +269,22 @@ function App() {
         
         var timeNow = new Date();
         var metrics = { 
-                        cpu : 0, 
-                        memory : 0,
-                        memoryUsed : 0, 
-                        memoryTotal : 0, 
-                        operations : 0, 
-                        getCalls : 0, 
-                        setCalls : 0,
-                        connections : 0,
-                        getLatency : 0,
-                        setLatency : 0,
-                        keyspaceHits : 0,
-                        keyspaceMisses : 0,
-                        totalNetInputBytes : 0,
-                        totalNetOutputBytes : 0,
-                        totalConnectionsReceived : 0,
-                        totalCommandsProcessed : 0
+                        cpu: 0,
+                        memory: 0,
+                        ioreads: 0,
+                        iowrites: 0,
+                        iops : 0,
+                        netin: 0,
+                        netout: 0,
+                        network : 0,
+                        queries: 0,
+                        questions: 0,
+                        comSelect: 0,
+                        comInsert: 0,
+                        comDelete: 0,
+                        comUpdate: 0,
+                        threads : 0,
+                        threadsRunning : 0,
         };
         var nodes = 0;
         
@@ -289,36 +294,35 @@ function App() {
         
         metricDetails['cpu'] = [];
         metricDetails['memory'] = [];
-        metricDetails['cacheHitRate'] = [];
-        metricDetails['cacheHits'] = [];
-        metricDetails['operations'] = [];
-        metricDetails['getCalls'] = [];
-        metricDetails['setCalls'] = [];
-        metricDetails['getLatency'] = [];
-        metricDetails['setLatency'] = [];
-        metricDetails['connections'] = [];
+        metricDetails['iops'] = [];
+        metricDetails['network'] = [];
+        metricDetails['threads'] = [];
+        metricDetails['threadsRunning'] = [];
+        metricDetails['queries'] = [];
+        metricDetails['questions'] = [];
         
         for (index of Object.keys(nodeList)) {
-            metrics.cpu = metrics.cpu + parseFloat(nodeList[index].cpu_user) + parseFloat(nodeList[index].cpu_sys);
-            metrics.memory = metrics.memory + parseFloat(nodeList[index].memory);
-            metrics.memoryUsed = metrics.memoryUsed + parseFloat(nodeList[index].memoryUsed);
-            metrics.memoryTotal = metrics.memoryTotal + parseFloat(nodeList[index].memoryTotal);
-            metrics.operations = metrics.operations + parseFloat(nodeList[index].operations);
-            metrics.getCalls = metrics.getCalls + parseFloat(nodeList[index].getCalls);
-            metrics.setCalls = metrics.setCalls + parseFloat(nodeList[index].setCalls);
-            metrics.connections = metrics.connections + parseFloat(nodeList[index].connections);
-            metrics.getLatency = metrics.getLatency + parseFloat(nodeList[index].getLatency);
-            metrics.setLatency = metrics.setLatency + parseFloat(nodeList[index].setLatency);
-            metrics.keyspaceHits = metrics.keyspaceHits + parseFloat(nodeList[index].keyspaceHits);
-            metrics.keyspaceMisses = metrics.keyspaceMisses + parseFloat(nodeList[index].keyspaceMisses);
-            metrics.totalNetInputBytes  = metrics.totalNetInputBytes + parseFloat(nodeList[index].totalNetInputBytes);
-            metrics.totalNetOutputBytes  = metrics.totalNetOutputBytes + parseFloat(nodeList[index].totalNetOutputBytes);
-            metrics.totalConnectionsReceived  = metrics.totalConnectionsReceived + parseFloat(nodeList[index].totalConnectionsReceived);
-            metrics.totalCommandsProcessed  = metrics.totalCommandsProcessed + parseFloat(nodeList[index].totalCommandsProcessed);
+            
+            metrics.cpu = metrics.cpu + parseFloat(nodeList[index].cpu) ;
+            metrics.memory = metrics.memory + parseFloat(nodeList[index].memory) ;
+            metrics.ioreads = metrics.ioreads + parseFloat(nodeList[index].ioreads) ;
+            metrics.iowrites = metrics.iowrites + parseFloat(nodeList[index].iowrites) ;
+            metrics.iops = metrics.iops + ( parseFloat(nodeList[index].iowrites) + parseFloat(nodeList[index].ioreads) );
+            metrics.netin = metrics.netin + parseFloat(nodeList[index].netin) ;
+            metrics.netout = metrics.netout + parseFloat(nodeList[index].netout) ;
+            metrics.network = metrics.network + ( parseFloat(nodeList[index].netout)  + parseFloat(nodeList[index].netin) );
+            metrics.queries = metrics.queries + parseFloat(nodeList[index].queries) ;
+            metrics.questions = metrics.questions + parseFloat(nodeList[index].questions) ;
+            metrics.comSelect = metrics.comSelect + parseFloat(nodeList[index].comSelect) ;
+            metrics.comInsert = metrics.comInsert + parseFloat(nodeList[index].comInsert) ;
+            metrics.comDelete = metrics.comDelete + parseFloat(nodeList[index].comDelete) ;
+            metrics.comUpdate = metrics.comUpdate + parseFloat(nodeList[index].comUpdate) ;
+            metrics.threads = metrics.threads + parseFloat(nodeList[index].threads) ;
+            metrics.threadsRunning = metrics.threadsRunning + parseFloat(nodeList[index].threadsRunning) ;
                         
             
             // cpu
-            nodeMembers.current[nodeList[index].name]['cpu'].push(parseFloat(nodeList[index].cpu_user) + parseFloat(nodeList[index].cpu_sys));
+            nodeMembers.current[nodeList[index].name]['cpu'].push(parseFloat(nodeList[index].cpu));
             nodeMembers.current[nodeList[index].name]['cpu'] = nodeMembers.current[nodeList[index].name]['cpu'].slice(nodeMembers.current[nodeList[index].name]['cpu'].length-historyChartDetails);
             metricDetails['cpu'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cpu'] });
             
@@ -327,76 +331,77 @@ function App() {
             nodeMembers.current[nodeList[index].name]['memory'] = nodeMembers.current[nodeList[index].name]['memory'].slice(nodeMembers.current[nodeList[index].name]['memory'].length-historyChartDetails);
             metricDetails['memory'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['memory'] });
             
-            // cacheHitRate
-            nodeMembers.current[nodeList[index].name]['cacheHitRate'].push( ( ( parseFloat(nodeList[index].keyspaceHits) / ( parseFloat(nodeList[index].keyspaceHits) + parseFloat(nodeList[index].keyspaceMisses))) * 100 ) || 0);
-            nodeMembers.current[nodeList[index].name]['cacheHitRate'] = nodeMembers.current[nodeList[index].name]['cacheHitRate'].slice(nodeMembers.current[nodeList[index].name]['cacheHitRate'].length-historyChartDetails);
-            metricDetails['cacheHitRate'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cacheHitRate'] });
-
-            // cacheHits
-            nodeMembers.current[nodeList[index].name]['cacheHits'].push(parseFloat(nodeList[index].keyspaceHits));
-            nodeMembers.current[nodeList[index].name]['cacheHits'] = nodeMembers.current[nodeList[index].name]['cacheHits'].slice(nodeMembers.current[nodeList[index].name]['cacheHits'].length-historyChartDetails);
-            metricDetails['cacheHits'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cacheHits'] });
-
-            // operations
-            nodeMembers.current[nodeList[index].name]['operations'].push(parseFloat(nodeList[index].operations));
-            nodeMembers.current[nodeList[index].name]['operations'] = nodeMembers.current[nodeList[index].name]['operations'].slice(nodeMembers.current[nodeList[index].name]['operations'].length-historyChartDetails);
-            metricDetails['operations'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['operations'] });
+            // iops
+            nodeMembers.current[nodeList[index].name]['iops'].push(parseFloat(nodeList[index].ioreads)+parseFloat(nodeList[index].iowrites));
+            nodeMembers.current[nodeList[index].name]['iops'] = nodeMembers.current[nodeList[index].name]['iops'].slice(nodeMembers.current[nodeList[index].name]['iops'].length-historyChartDetails);
+            metricDetails['iops'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['iops'] });
             
-            // getCalls
-            nodeMembers.current[nodeList[index].name]['getCalls'].push(parseFloat(nodeList[index].getCalls));
-            nodeMembers.current[nodeList[index].name]['getCalls'] = nodeMembers.current[nodeList[index].name]['getCalls'].slice(nodeMembers.current[nodeList[index].name]['getCalls'].length-historyChartDetails);
-            metricDetails['getCalls'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['getCalls'] });
             
-            // setCalls
-            nodeMembers.current[nodeList[index].name]['setCalls'].push(parseFloat(nodeList[index].setCalls));
-            nodeMembers.current[nodeList[index].name]['setCalls'] = nodeMembers.current[nodeList[index].name]['setCalls'].slice(nodeMembers.current[nodeList[index].name]['setCalls'].length-historyChartDetails);
-            metricDetails['setCalls'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['setCalls'] });
+            // network
+            nodeMembers.current[nodeList[index].name]['network'].push(parseFloat(nodeList[index].netin)+parseFloat(nodeList[index].netout));
+            nodeMembers.current[nodeList[index].name]['network'] = nodeMembers.current[nodeList[index].name]['network'].slice(nodeMembers.current[nodeList[index].name]['network'].length-historyChartDetails);
+            metricDetails['network'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['network'] });
             
-            // getLatency
-            nodeMembers.current[nodeList[index].name]['getLatency'].push(parseFloat(nodeList[index].getLatency));
-            nodeMembers.current[nodeList[index].name]['getLatency'] = nodeMembers.current[nodeList[index].name]['getLatency'].slice(nodeMembers.current[nodeList[index].name]['getLatency'].length-historyChartDetails);
-            metricDetails['getLatency'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['getLatency'] });
             
-            // setLatency
-            nodeMembers.current[nodeList[index].name]['setLatency'].push(parseFloat(nodeList[index].setLatency));
-            nodeMembers.current[nodeList[index].name]['setLatency'] = nodeMembers.current[nodeList[index].name]['setLatency'].slice(nodeMembers.current[nodeList[index].name]['setLatency'].length-historyChartDetails);
-            metricDetails['setLatency'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['setLatency'] });
+            // threads
+            nodeMembers.current[nodeList[index].name]['threads'].push(parseFloat(nodeList[index].threads));
+            nodeMembers.current[nodeList[index].name]['threads'] = nodeMembers.current[nodeList[index].name]['threads'].slice(nodeMembers.current[nodeList[index].name]['threads'].length-historyChartDetails);
+            metricDetails['threads'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['threads'] });
             
-            // connections
-            nodeMembers.current[nodeList[index].name]['connections'].push(parseFloat(nodeList[index].connections));
-            nodeMembers.current[nodeList[index].name]['connections'] = nodeMembers.current[nodeList[index].name]['connections'].slice(nodeMembers.current[nodeList[index].name]['connections'].length-historyChartDetails);
-            metricDetails['connections'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['connections'] });
+            // threadsRunning
+            nodeMembers.current[nodeList[index].name]['threadsRunning'].push(parseFloat(nodeList[index].threadsRunning));
+            nodeMembers.current[nodeList[index].name]['threadsRunning'] = nodeMembers.current[nodeList[index].name]['threadsRunning'].slice(nodeMembers.current[nodeList[index].name]['threadsRunning'].length-historyChartDetails);
+            metricDetails['threadsRunning'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['threadsRunning'] });
+            
+            
+            // queries
+            nodeMembers.current[nodeList[index].name]['queries'].push(parseFloat(nodeList[index].queries));
+            nodeMembers.current[nodeList[index].name]['queries'] = nodeMembers.current[nodeList[index].name]['queries'].slice(nodeMembers.current[nodeList[index].name]['queries'].length-historyChartDetails);
+            metricDetails['queries'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['queries'] });
+            
+            
+            // questions
+            nodeMembers.current[nodeList[index].name]['questions'].push(parseFloat(nodeList[index].questions));
+            nodeMembers.current[nodeList[index].name]['questions'] = nodeMembers.current[nodeList[index].name]['questions'].slice(nodeMembers.current[nodeList[index].name]['questions'].length-historyChartDetails);
+            metricDetails['questions'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['questions'] });
+            
             
             nodes++;
+           
 
         }
       
-        metricObjectGlobal.current.addPropertyValue('Operations', metrics.operations);
-        metricObjectGlobal.current.addPropertyValue('GetCalls', metrics.getCalls);
-        metricObjectGlobal.current.addPropertyValue('SetCalls', metrics.setCalls);
-        metricObjectGlobal.current.addPropertyValue('GetLatency', (metrics.getLatency / nodes) || 0 );
-        metricObjectGlobal.current.addPropertyValue('SetLatency', (metrics.setLatency / nodes) || 0 );
-        metricObjectGlobal.current.addPropertyValue('CacheHits', metrics.keyspaceHits );
-        metricObjectGlobal.current.addPropertyValue('CacheMisses', metrics.keyspaceMisses );
+        metricObjectGlobal.current.addPropertyValue('cpu', (metrics.cpu / nodes) || 0 );
+        metricObjectGlobal.current.addPropertyValue('memory', (metrics.memory / nodes) || 0);
+        metricObjectGlobal.current.addPropertyValue('ioreads', metrics.ioreads);
+        metricObjectGlobal.current.addPropertyValue('iowrites', metrics.iowrites);
+        metricObjectGlobal.current.addPropertyValue('netin', metrics.netin);
+        metricObjectGlobal.current.addPropertyValue('netout', metrics.netout );
+        metricObjectGlobal.current.addPropertyValue('queries', metrics.queries );
+        metricObjectGlobal.current.addPropertyValue('questions', metrics.questions );
+        metricObjectGlobal.current.addPropertyValue('comSelect', metrics.comSelect );
+        metricObjectGlobal.current.addPropertyValue('comInsert', metrics.comInsert );
+        metricObjectGlobal.current.addPropertyValue('comDelete', metrics.comDelete );
+        metricObjectGlobal.current.addPropertyValue('comUpdate', metrics.comUpdate );
+        metricObjectGlobal.current.addPropertyValue('threads', metrics.threads );
+        metricObjectGlobal.current.addPropertyValue('threadsRunning', metrics.threadsRunning );
         
-        
+       
         setDataMetrics({
-            cpu : metrics.cpu / nodes ,
-            memory : metrics.memory / nodes ,
-            memoryUsed : metrics.memoryUsed ,
-            memoryTotal : metrics.memoryTotal ,
-            operations : metrics.operations ,
-            getCalls : metrics.getCalls ,
-            setCalls : metrics.setCalls ,
-            getLatency : metrics.getLatency / nodes ,
-            setLatency : metrics.setLatency / nodes ,
-            connections : metrics.connections,
-            keyspaceHits : metrics.keyspaceHits ,
-            keyspaceMisses : metrics.keyspaceMisses ,
-            totalNetInputBytes : metrics.totalNetInputBytes ,
-            totalNetOutputBytes : metrics.totalNetOutputBytes ,
-            totalConnectionsReceived : metrics.totalConnectionsReceived ,
-            totalCommandsProcessed : metrics.totalCommandsProcessed,
+            cpu: metrics.cpu / nodes ,
+            memory: metrics.memory / nodes ,
+            ioreads: metrics.ioreads,
+            iowrites: metrics.iowrites,
+            netin: metrics.netin,
+            netout: metrics.netout,
+            queries: metrics.queries,
+            questions: metrics.questions,
+            comSelect: metrics.comSelect,
+            comInsert: metrics.comUpdate,
+            comDelete: metrics.comDelete,
+            comUpdate: metrics.comUpdate,
+            threads : metrics.threads,
+            threadsRunning : metrics.threadsRunning,
             refObject : metricObjectGlobal.current,
             timestamp : timeNow.getTime(),
             metricDetails : metricDetails,
@@ -447,14 +452,14 @@ function App() {
     
     const closeDatabaseConnection = () => {
         
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/redis/connection/close/`,{
-                      params: { connectionId : cnf_connection_id, cluster : cnf_identifier }
+        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/mysql/cluster/connection/close`,{
+                      params: { connectionId : cnf_connection_id }
                   }).then((data)=>{
                       closeTabWindow();
                       sessionStorage.removeItem(parameter_code_id);
                   })
                   .catch((err) => {
-                      console.log('Timeout API Call : /api/redis/connection/close/');
+                      console.log('Timeout API Call : /api/mysql/cluster/connection/close');
                       console.log(err)
                   });
                   
@@ -474,7 +479,6 @@ function App() {
     function onClickMetric(metricId,metricTitle) {
         
         var timeNow = new Date();
-        
         setMetricDetailsIndex ({ index : metricId, title : metricTitle, timestamp : timeNow.getTime() });
         setsplitPanelShow(true);
                                                       
@@ -582,24 +586,25 @@ function App() {
                                             <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                 <tr>  
                                                    <td> 
+                                                         
                                                         <Container>
                                 
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>  
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.operations}
-                                                                                    title={"Operations/sec"}
+                                                                                    value={dataMetrics.questions}
+                                                                                    title={"Questions/sec"}
                                                                                     precision={0}
                                                                                     format={1}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"36px"}
+                                                                                    fontSizeValue={"30px"}
                                                                                 />
                                                                         </td>
-                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
+                                                                         <td style={{"width":"8%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.getLatency || 0}
-                                                                                    title={"getLatency(us)"}
+                                                                                    value={(dataMetrics.comInsert + dataMetrics.comUpdate + dataMetrics.comDelete)   || 0}
+                                                                                    title={"WriteOps/sec"}
                                                                                     precision={0}
                                                                                     format={1}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -607,125 +612,131 @@ function App() {
                                                                                 <br/>        
                                                                                 <br/> 
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.setLatency || 0}
-                                                                                    title={"setLatency(us)"}
+                                                                                    value={dataMetrics.comSelect || 0}
+                                                                                    title={"ReadOps/sec"}
                                                                                     precision={0}
                                                                                     format={1}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"12%", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                                 <ChartRadialBar01 series={[Math.round(dataMetrics.cpu || 0)]} 
                                                                                          height="180px" 
                                                                                          title={"CPU (%)"}
                                                                                 />
                                                                              
                                                                         </td>
-                                                                        <td style={{"width":"12%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(dataMetrics.memory || 0)]} 
-                                                                                         height="180px" 
-                                                                                         title={"Memory (%)"}
-                                                                                />
-                                                                        </td>
-                                                                                
-                                                                        <td style={{"width":"12%", "padding-right": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[ Math.round( (  (dataMetrics.keyspaceHits / ( dataMetrics.keyspaceHits + dataMetrics.keyspaceMisses) ) * 100 ) || 0 ) ]} 
-                                                                                         height="180px" 
-                                                                                         title={"HitRatio (%)"}
-                                                                                />
-                                                                        </td>
-                                                                        <td style={{"width":"42%", "border-left": "1px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"22%", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('Operations')
+                                                                                                    dataMetrics.refObject.getPropertyValues('cpu')
+                                                                                                    
                                                                                                 ]} 
-                                                                            timestamp={dataMetrics.timestamp} title={"Operations/sec"} height="180px" />
-                                                                            {/*
-                                                                            <ChartBar01 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('Operations')
-                                                                                                ]} 
-                                                                             timestamp={dataMetrics.timestamp} title={"Operations/sec"} height="180px" 
-                                                                             />
-                                                                             */}
+                                                                                            timestamp={dataMetrics.timestamp} title={"CPU Usage(%)"} height="180px" 
+                                                                            />
                                                                         </td>
-                                                                        
+                                                                        <td style={{"width":"22%", "padding-left": "1em"}}>  
+                                                                             <ChartLine02 series={[
+                                                                                                    dataMetrics.refObject.getPropertyValues('ioreads'),
+                                                                                                    dataMetrics.refObject.getPropertyValues('iowrites')
+                                                                                                    
+                                                                                                ]} 
+                                                                                            timestamp={dataMetrics.timestamp} title={"IOPS"} height="180px" 
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"22%", "padding-left": "1em"}}>  
+                                                                             <ChartLine02 series={[
+                                                                                                    dataMetrics.refObject.getPropertyValues('netin'),
+                                                                                                    dataMetrics.refObject.getPropertyValues('netout'),
+                                                                                                ]} 
+                                                                                            timestamp={dataMetrics.timestamp} title={"NetworkTraffic"} height="180px" 
+                                                                            />  
+                                                                        </td>
                                                                     </tr>
                                                                     
                                                                 </table>  
-                                                                
                                                                 <br />
                                                                 <br />
                                                                 <br />
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr> 
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"11%", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.getCalls}
-                                                                                title={"getCalls/sec"}
+                                                                                value={dataMetrics.threadsRunning}
+                                                                                title={"ThreadsRunning"}
+                                                                                precision={0}
+                                                                                format={3}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={dataMetrics.comSelect  || 0}
+                                                                                title={"ComSelect/sec"}
                                                                                 precision={0}
                                                                                 format={1}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.setCalls}
-                                                                                title={"setCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.memoryTotal || 0}
-                                                                                    title={"MemoryTotal"}
-                                                                                    precision={0}
-                                                                                    format={2}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.keyspaceHits}
-                                                                                title={"Cache Hits/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.totalNetInputBytes}
-                                                                                title={"NetworkIn"}
-                                                                                precision={0}
-                                                                                format={2}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.totalNetOutputBytes}
-                                                                                title={"NetworkOut"}
-                                                                                precision={0}
-                                                                                format={2}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                                <CompMetric01 
-                                                                                    value={dataMetrics.totalConnectionsReceived || 0}
-                                                                                    title={"Connections/sec"}
+                                                                                    value={dataMetrics.comInsert || 0}
+                                                                                    title={"ComInsert/sec"}
                                                                                     precision={0}
                                                                                     format={1}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                                <CompMetric01 
+                                                                                    value={dataMetrics.comUpdate || 0}
+                                                                                    title={"ComUpdate/sec"}
+                                                                                    precision={0}
+                                                                                    format={1}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                />
+                                                                        </td>
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                                <CompMetric01 
+                                                                                    value={dataMetrics.comDelete || 0}
+                                                                                    title={"ComDelete/sec"}
+                                                                                    precision={0}
+                                                                                    format={1}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                />
+                                                                        </td>
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.connections}
-                                                                                title={"CurConnections"}
+                                                                                value={dataMetrics.ioreads}
+                                                                                title={"IO Reads/sec"}
                                                                                 precision={0}
-                                                                                format={3}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={dataMetrics.iowrites}
+                                                                                title={"IO Writes/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={dataMetrics.netin}
+                                                                                title={"Network-In"}
+                                                                                precision={0}
+                                                                                format={2}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={dataMetrics.netout}
+                                                                                title={"Network-Out"}
+                                                                                precision={0}
+                                                                                format={2}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
@@ -733,93 +744,102 @@ function App() {
                                                                     </tr>
                                                                     
                                                             </table>  
-                                                                
+                                                            
                                                             <br />
                                                             <br />
                                                             <br />
-                                                              <table style={{"width":"100%"}}>
+                                                            <table style={{"width":"100%"}}>
                                                                   <tr>  
-                                                                    <td style={{"width":"30%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('GetCalls') , 
-                                                                                                    dataMetrics.refObject.getPropertyValues('SetCalls') ,
-                                                                                                ]} 
-                                                                            timestamp={dataMetrics.timestamp} title={"Calls/sec"} height="230px" />
+                                                                    <td style={{"width":"33%", "padding-left": "1em"}}>  
+                                                                         <ChartLine02 series={[
+                                                                                                dataMetrics.refObject.getPropertyValues('threadsRunning')
+                                                                                            ]} 
+                                                                                        timestamp={dataMetrics.timestamp} title={"ThreadsRunning"} height="180px" 
+                                                                        />  
                                                                     </td>
-                                                                    
-                                                                    <td style={{"width":"30%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('GetLatency'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('SetLatency'),
-                                                                                                ]} 
-                                                                             timestamp={dataMetrics.timestamp} title={"CallsLatency(us)"} height="230px" />
+                                                                    <td style={{"width":"33%", "padding-left": "1em"}}>  
+                                                                         <ChartLine02 series={[
+                                                                                                dataMetrics.refObject.getPropertyValues('questions')
+                                                                                            ]} 
+                                                                                        timestamp={dataMetrics.timestamp} title={"Questions/sec"} height="180px" 
+                                                                        />  
                                                                     </td>
-                                                                    <td style={{"width":"30%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('CacheHits'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('CacheMisses'),
-                                                                                                ]} 
-                                                                             timestamp={dataMetrics.timestamp} title={"Cache Efficiency/sec"} height="230px" />
+                                                                    <td style={{"width":"33%", "padding-left": "1em"}}>  
+                                                                         <ChartLine02 series={[
+                                                                                                dataMetrics.refObject.getPropertyValues('comSelect'),
+                                                                                                dataMetrics.refObject.getPropertyValues('comDelete'),
+                                                                                                dataMetrics.refObject.getPropertyValues('comInsert'),
+                                                                                                dataMetrics.refObject.getPropertyValues('comUpdate'),
+                                                                                                
+                                                                                            ]} 
+                                                                                        timestamp={dataMetrics.timestamp} title={"Operations/sec"} height="180px" 
+                                                                        />
                                                                     </td>
                                                                     
                                                                   </tr>
-                                                              </table>
-                                                                
+                                                            </table>
+                                                              
                                                             
                                                         </Container>
                                                         <br/>
+                                                        
                                                         <Container>
                                                                 
                                                                   
                                                             <table style={{"width":"100%" }}>
                                                                         <tr>
                                                                             <td style={{ "width":"9%", "text-align":"left","padding-left":"1em", "font-size": "12px", "font-weight": "600"}}>
-                                                                                    NodeId
+                                                                                NodeId
+                                                                            </td>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                                Status
+                                                                            </td>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                                InstanceType
+                                                                            </td>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                                AvailabilityZone
+                                                                            </td>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                                Monitoring
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('operations','Operations/sec')}>Operations/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() =>  onClickMetric('questions','Questions/sec')}>Questions/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('getCalls','getCalls/sec')}>getCalls/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('threads','Threads')}>Threads</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('setCalls','setCalls/sec')}>setCalls/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('threadsRunning','ThreadsRunning')}>ThreadsRunning</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHitRate','CacheHitRate(%)')}>CacheHitRate(%)</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('cpu','CPU(%)')}>CPU(%)</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHits','CacheHits/sec')}>CacheHits/sec</Link>
+                                                                                    <Link fontSize="body-s" onFollow={() => onClickMetric('memory','MemoryFree')}>MemoryFree</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('getLatency','getLatency(us)')}> getLatency(us)</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('iops','IOPS')}>IOPS</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('setLatency','setLatency(us)')}>setLatency(us)</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connections','Connections')}>Connections</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() =>  onClickMetric('cpu','CPU Usage(%)')}>CPU Usage(%)</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('memory','Memory Usage(%)')}>Memory Usage(%)</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('network','Network')}>Network</Link>
                                                                             </td>
                                                                         </tr>
                                                                                 
                                                                         {dataNodes.MemberClusters.map((item,key) => (
-                                                                                                 <ElasticNode
-                                                                                                    connectionId = {cnf_connection_id}
-                                                                                                    clusterId = {cnf_identifier}
-                                                                                                    nodeId = {item.nodeId}
-                                                                                                    instance = {item.endPoint}
-                                                                                                    port={dataNodes.Port}
+                                                                                                 <AuroraNode
+                                                                                                    sessionId = {cnf_connection_id}
+                                                                                                    instance = {item.instance}
+                                                                                                    host = {item.host}
+                                                                                                    port={item.port}
                                                                                                     syncClusterEvent={syncData}
                                                                                                     username = {cnf_username}
                                                                                                     password = {cnf_password}
-                                                                                                    auth = {cnf_auth}
-                                                                                                    ssl = {cnf_ssl}
+                                                                                                    status={item.status}
+                                                                                                    size={item.size}
+                                                                                                    az={item.az}
+                                                                                                    monitoring={item.monitoring}
+                                                                                                    resourceId={item.resourceId}
                                                                                                 />
                                                                            
                                                                            
@@ -831,7 +851,7 @@ function App() {
                                                 </tr>
                                             </table>  
                                                 
-                                                
+                                           
                                           </>
                                           
                                       },
@@ -851,8 +871,8 @@ function App() {
                                                                   subtitle="Average" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                                  namespace="AWS/RDS"
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="CPUUtilization"
                                                                   stat_type="Average"
@@ -868,85 +888,20 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <br/>
-                                                            <CLWChart
-                                                                  title="Engine CPU Utilization % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="EngineCPUUtilization"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Database Memory Usage Percentage % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DatabaseMemoryUsagePercentage"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="BytesUsedForMemoryDB" 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="BytesUsedForMemoryDB"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
+                                                            <CLWChart 
                                                                   title="FreeableMemory" 
-                                                                  subtitle="Total" 
+                                                                  subtitle="Average" 
                                                                   height="180px" 
                                                                   color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
                                                                   metric_name="FreeableMemory"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
                                                                   current_metric_mode={"average"}
+                                                                  metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
@@ -956,19 +911,20 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <br/>
-                                                            <CLWChart
-                                                                  title="Network Bytes In" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                            <CLWChart 
+                                                                  title="NetworkReceive" 
+                                                                  subtitle="Total Bytes/Second" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="NetworkBytesIn"
+                                                                  metric_name="NetworkReceiveThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
                                                                   current_metric_mode={"total"}
+                                                                  metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
@@ -978,19 +934,20 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <br/>
-                                                            <CLWChart
-                                                                  title="Network Bytes Out" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
+                                                            <CLWChart 
+                                                                  title="NetworkTransmit" 
+                                                                  subtitle="Total Bytes/Second" 
+                                                                  height="180px"
                                                                   color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="NetworkBytesOut"
+                                                                  metric_name="NetworkTransmitThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
                                                                   current_metric_mode={"total"}
+                                                                  metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
@@ -1000,20 +957,297 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <br/>
-                                                            <CLWChart
-                                                                  title="CurrConnections" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                            <CLWChart 
+                                                                  title="StorageReceiveThroughput" 
+                                                                  subtitle="Total Bytes/Second" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="CurrConnections"
+                                                                  metric_name="StorageNetworkReceiveThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
                                                                   current_metric_mode={"total"}
+                                                                  metric_per_second={0}
                                                                   metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="StorageTransmitThroughput" 
+                                                                  subtitle="Total Bytes/Second" 
+                                                                  height="180px"
+                                                                  color="purple" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="StorageNetworkTransmitThroughput"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"total"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="DatabaseConnections" 
+                                                                  subtitle="Total" 
+                                                                  height="180px"
+                                                                  color="purple" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="DatabaseConnections"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"total"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="CommitLatency" 
+                                                                  subtitle="Average(ms)" 
+                                                                  height="180px"
+                                                                  color="purple" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="CommitLatency"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={1}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="SelectThroughput" 
+                                                                  subtitle="Total Count/sec" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="SelectThroughput"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"total"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="SelectLatency" 
+                                                                  subtitle="Average(ms)" 
+                                                                  height="180px"
+                                                                  color="purple" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="SelectLatency"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="UpdateThroughput" 
+                                                                  subtitle="Total Count/sec" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="UpdateThroughput"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"total"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="UpdateLatency" 
+                                                                  subtitle="Average(ms)" 
+                                                                  height="180px"
+                                                                  color="purple" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="UpdateLatency"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="InsertThroughput" 
+                                                                  subtitle="Total Count/sec" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="InsertThroughput"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"total"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="InsertLatency" 
+                                                                  subtitle="Average(ms)" 
+                                                                  height="180px"
+                                                                  color="purple" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="InsertLatency"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="DeleteThroughput" 
+                                                                  subtitle="Total Count/sec" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="DeleteThroughput"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"total"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="DeleteLatency" 
+                                                                  subtitle="Average(ms)" 
+                                                                  height="180px"
+                                                                  color="purple" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="DeleteLatency"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={0}
+                                                                  format={2}
+                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                            />
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <br/>
+                                                            <CLWChart 
+                                                                  title="ReadLatency" 
+                                                                  subtitle="Average(ms)" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
+                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  metric_name="ReadLatency"
+                                                                  stat_type="Average"
+                                                                  period={60} 
+                                                                  interval={(60*1) * 60000}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={2}
                                                                   format={3}
                                                                   font_color_value={configuration.colors.fonts.metric100}
                                                             />
@@ -1021,153 +1255,44 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Current Items" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
+                                                            <br/>   
+                                                            <CLWChart 
+                                                                  title="WriteLatency" 
+                                                                  subtitle="Average(ms)" 
+                                                                  height="180px"
                                                                   color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="CurrItems"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="GetTypeCmds" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="GetTypeCmds"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="SetTypeCmds" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="SetTypeCmds"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="ReplicationBytes" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="ReplicationBytes"
+                                                                  metric_name="WriteLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
                                                                   current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
+                                                                  metric_precision={2}
+                                                                  format={3}
                                                                   font_color_value={configuration.colors.fonts.metric100}
                                                             />
                                                             <br/>
                                                             <br/>
                                                             <br/>
                                                             <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="KeyspaceHits" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                            <br/>              
+                                                            <CLWChart 
+                                                                  title="DBLoadNonCPU" 
+                                                                  subtitle="Average" 
+                                                                  height="180px"
+                                                                  color="orange" 
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="KeyspaceHits"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="KeyspaceMisses" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="KeyspaceMisses"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="MemoryFragmentationRatio" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="MemoryFragmentationRatio"
+                                                                  metric_name="DBLoadNonCPU"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
                                                                   current_metric_mode={"average"}
-                                                                  metric_precision={0}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={2}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
                                                             />
@@ -1175,24 +1300,27 @@ function App() {
                                                             <br/>
                                                             <br/>
                                                             <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Evictions" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
+                                                            <br/>              
+                                                            <CLWChart 
+                                                                  title="DBLoad" 
+                                                                  subtitle="Average" 
+                                                                  height="180px"
                                                                   color="purple" 
-                                                                  namespace="AWS/MemoryDB" 
-                                                                  dimension_name={"ClusterName|NodeName"}
+                                                                  namespace="AWS/RDS" 
+                                                                  dimension_name={"DBInstanceIdentifier"}
                                                                   dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="Evictions"
+                                                                  metric_name="DBLoad"
                                                                   stat_type="Average"
                                                                   period={60} 
                                                                   interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
+                                                                  current_metric_mode={"average"}
+                                                                  metric_per_second={0}
+                                                                  metric_precision={2}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
                                                             />
+                                                                          
+                                                                          
                                                         </Container>
                                                 
                                                     </td>
@@ -1208,7 +1336,6 @@ function App() {
                                         content: 
                                          
                                           <>
-                                                 
                                               <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                     <tr>  
                                                         <td>
@@ -1216,51 +1343,40 @@ function App() {
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Cluster name</Box>
-                                                                            <div>{dataNodes['ReplicationGroupId']}</div>
+                                                                            <div>{cnf_identifier}</div>
                                                                       </div>
                                                                       <div>
-                                                                            <Box variant="awsui-key-label">CacheNodeType</Box>
-                                                                            <div>{dataNodes['CacheNodeType']}</div>
+                                                                            <Box variant="awsui-key-label">Engine</Box>
+                                                                            <div>{cnf_engine}</div>
                                                                       </div>
                                                                       <div>
-                                                                            <Box variant="awsui-key-label">ConfigurationEndpoint</Box>
-                                                                            <div>{dataNodes['ConfigurationEndpoint']}</div>
+                                                                            <Box variant="awsui-key-label">ClusterEndpoint</Box>
+                                                                            <div>{cnf_endpoint}</div>
                                                                       </div>
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Port</Box>
-                                                                            <div>{dataNodes['Port']}</div>
+                                                                            <div>{cnf_endpoint_port}</div>
                                                                       </div>
                                                                     </ColumnLayout>
                                                                     <br/>
                                                                     <br/>
                                                                     <ColumnLayout columns={4} variant="text-grid">
+                                                                        
                                                                         <div>
-                                                                            <Box variant="awsui-key-label">Status</Box>
-                                                                            <div>{dataNodes['Status']}</div>
+                                                                            <Box variant="awsui-key-label">Version</Box>
+                                                                            <div>{cnf_version}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <Box variant="awsui-key-label">ACLName</Box>
-                                                                            <div>{dataNodes['Acl']}</div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">Shards</Box>
-                                                                            <div>{dataNodes['Shards']}</div>
+                                                                            <Box variant="awsui-key-label">Availability Zone</Box>
+                                                                            <div>{cnf_az}</div>
                                                                         </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">Nodes</Box>
-                                                                            <div>{dataNodes['MemberClusters'].length}</div>
-                                                                        </div>
-                                                                    </ColumnLayout>
-                                                                    <br/>
-                                                                    <br/>
-                                                                    <ColumnLayout columns={4} variant="text-grid">
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">SSL</Box>
-                                                                            <div>{dataNodes['Ssl']}</div>
+                                                                            <div>{cnf_nodes}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <Box variant="awsui-key-label">DataTiering</Box>
-                                                                            <div>{dataNodes['DataTiering']}</div>
+                                                                            <Box variant="awsui-key-label">ResourceId</Box>
+                                                                            <div>{cnf_resource_id}</div>
                                                                         </div>
                                                                     </ColumnLayout>
                                                                     <br/>

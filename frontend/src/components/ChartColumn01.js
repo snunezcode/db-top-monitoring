@@ -31,11 +31,22 @@ function ChartBar({series,height, width="100%", title }) {
                   horizontal: true,
                 }
               },
-              dataLabels: {
-                enabled: false
-              },
               xaxis: {
                 categories: series.categories,
+                labels : {
+                            formatter: function(val, index) {
+                                        
+                                        if(val === 0) return '0';
+                                        if(val < 1000) return parseFloat(val).toFixed(0);
+                                        
+                                        var k = 1000,
+                                        sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
+                                        i = Math.floor(Math.log(val) / Math.log(k));
+                                        return parseFloat((val / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        
+                                        },    
+                      
+                },
               },
               grid: {
                 show: false,
@@ -47,7 +58,7 @@ function ChartBar({series,height, width="100%", title }) {
                 xaxis: {
                             lines: {
                                 show: false
-                            }
+                            },
                         }
               },
               tooltip: {
@@ -58,6 +69,17 @@ function ChartBar({series,height, width="100%", title }) {
                 style: {
                     fontSize: '11px',
                     fontWeight: 'bold',
+                },
+                formatter: function(val, index) {
+                                        
+                                        if(val === 0) return '0';
+                                        if(val < 1000) return parseFloat(val).toFixed(0);
+                                        
+                                        var k = 1000,
+                                        sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
+                                        i = Math.floor(Math.log(val) / Math.log(k));
+                                        return parseFloat((val / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        
                 },
               },
             

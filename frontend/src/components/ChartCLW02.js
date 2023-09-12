@@ -180,11 +180,13 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                                     averageGlobal = averageGlobal + average;
                                     max = Math.max(...item.Values);
                                     min = Math.min(...item.Values);
-                                    
+                                    if (minGlobal == 0 && min > 0 )
+                                        minGlobal = min
+                                        
                                     if ( max > maxGlobal )
                                         maxGlobal = max
                                         
-                                    if ( min > minGlobal )
+                                    if ( min < minGlobal )
                                         minGlobal = min
                                     
                                     lastValue.push(item.Values[item.Values.length-1]);
@@ -304,41 +306,38 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                 <div>
                     <table style={{"width":"100%"}}>
                         <tr>  
-                           <td style={{"width":"30%", "text-align":"center"}}>  
-                            <span style={{"font-size": "26px", "font-weight": "500","font-family": "Orbitron", "color": font_color_value }}>{chartData.metric}</span>
-                            <br/>  
-                            <span style={{"font-size": "10px", "font-weight": "500", }}>{subtitle}</span>
-                            <br/>  
-                            <span style={{"font-size": "14px", "font-weight": "700", }}>{title}</span>
-                            <br/>
-                            <br/>  
-                            <table style={{"width":"100%", "line-height": "20px", "border-collapse": "separate","border-spacing":"0","border": "1px solid " + font_color_value,"border-radius": ".25rem"}}>
-                                 <tr>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
-                                        Max
-                                    </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
-                                        Min
-                                    </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
-                                        Avg
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
-                                        {chartData.stats.max}
-                                    </td>
-                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
-                                        {chartData.stats.min}
-                                    </td>
-                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
-                                        {chartData.stats.avg}
-                                    </td>
-                                </tr>
-                            </table>
+                           <td style={{"width":"20%", "text-align":"center", "padding-left": "4em"}}>  
+                                <span style={{"font-size": "26px", "font-weight": "500","font-family": "Orbitron", "color": font_color_value }}>{chartData.metric}</span>
+                                <br/>  
+                                <span style={{"font-size": "10px", "font-weight": "500", }}>{subtitle}</span>
+                                <br/>  
+                                <span style={{"font-size": "14px", "font-weight": "700", }}>{title}</span>
+                                <br/>
+                                <br/>  
+                                <table style={{"width":"100%"}}>
+                                    <tr>
+                                        <td>
+                                            <span style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>{chartData.stats.min}</span>
+                                            <br/>
+                                            <span style={{"font-size": "10px", "font-weight": "500", }}>Min</span>
+                                        </td>
+                                        <td>
+                                            <span style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>{chartData.stats.max}</span>
+                                            <br/>
+                                            <span style={{"font-size": "10px", "font-weight": "500", }}>Max</span>
+                                        </td>
+                                        <td>
+                                            <span style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>{chartData.stats.avg}</span>
+                                            <br/>    
+                                            <span style={{"font-size": "10px", "font-weight": "500", }}>Avg</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                                
                             
                            </td>
-                           <td style={{"width":"70%", "text-align":"center", "padding-left": "2em"}}>    
+                           
+                           <td style={{"width":"80%", "text-align":"center", "padding-left": "4em"}}>    
                                     <div class="col-xl-9" style={{height:height}}>
                                         <Chart options={options} series={chartData.dataset} type="line" width={"100%"} height={height} />
                                     </div>

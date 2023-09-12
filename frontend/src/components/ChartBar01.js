@@ -22,11 +22,7 @@ function ChartLine({series,history, height, width="100%", title, colors=[], bord
                     show: false,
                  }
 
-              },/*
-              markers: {
-                  size: 4,
-                  strokeColors: '#29313e',
-              },*/
+              },
               dataLabels: {
                 enabled: false
               },

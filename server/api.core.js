@@ -50,7 +50,7 @@ var issCognitoIdp = "https://cognito-idp." + configData.aws_region + ".amazonaws
 // Mysql Variables
 const mysql = require('mysql')
 var db=[];
-
+var aurora=[];
 
 // Postgresql Variables
 const postgresql = require('pg').Pool
@@ -198,9 +198,6 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
     // API Call
     var params = req.body.params;
     
-    // Gather App Telemetry Usage
-    gatherTelemetry({ engine : params.engine , event : "evt-instance-auth", value : 1});
-    
     
     try {
         
@@ -223,9 +220,13 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
                       } else {
                         dbconnection.end();
                         var session_id=uuid.v4();
-                        mysqlOpenConnection(session_id,params.host,params.port,params.username,params.password);
                         
-                        var token = generateToken({ session_id: session_id});
+                        if (params.mode == "cluster")
+                            aurora[session_id] = {};
+                        else
+                            mysqlOpenConnection(session_id,params.host,params.port,params.username,params.password);
+                        
+                        var token = generateToken({ session_id: session_id });
                         res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token });
                       }
                       
@@ -589,6 +590,121 @@ function mysqlOpenConnection(session_id,host,port,user,password){
 
 }
 
+// MYSQL : Create Connection per cluster node
+app.get("/api/mysql/cluster/connection/open", (req,res)=>{
+
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+
+    // API Call
+    var params = req.query;
+    
+    try {
+        
+            if (!(params.instance in aurora[standardToken.session_id])) {
+                     aurora[standardToken.session_id][params.instance]  = mysql.createPool({
+                            host: params.host,
+                            user: params.username,
+                            password: params.password,
+                            database: "",
+                            acquireTimeout: 3000,
+                            port: params.port,
+                            connectionLimit:2
+                    })
+                    console.log("Mysql Connection opened for session_id : " + standardToken.session_id + "#" + params.instance);
+                    res.status(200).send( {"result":"connection opened", "session_id": standardToken.session_id });
+            }
+            else {
+                console.log("Re-using - MySQL Instance connection : " + standardToken.session_id + "#" + params.instance )
+                res.status(200).send( {"result":"auth1" });
+            }
+            
+    }
+    catch(err) {
+        res.status(404).send(err);
+    }
+   
+    
+})
+
+
+// MYSQL : Close Connection per cluster node
+app.get("/api/mysql/cluster/connection/close", (req,res)=>{
+    
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+    var params = req.query;
+    
+    try
+            {
+                
+                var instances = aurora[standardToken.session_id];
+                for (index of Object.keys(instances)) {
+                        try
+                          {
+                                console.log("MySQL Cluster Disconnection : " + standardToken.session_id + "#" + index );
+                                instances[index].end();
+                          }
+                          catch{
+                              console.log("MySQL Cluster Disconnection error : " + standardToken.session_id + "#" + index );
+                          }
+                }
+                
+                delete aurora[standardToken.session_id];
+                res.status(200).send( {"result":"disconnected"});
+    }
+    catch(err){
+                console.log(err);
+    }
+})
+
+
+
+// MYSQL : API Execute SQL Query
+app.get("/api/mysql/cluster/sql/", (req,res)=>{
+
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+    // API Call
+    var params = req.query;
+    try {
+        
+        aurora[standardToken.session_id][params.instance].query(params.sql_statement, (err,result)=>{
+                        if(err) {
+                            console.log(err)
+                            res.status(404).send(err);
+                        } 
+                        else
+                        {
+                            res.status(200).send(result);
+                         }
+                        
+                }
+            );   
+
+           
+    } catch(error) {
+        console.log(error)
+                
+    }
+
+});
+
 
 
 
@@ -689,9 +805,7 @@ async function authRedisConnection(req, res) {
 
     var params = req.body.params;
 
-     // Gather App Telemetry Usage
-    gatherTelemetry({ engine : params.engine , event : "evt-cluster-auth", value : 1});
-    
+     
     try {
         
             
@@ -993,6 +1107,45 @@ app.get("/api/aws/aurora/cluster/region/list/", (req,res)=>{
 
 
 
+// AWS : List Instances - by Region
+app.get("/api/aws/aurora/cluster/region/endpoints/", (req,res)=>{
+   
+    // Token Validation
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+    if (cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid"});
+
+    // API Call
+    var rds_region = new AWS.RDS({region: configData.aws_region});
+    var paramsQuery = req.query;
+    
+    var params = {
+        MaxRecords: 100,
+        Filters: [
+                {
+                  Name: 'db-cluster-id',
+                  Values: [paramsQuery.cluster]
+                },
+        ],
+    };
+
+    try {
+        rds_region.describeDBInstances(params, function(err, data) {
+            if (err) 
+                console.log(err, err.stack); // an error occurred
+            res.status(200).send({ csrfToken: req.csrfToken(), data:data });
+        });
+
+    } catch(error) {
+        console.log(error)
+                
+    }
+
+});
+
+
+
 
 // AWS : List Instances - by Region
 app.get("/api/aws/rds/instance/region/list/", (req,res)=>{
@@ -1207,35 +1360,6 @@ app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
 
 
 });
-
-
-//--#################################################################################################### 
-//   ---------------------------------------- TELEMETRY
-//--#################################################################################################### 
-
-async function gatherTelemetry(telemetryObject) {
-    
-        if ( configData.aws_telemetry_enabled == true ) {
-            
-            try {
-                    axios.post(`${configData.aws_telemetry_api_url}dbtop/telemetry/app/usage`,{
-                                  timeout: 5000, 
-                                  params: { guid : configData.aws_telemetry_guid , engine : telemetryObject.engine , event : telemetryObject.event , value : telemetryObject.value }
-                              }).then((data)=>{
-                                  console.log("API Telemetry Usage done.");
-                              })
-                              .catch((err) => {
-                                  console.log('Timeout API Call : /dbtop/telemetry/app/usage/');
-                                  console.log(err)
-                              });
-            }
-            catch (err){
-                console.log(err)
-            }
-        
-        }
-  
-}
 
 
 //--#################################################################################################### 

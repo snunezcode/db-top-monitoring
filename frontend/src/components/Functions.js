@@ -1,3 +1,15 @@
+
+export async function applicationVersionUpdate() {
+        var version = await gatherVersionJsonFile();
+        return version;
+}
+
+const gatherVersionJsonFile = async () => {
+    const response = await fetch('/version.json');
+    const json = await response.json();
+    return(json);
+}
+
 export function customFormatNumber(value,decimalLength) {
         if(value == 0) return '0';
         if(value < 1024) return parseFloat(value).toFixed(decimalLength);
@@ -7,8 +19,6 @@ export function customFormatNumber(value,decimalLength) {
         i = Math.floor(Math.log(value) / Math.log(k));
         return parseFloat((value / Math.pow(k, i)).toFixed(decimalLength)) + ' ' + sizes[i];
 }
-
-
 
 
 export class classMetric {
@@ -133,6 +143,11 @@ export class classMetric {
           addPropertyValue (propertyName,propertyValue){
                   this.dataHistory[propertyName].data.push(propertyValue);
                   this.dataHistory[propertyName].data = this.dataHistory[propertyName].data.slice(this.dataHistory[propertyName].data.length-this.dataHistory[propertyName].history);
+                  
+          }
+          
+          addPropertyValueByArray (propertyName,propertyValue){
+                  this.dataHistory[propertyName].data = propertyValue;
                   
           }
 

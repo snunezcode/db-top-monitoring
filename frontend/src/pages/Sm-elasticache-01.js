@@ -14,7 +14,7 @@ import { SplitPanel } from '@cloudscape-design/components';
 import Link from "@cloudscape-design/components/link";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
-import ElasticNode  from '../components/elasticache/CompElasticNode01';
+import ElasticNode  from '../components/CompElasticNode01';
 import CompSparkline01  from '../components/ChartSparkline01';
 import CompMetric01  from '../components/Metric01';
 import CompMetric04  from '../components/Metric04';

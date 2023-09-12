@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, memo } from 'react'
 import Axios from 'axios';
-import ChartLine02 from '../ChartLine02';
-import ChartBar01 from '../ChartBar01';
-import ChartRadialBar01 from '../ChartRadialBar01';
+import ChartLine02 from './ChartLine02';
+import ChartBar01 from './ChartBar01';
+import ChartRadialBar01 from './ChartRadialBar01';
 
-import CompMetric01 from '../Metric01';
-import CompMetric04 from '../Metric04';
-import { configuration } from '../../pages/Configs';
-import { classMetric } from '../Functions';
+import CompMetric01 from './Metric01';
+import CompMetric04 from './Metric04';
+import { configuration } from '../pages/Configs';
+import { classMetric } from './Functions';
 import Badge from "@cloudscape-design/components/badge";
 import Link from "@cloudscape-design/components/link";
 
@@ -198,8 +198,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
 
     //-- Function Gather Metrics
     async function fetchClusterStats() {
-        var timeNow = new Date();
-
+     
         var api_url = configuration["apps-settings"]["api_url"];
 
         await Axios.get(`${api_url}/api/redis/clusterstats/single/`, {
@@ -217,8 +216,6 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 else {
                     initProcessStatsSync.current = 1;
                 }
-
-
 
                 //-- Update the snapshot data
                 statsObjectGlobal.current.newSnapshot(stats, timeNow.getTime());

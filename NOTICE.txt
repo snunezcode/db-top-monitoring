@@ -1,4 +1,4 @@
-RDSTop Monitoring
+DBTop Monitoring
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 **********************
@@ -31,6 +31,8 @@ mysql under the Massachusetts Institute of Technology (MIT) license
 mssql under the Massachusetts Institute of Technology (MIT) license
 oracledb under the Apache License 2.0
 pg under the Massachusetts Institute of Technology (MIT) license
+redis under the Massachusetts Institute of Technology (MIT) license
+redis-info under the Massachusetts Institute of Technology (MIT) license
 uuid under the Massachusetts Institute of Technology (MIT) license
 
 

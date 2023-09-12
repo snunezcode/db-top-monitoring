@@ -1,13 +1,10 @@
 import TopNavigation from '@cloudscape-design/components/top-navigation';
-import { useNavigate } from 'react-router-dom';
 import { configuration } from '../pages/Configs';
 import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 
 export default function App({sessionInformation,onClickMenu, onClickDisconnect}) {
 
-    //-- Navigate Component
-    const navigate = useNavigate();
-    
+
     //-- Navigation settings
     const i18nStrings = {
       searchIconAriaLabel: 'Search',

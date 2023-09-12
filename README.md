@@ -1,4 +1,4 @@
-# DBTop Monitoring Solution for AWS RDS
+# DBTop Monitoring Solution for AWS Database Services
 
 > **Disclaimer:** The sample code; software libraries; command line tools; proofs of concept; templates; or other related technology (including any of the foregoing that are provided by our personnel) is provided to you as AWS Content under the AWS Customer Agreement, or the relevant written agreement between you and AWS (whichever applies). You are responsible for testing, securing, and optimizing the AWS Content, such as sample code, as appropriate for production grade use based on your specific quality control practices and standards. Deploying AWS Content may incur AWS charges for creating or using AWS chargeable resources, such as running Amazon EC2 instances, using Amazon CloudWatch or Amazon Cognito.
 
@@ -39,11 +39,11 @@ DBTop Monitoring Solution currently supports following database engines:
 - AWS RDS for SQLServer
 - Amazon ElastiCache for Redis
 - Amazon MemoryDB for Redis
-
+- Amazon Aurora Clusters (MySQL-Compatible Edition)
 
 Additional expanded support coming later to :
 
-- Amazon Aurora Clusters
+- Amazon Aurora Clusters (PostgreSQL-Compatible Edition)
 - Amazon DocumentDB
 
 
@@ -141,7 +141,7 @@ Follow the step-by-step instructions to configure and deploy the RDSTop into you
 1. Make sure you have sign in AWS Console already.
 2. Click the following button to launch the CloudFormation Console in your account and use Cloudformation template (DBMonitoringSolution.template) located on conf folder.
 
-[![Launch Stack](./images/launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=RDSTopMonitoringSolution)
+[![Launch Stack](./images/launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=DBTopMonitoringSolution)
 
 3. Input **Stack name** parameter. 
 4. Input **Username** parameter, this username will be used to access the application. An email will be sent with temporary password from AWS Cognito Service. 

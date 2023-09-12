@@ -241,29 +241,22 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                             <span style={{"font-size": "10px", "font-weight": "500", }}>{subtitle}</span>
                             <br/>  
                             <Box variant="h4">{title}</Box>
-                            <br/>
-                            <br/>  
-                            <table style={{"width":"100%", "line-height": "20px", "border-collapse": "separate","border-spacing":"0","border": "1px solid " + font_color_value,"border-radius": ".25rem"}}>
-                                 <tr>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
-                                        Max
-                                    </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
-                                        Min
-                                    </td>
-                                    <td style={{"font-size": "12px", "font-weight": "700", "border": "none"}}>
-                                        Avg
-                                    </td>
-                                </tr>
+                            <table style={{"width":"100%"}}>
                                 <tr>
-                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
-                                        {chartData.stats.max}
+                                    <td>
+                                        <span style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>{chartData.stats.min}</span>
+                                        <br/>
+                                        <span style={{"font-size": "10px", "font-weight": "500", }}>Min</span>
                                     </td>
-                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
-                                        {chartData.stats.min}
+                                    <td>
+                                        <span style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>{chartData.stats.max}</span>
+                                        <br/>
+                                        <span style={{"font-size": "10px", "font-weight": "500", }}>Max</span>
                                     </td>
-                                    <td style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>
-                                        {chartData.stats.avg}
+                                    <td>
+                                        <span style={{"font-size": "14px", "font-weight": "500","font-family": "Orbitron","color": font_color_value }}>{chartData.stats.avg}</span>
+                                        <br/>    
+                                        <span style={{"font-size": "10px", "font-weight": "500", }}>Avg</span>
                                     </td>
                                 </tr>
                             </table>

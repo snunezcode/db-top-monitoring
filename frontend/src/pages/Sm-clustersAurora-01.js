@@ -2,12 +2,13 @@ import {useState,useEffect} from 'react'
 import { createSearchParams } from "react-router-dom";
 import Axios from 'axios'
 import { configuration, SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } from './Configs';
+import { applicationVersionUpdate } from '../components/Functions';
 
 import CustomHeader from "../components/HeaderApp";
 import AppLayout from "@cloudscape-design/components/app-layout";
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 
-
+import Flashbar from "@cloudscape-design/components/flashbar";
 import { StatusIndicator } from '@cloudscape-design/components';
 import Modal from "@cloudscape-design/components/modal";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -23,12 +24,6 @@ import ColumnLayout from "@cloudscape-design/components/column-layout";
 import '@aws-amplify/ui-react/styles.css';
 
 import { SplitPanel } from '@cloudscape-design/components';
-
-import { applyMode,  Mode } from '@cloudscape-design/global-styles';
-
-// Apply a color mode
-//applyMode(Mode.Dark);
-applyMode(Mode.Light);
 
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
@@ -51,6 +46,18 @@ export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
 var CryptoJS = require("crypto-js");
 
 function Login() {
+    
+    
+    const [items, setItems] = useState([
+    {
+      type: "info",
+      content: "New Application version is available, new features and modules will improve user experience and monitoring capabilities.",
+      dismissible: true,
+      dismissLabel: "Dismiss message",
+      onDismiss: () => setItems([]),
+      id: "message_1"
+    }
+  ]);
   
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
@@ -96,18 +103,20 @@ function Login() {
                           username: txtUser, 
                           password: txtPassword, 
                           engine: selectedItems[0]['engine'],
-                          instance : selectedItems[0]['instance']
+                          instance : selectedItems[0]['instance'],
+                          mode : "cluster"
                   
                 }
             }).then((data)=>{
-                console.log(data);
                 if (data.data.result === "auth1") {
                      sessionStorage.setItem(data.data.session_id, data.data.session_token );
                      var session_id = CryptoJS.AES.encrypt(JSON.stringify({
                                                                             session_id : data.data.session_id,
                                                                             rds_id : selectedItems[0]['identifier'],
                                                                             rds_user : txtUser, 
-                                                                            rds_host : selectedItems[0]['endpoint'], 
+                                                                            rds_password : txtPassword, 
+                                                                            rds_host : selectedItems[0]['endpoint'],
+                                                                            rds_port : selectedItems[0]['port'],
                                                                             rds_engine : selectedItems[0]['engine'], 
                                                                             rds_class : selectedItems[0]['engineMode'], 
                                                                             rds_az : selectedItems[0]['az'], 
@@ -167,6 +176,9 @@ function Login() {
    //-- Call API to gather instances
    async function gatherInstances (){
 
+        var version = await applicationVersionUpdate();
+        console.log(version);
+        
         //--- GATHER INSTANCES
         var rdsItems=[];
         
@@ -174,17 +186,21 @@ function Login() {
         
             const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/aurora/cluster/region/list/`);
             sessionStorage.setItem("x-csrf-token", data.csrfToken );
-            console.log(data.data);
             data.data.DBClusters.forEach(function(item) {
                           if ( item['Engine']==='aurora-mysql' || item['Engine']==='aurora-postgresql' ){
                            
                             try{
+                                  var nodes = [];
+                                  item['DBClusterMembers'].forEach(function(node) {
+                                      nodes.push(node['DBInstanceIdentifier']);
+                                  });
                                   rdsItems.push({
                                                 identifier: item['DBClusterIdentifier'],
                                                 engine: item['Engine'] ,
                                                 version: item['EngineVersion'] ,
                                                 az: String(item['AvailabilityZones']),
                                                 nodes: item['DBClusterMembers'].length,
+                                                nodeList : String(nodes),
                                                 status: item['Status'],
                                                 multiaz: String(item['MultiAZ']),
                                                 engineMode: item['EngineMode'],
@@ -244,7 +260,7 @@ function Login() {
         <CustomHeader/>
         <AppLayout
             breadCrumbs={breadCrumbs}
-            navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/rds/instances/"} />}
+            navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/clusters/aurora/"} />}
             splitPanelOpen={splitPanelShow}
             onSplitPanelToggle={() => setsplitPanelShow(false)}
             splitPanelSize={350}
@@ -334,6 +350,7 @@ function Login() {
             contentType="table"
             content={
                 <>
+                      <Flashbar items={items} />
                       <br/>
                       <Table
                           stickyHeader
