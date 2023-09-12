@@ -603,14 +603,12 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
 
     // API Call
     var params = req.query;
-    var sessionId = "$" + standardToken.session_id;
-    var instanceId = "$" + params.instance;
-    var ss = "test" + sessionId;
-    //`audId${sessionId}`
+    var sessionId =  standardToken.session_id;
+    var instanceId = params.instance;
     try {
         
             if (!(params.instance in aurora[standardToken.session_id])) {
-                     aurora[sessionId][instanceId]["cluster"]  = mysql.createPool({
+                     aurora[sessionId][instanceId]["connection"]  = mysql.createPool({
                             host: params.host,
                             user: params.username,
                             password: params.password,
