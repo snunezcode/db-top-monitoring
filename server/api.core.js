@@ -654,7 +654,7 @@ app.get("/api/mysql/cluster/connection/close", (req,res)=>{
                         try
                           {
                                 console.log("MySQL Cluster Disconnection : " + standardToken.session_id + "#" + index );
-                                instances[index].end();
+                                instances[index]["connection"].end();
                           }
                           catch{
                               console.log("MySQL Cluster Disconnection error : " + standardToken.session_id + "#" + index );
@@ -685,7 +685,7 @@ app.get("/api/mysql/cluster/sql/", (req,res)=>{
     var params = req.query;
     try {
         
-        aurora[standardToken.session_id][params.instance].query(params.sql_statement, (err,result)=>{
+        aurora[standardToken.session_id][params.instance]["connection"].query(params.sql_statement, (err,result)=>{
                         if(err) {
                             console.log(err)
                             res.status(404).send(err);
