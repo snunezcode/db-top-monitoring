@@ -653,7 +653,7 @@ app.get("/api/mysql/cluster/connection/close", (req,res)=>{
     try
             {
                 
-                var instances = aurora[standardToken.session_id];
+                var instances = aurora["$" + standardToken.session_id];
                 for (index of Object.keys(instances)) {
                         try
                           {
@@ -870,7 +870,7 @@ async function authRedisConnection(req, res) {
                     var token = generateToken({ session_id: session_id});
                     await dbconnection.connect();
                     var command = await dbconnection.info();
-                    dbRedis[session_id] = {}
+                    dbRedis["$" + session_id] = {}
                     dbconnection.quit();
                     res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token });
                    
@@ -936,15 +936,19 @@ async function openRedisConnectionSingle(req, res) {
                 
             }
             
-            if (!(params.instance in dbRedis[params.connectionId])) {
+            var connectionId = "$" + params.connectionId;
+            var instanceId = "$" + params.instance;
+            if (!(instanceId in dbRedis[connectionId])) {
             
-                dbRedis[params.connectionId][params.instance] = redis.createClient(options);
-                            
-                dbRedis[params.connectionId][params.instance].on('error', err => {       
+                dbRedis[connectionId][instanceId] = function(){};
+                dbRedis[connectionId][instanceId]["connection"] = function(){};
+                dbRedis[connectionId][instanceId]["connection"] = redis.createClient(options);
+                
+                dbRedis[connectionId][instanceId]["connection"].on('error', err => {       
                               console.log(err.message);
                 });   
 
-                dbRedis[params.connectionId][params.instance].connect()
+                dbRedis[connectionId][instanceId]["connection"].connect()
                     .then(()=> {
                         console.log("Redis Instance Connected : " + params.connectionId + "#" + params.instance )
                         res.status(200).send( {"result":"auth1" });
@@ -980,12 +984,12 @@ async function closeRedisConnectionAll(req, res) {
         try
             {
                 var params = req.query;
-                var instances = dbRedis[params.connectionId];
+                var instances = dbRedis["$" + params.connectionId];
                 for (index of Object.keys(instances)) {
                         try
                           {
                                 console.log("Redis Disconnection : " + params.connectionId + "#" + index );
-                                instances[index].quit();
+                                instances[index]["connection"].quit();
                           }
                           catch{
                               console.log("Redis Disconnection error : " + params.connectionId + "#" + index );
@@ -1011,7 +1015,7 @@ async function getRedisCommandStatsSingle(req, res) {
 
     try {
           
-          var command = await dbRedis[params.connectionId][params.instance].sendCommand(['INFO','Commandstats']);
+          var command = await dbRedis["$" + params.connectionId]["$" + params.instance]["connection"].sendCommand(['INFO','Commandstats']);
           var iRowLine = 0;
           var dataResult = "";
           command.split(/\r?\n/).forEach((line) => {
@@ -1063,7 +1067,7 @@ async function getRedisClusterStats(req, res) {
  
     try {
         
-          var rawStats = await dbRedis[params.connectionId][params.instance].info();
+          var rawStats = await dbRedis["$" + params.connectionId]["$" + params.instance]["connection"].info();
           var jsonStats = redisInfo.parse(rawStats);
           //console.log(jsonStats);
           return res.status(200).json({
