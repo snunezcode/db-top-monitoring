@@ -609,7 +609,7 @@ app.get("/api/mysql/cluster/connection/open", (req,res)=>{
     try {
         
             if (!(params.instance in aurora[standardToken.session_id])) {
-                     aurora[sessionId]["var1"]  = mysql.createPool({
+                     aurora[sessionId][instanceId]  = mysql.createPool({
                             host: params.host,
                             user: params.username,
                             password: params.password,
