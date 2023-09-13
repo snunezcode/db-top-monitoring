@@ -47,17 +47,8 @@ var CryptoJS = require("crypto-js");
 
 function Login() {
     
-    
-    const [items, setItems] = useState([
-    {
-      type: "info",
-      content: "New Application version is available, new features and modules will improve user experience and monitoring capabilities.",
-      dismissible: true,
-      dismissLabel: "Dismiss message",
-      onDismiss: () => setItems([]),
-      id: "message_1"
-    }
-  ]);
+    //-- Application Version
+    const [versionMessage, setVersionMessage] = useState([]);
   
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
@@ -174,9 +165,24 @@ function Login() {
     
    //-- Call API to gather instances
    async function gatherInstances (){
-
-        var version = await applicationVersionUpdate();
-        console.log(version);
+  
+        //-- Application Update
+        var appVersionObject = await applicationVersionUpdate();
+      
+        
+        if (appVersionObject.release > configuration["apps-settings"]["release"] ){
+          setVersionMessage([
+                              {
+                                type: "info",
+                                content: "New Application version is available, new features and modules will improve monitoring capabilities and user experience.",
+                                dismissible: true,
+                                dismissLabel: "Dismiss message",
+                                onDismiss: () => setVersionMessage([]),
+                                id: "message_1"
+                              }
+          ]);
+      
+        }
         
         //--- GATHER INSTANCES
         var rdsItems=[];
@@ -349,7 +355,7 @@ function Login() {
             contentType="table"
             content={
                 <>
-                      <Flashbar items={items} />
+                      <Flashbar items={versionMessage} />
                       <br/>
                       <Table
                           stickyHeader

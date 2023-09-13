@@ -35,7 +35,7 @@ export default function App() {
     };
 
     const profileActions = [
-      { type: 'button', id: 'profile', text: 'AppVersion : ' + configuration["apps-settings"]["version"]},
+      { type: 'button', id: 'profile', text: 'AppVersion : ' + configuration["apps-settings"]["release"]},
       {
         type: 'menu-dropdown',
         id: 'preferences',

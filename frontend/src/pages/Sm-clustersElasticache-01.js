@@ -2,12 +2,13 @@ import {useState,useEffect,useRef} from 'react'
 import { createSearchParams } from "react-router-dom";
 import Axios from 'axios'
 import { configuration, SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } from './Configs';
+import { applicationVersionUpdate } from '../components/Functions';
 
 import CustomHeader from "../components/HeaderApp";
 import AppLayout from "@cloudscape-design/components/app-layout";
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 
-
+import Flashbar from "@cloudscape-design/components/flashbar";
 import { StatusIndicator } from '@cloudscape-design/components';
 import Modal from "@cloudscape-design/components/modal";
 import SpaceBetween from "@cloudscape-design/components/space-between";
@@ -47,6 +48,8 @@ var CryptoJS = require("crypto-js");
 
 function Login() {
   
+    //-- Application Version
+    const [versionMessage, setVersionMessage] = useState([]);
   
     //-- Variable for Active Tabs
     const [activeTabId, setActiveTabId] = useState("modeIam");
@@ -181,6 +184,23 @@ function Login() {
    //-- Call API to gather instances
    async function gatherClusters (){
 
+        //-- Application Update
+        var appVersionObject = await applicationVersionUpdate();
+      
+        if (appVersionObject.release > configuration["apps-settings"]["release"] ){
+          setVersionMessage([
+                              {
+                                type: "info",
+                                content: "New Application version is available, new features and modules will improve monitoring capabilities and user experience.",
+                                dismissible: true,
+                                dismissLabel: "Dismiss message",
+                                onDismiss: () => setVersionMessage([]),
+                                id: "message_1"
+                              }
+          ]);
+      
+        }
+      
         //--- GATHER INSTANCES
         var rdsItems=[];
         
@@ -370,6 +390,7 @@ function Login() {
             contentType="table"
             content={
                 <>
+                      <Flashbar items={versionMessage} />
                       <br/>
                       <Table
                           stickyHeader

@@ -1,14 +1,23 @@
+import { configuration } from '../pages/Configs';
 
 export async function applicationVersionUpdate() {
         var version = await gatherVersionJsonFile();
         return version;
 }
 
+
 const gatherVersionJsonFile = async () => {
-    const response = await fetch('/version.json');
-    const json = await response.json();
+    var json = { release : "0.0.0", date : "2023-09-01"}
+    try {
+        const response = await fetch(configuration["apps-settings"]["app-update-url-json"],{mode: 'cors'});
+        json = await response.json();
+    }
+    catch{
+        
+    }
     return(json);
 }
+
 
 export function customFormatNumber(value,decimalLength) {
         if(value == 0) return '0';

@@ -38,7 +38,7 @@ export default function App({sessionInformation,onClickMenu, onClickDisconnect})
     //-- Navigate Profiling
     const profileActions = [
       { type: 'button', id: 'profile', text: 'SessionID : ' + sessionInformation["session_id"]},
-      { id: 'version', text: 'AppVersion : ' + configuration["apps-settings"]["version"]},
+      { id: 'version', text: 'AppVersion : ' + configuration["apps-settings"]["release"]},
       {
         type: 'menu-dropdown',
         id: 'preferences',
