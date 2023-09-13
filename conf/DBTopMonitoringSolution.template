@@ -101,7 +101,7 @@ Parameters:
   ApplicationUpdateUrl:
       Type: String
       Description: Application Update URL
-      Default: update.dbtop.example.com
+      Default: https://raw.githubusercontent.com/aws-samples/db-top-monitoring/master/frontend/public/version.json
       
   ApplicationUpdateEnabled:
       Type: String
