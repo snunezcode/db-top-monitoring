@@ -136,13 +136,14 @@ GRANT CREATE SESSION,SELECT ANY DICTIONARY TO monitor;
 
 ### Launch CloudFormation Stack
 
-Follow the step-by-step instructions to configure and deploy the RDSTop into your account.
+Follow the step-by-step instructions to configure and deploy the DBTop Monitoring Solution into your account.
 
 1. Make sure you have sign in AWS Console already.
 2. Download AWS Cloudformation Template (DBMonitoringSolution.template) located into conf folder.
 3. Click the following button to launch the CloudFormation Console in your account and create an stack using Cloudformation template (DBMonitoringSolution.template) already downloaded.
 
-[![Launch AWS CloudFormation Console](./images/launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=DBTopMonitoringSolution)
+
+[**Launch AWS CloudFormation Console**](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=DBTopMonitoringSolution)
 
 4. Input **Stack name** parameter. 
 5. Acknowledge **Application Update - Disclaimer** parameter.
