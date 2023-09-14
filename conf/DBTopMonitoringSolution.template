@@ -30,21 +30,21 @@ Metadata:
       
     ParameterLabels:
       Username: 
-        default: "Specify username for application access"
+        default: "Specify username for application access, temporary credentials will be sent by email."
       AMIId: 
-        default: "Specify AWS Linux AMI to be used for Application Deployment"
+        default: "Specify AWS Linux AMI to be used for Application Deployment."
       InstanceType: 
-        default: "Specify instance type for Application Deployment"
+        default: "Specify instance type for Application Deployment."
       VPCParam: 
-        default: "Select VPC for Application Deployment"
+        default: "Select VPC for Application Deployment."
       SubnetParam: 
         default: "Select Subnet for Application Deployment, this subnet needs internet outbound access to reach AWS APIs."
       PublicAccess: 
         default: "The deployment will assign private IP Address by default to access the application, you can assign Public IP Address to access the application in case you need it, Select (true) to assign Public IP Address."
       SGInboundAccess: 
-        default: "Specify CIDR inbound access rule, this will grant network access for the application"
+        default: "Specify CIDR inbound access rule, this will grant network access for the application."
       GitHubRepository:
-        default: "AWS Github Repository source used for deployment"
+        default: "AWS Github Repository source used for deployment."
       ApplicationUpdateEnabled:
         default: "Disclaimer : This Application could able to verify new versions, it will help to keep update with most popular features. Customer can review the code and validate data scope. Selecting (true) I acknowledge that this Application will access to url to verify new versions."
       ApplicationUpdateUrl:
@@ -83,7 +83,7 @@ Parameters:
       - t3a.xlarge
   PublicAccess:
       Type: String
-      Description: Public Access
+      Description: Assign Public IP Address
       Default: "false"
       AllowedValues:
       - "true"
@@ -151,6 +151,13 @@ Resources:
                                 "rds:DescribeDBInstances"
                             ],
                             "Resource": "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:*"
+                        },
+                         {
+                            "Effect": "Allow",
+                            "Action": [
+                                "rds:DescribeDBClusters"
+                            ],
+                            "Resource": "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:cluster:*"
                         },
                         {
                             "Effect": "Allow",
