@@ -91,7 +91,7 @@ DBTop Monitoring Solution needs to access privately AWS Database resources, gran
 
 ## Resource Usage and Cost
 
-DBTop Monitoring Solution will use following resources
+DBTop Monitoring Solution will use following resources:
 
 - **AWS EC2 instance.**
      The cost of this resource will depend of size selected during the deployment process. AWS EC2 instance pricing can be review [here](https://aws.amazon.com/ec2/pricing/).
@@ -165,7 +165,7 @@ Follow the step-by-step instructions to configure and deploy the DBTop Monitorin
 12. Select **Public IP Address** parameter, the deployment will assign private IP Address by default to access the application, you can assign Public IP Address to access the application in case you need it, Select (true) to assign Public IP Address.
 13. Input **CIDR** parameter, specify CIDR inbound access rule, this will grant network access for the application.
 14. Click **Next**, Click **Next**, select **acknowledge that AWS CloudFormation might create IAM resources with custom names**. and Click **Submit**.
-15. Once Cloudformation has been deployed, gather application URL from output stack section. Username will be same you introduce on step 4 and temporary password will be sent by AWS Cognito Service.
+15. Once Cloudformation has been deployed, gather application URL from output stack section. Username will be same you introduce on step 7 and temporary password will be sent by AWS Cognito Service.
 16. Application deployment will take around 5 minutes to be completed.
 
 > **Note:** Because you are connecting to a site with a self-signed, untrusted host certificate, your browser may display a series of security warnings. 
