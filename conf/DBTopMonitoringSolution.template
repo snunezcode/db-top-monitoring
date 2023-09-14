@@ -30,25 +30,25 @@ Metadata:
       
     ParameterLabels:
       Username: 
-        default: "Specify Username for access"
+        default: "Specify username for application access"
       AMIId: 
-        default: "Specify AWS Linux AMI"
+        default: "Specify AWS Linux AMI to be used for Application Deployment"
       InstanceType: 
-        default: "What Instance Type is needed?"
+        default: "Specify instance type for Application Deployment"
       VPCParam: 
-        default: "Which VPC should this be deployed to?"
+        default: "Select VPC for Application Deployment"
       SubnetParam: 
-        default: "Which Subnet should this be deployed to?"
+        default: "Select Subnet for Application Deployment, this subnet needs internet outbound access to reach AWS APIs."
       PublicAccess: 
-        default: "Is Public Access Needed?"
+        default: "The deployment will assign private IP Address by default to access the application, you can assign Public IP Address to access the application in case you need it, Select (true) to assign Public IP Address."
       SGInboundAccess: 
-        default: "Specify CIDR Inbound Access Rule"
+        default: "Specify CIDR inbound access rule, this will grant network access for the application"
       GitHubRepository:
-        default: "Specify AWS Github Repository source used for deployment "
+        default: "AWS Github Repository source used for deployment"
       ApplicationUpdateEnabled:
-        default: "Disclaimer : This Application could able to verify new versions, it will help to keep update with most popular features. Customer can review the code and validate data scope. Selecting (true) I acknowledge that this Application will access to url to verify new application versions."
+        default: "Disclaimer : This Application could able to verify new versions, it will help to keep update with most popular features. Customer can review the code and validate data scope. Selecting (true) I acknowledge that this Application will access to url to verify new versions."
       ApplicationUpdateUrl:
-        default: "Specify URL used to verify new application versions."
+        default: "URL used to verify new application versions."
       
         
 Parameters:
@@ -59,7 +59,7 @@ Parameters:
 
   SubnetParam:
     Type: AWS::EC2::Subnet::Id
-    Description: Select VPC Subnet
+    Description: Select Subnet
 
   AMIId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
@@ -91,7 +91,7 @@ Parameters:
 
   SGInboundAccess:
       Type: String
-      Description: Segurity Group Inbound Access (0.0.0.0/0)
+      Description: CIDR (0.0.0.0/0)
       
   GitHubRepository:
       Type: String
@@ -100,12 +100,12 @@ Parameters:
   
   ApplicationUpdateUrl:
       Type: String
-      Description: Application Update URL
-      Default: https://raw.githubusercontent.com/aws-samples/db-top-monitoring/master/frontend/public/version.json
+      Description: URL
+      Default: https://raw.githubusercontent.com/snunezcode/db-top-monitoring/master/frontend/public/version.json
       
   ApplicationUpdateEnabled:
       Type: String
-      Description: Application Update
+      Description: Option
       Default: "true"
       AllowedValues:
       - "true"
