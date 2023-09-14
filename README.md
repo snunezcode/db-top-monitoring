@@ -139,21 +139,22 @@ GRANT CREATE SESSION,SELECT ANY DICTIONARY TO monitor;
 Follow the step-by-step instructions to configure and deploy the RDSTop into your account.
 
 1. Make sure you have sign in AWS Console already.
-2. Click the following button to launch the CloudFormation Console in your account and use Cloudformation template (DBMonitoringSolution.template) located on conf folder.
+2. Download AWS Cloudformation Template (DBMonitoringSolution.template) located into conf folder.
+3. Click the following button to launch the CloudFormation Console in your account and create an stack using Cloudformation template (DBMonitoringSolution.template) already downloaded.
 
 [![Launch Stack](./images/launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=DBTopMonitoringSolution)
 
-3. Input **Stack name** parameter. 
-4. Input **Username** parameter, this username will be used to access the application. An email will be sent with temporary password from AWS Cognito Service. 
-5. Input **AWS Linux AMI** parameter, this parameter specify AWS AMI to build App EC2 Server. Keep default value.
-6. Select **Instance Type** parameter, indicate what instance size is needed.
-7. Select **VPC Name** parameter, indicate VPC to be used to deploy application server.
-8. Select **Subnet Name** parameter, indicate private subnet to be used to deploy application server. This private subnet needs to have internet access, also application server needs to be able to reach AWS Database Resources, add appropiate inboud rules and security groups.
-9. Select **PublicAccess** parameter, indicate if Public Address is needed. 
-10. Input CIDR Inbound access rule for DBTop Monitoring Solution.
-11. Click **Next**, Click **Next**, select **acknowledge that AWS CloudFormation might create IAM resources with custom names**. and Click **Submit**.
-12. Once Cloudformation has been deployed, gather application URL from output stack section. Username will be same you introduce on step 4 and temporary password will be sent by AWS Cognito Service.
-13. Application deployment will take around 5 minutes to be completed.
+4. Input **Stack name** parameter. 
+5. Input **Username** parameter, this username will be used to access the application. An email will be sent with temporary password from AWS Cognito Service. 
+6. Input **AWS Linux AMI** parameter, this parameter specify AWS AMI to build App EC2 Server. Keep default value.
+7. Select **Instance Type** parameter, indicate what instance size is needed.
+8. Select **VPC Name** parameter, indicate VPC to be used to deploy application server.
+9. Select **Subnet Name** parameter, indicate private subnet to be used to deploy application server. This private subnet needs to have internet access, also application server needs to be able to reach AWS Database Resources, add appropiate inboud rules and security groups.
+10. Select **PublicAccess** parameter, indicate if Public Address is needed. 
+11. Input CIDR Inbound access rule for DBTop Monitoring Solution.
+12. Click **Next**, Click **Next**, select **acknowledge that AWS CloudFormation might create IAM resources with custom names**. and Click **Submit**.
+13. Once Cloudformation has been deployed, gather application URL from output stack section. Username will be same you introduce on step 4 and temporary password will be sent by AWS Cognito Service.
+14. Application deployment will take around 5 minutes to be completed.
 
 > **Note:** Because you are connecting to a site with a self-signed, untrusted host certificate, your browser may display a series of security warnings. 
 Override the warnings and proceed to the site. To prevent site visitors from encountering warning screens, you must obtain a trusted, 

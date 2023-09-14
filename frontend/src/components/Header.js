@@ -67,7 +67,7 @@ export default function App({sessionInformation,onClickMenu, onClickDisconnect})
           i18nStrings={i18nStrings}
           identity={{
             href: '#',
-            title: configuration['apps-settings']['application-title']
+            title: configuration['apps-settings']['application-title'] + " Solution"
           }}
           
           utilities={[

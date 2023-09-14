@@ -69,7 +69,7 @@ export default function App() {
               i18nStrings={i18nStrings}
               identity={{
                 href: '#',
-                title:  configuration['apps-settings']['application-title']
+                title:  configuration['apps-settings']['application-title'] + " Solution"
               }}
               
               utilities={[
