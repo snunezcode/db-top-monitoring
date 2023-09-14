@@ -7,7 +7,7 @@ export const configuration =
         "refresh-interval-elastic": 5*1000,
         "api_url": "",
         "release" : "0.1.0",
-        "application-title": "DBTop Monitoring Solution",
+        "application-title": "DBTop Monitoring",
         "app-update-url-json" : "https://raw.githubusercontent.com/snunezcode/db-top-monitoring/master/frontend/public/version.json"
     },
     "colors": {

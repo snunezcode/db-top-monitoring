@@ -1,62 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="refresh" content="2" />
+<title>DBTop Monitoring Solution</title>
+<meta http-equiv="refresh" content="3" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-/* Center the loader */
-#loader {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 1;
-  width: 120px;
-  height: 120px;
-  margin: -76px 0 0 -76px;
-  border: 16px solid #f3f3f3;
-  border-radius: 50%;
-  border-top: 16px solid #3498db;
-  -webkit-animation: spin 2s linear infinite;
-  animation: spin 2s linear infinite;
-}
+        bodY {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .center {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #000;
+      }
+      .wave {
+        width: 5px;
+        height: 100px;
+        background: linear-gradient(45deg, cyan, #fff);
+        margin: 10px;
+        animation: wave 1s linear infinite;
+        border-radius: 20px;
+      }
+      .wave:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .wave:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .wave:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+      .wave:nth-child(5) {
+        animation-delay: 0.4s;
+      }
+      .wave:nth-child(6) {
+        animation-delay: 0.5s;
+      }
+      .wave:nth-child(7) {
+        animation-delay: 0.6s;
+      }
+      .wave:nth-child(8) {
+        animation-delay: 0.7s;
+      }
+      .wave:nth-child(9) {
+        animation-delay: 0.8s;
+      }
+      .wave:nth-child(10) {
+        animation-delay: 0.9s;
+      }
+      
+      @keyframes wave {
+        0% {
+          transform: scale(0);
+        }
+        50% {
+          transform: scale(1);
+        }
+        100% {
+          transform: scale(0);
+        }
+      }
 
-@-webkit-keyframes spin {
-  0% { -webkit-transform: rotate(0deg); }
-  100% { -webkit-transform: rotate(360deg); }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Add animation to "page content" */
-.animate-bottom {
-  position: relative;
-  -webkit-animation-name: animatebottom;
-  -webkit-animation-duration: 1s;
-  animation-name: animatebottom;
-  animation-duration: 1s
-}
-
-@-webkit-keyframes animatebottom {
-  from { bottom:-100px; opacity:0 } 
-  to { bottom:0px; opacity:1 }
-}
-
-@keyframes animatebottom { 
-  from{ bottom:-100px; opacity:0 } 
-  to{ bottom:0; opacity:1 }
-}
 </style>
 </head>
-<body style="margin:0;">
-  <center><h1 style="font-family: Arial;">Application is being configured . . . </h1></center>
-  <center><h4 style="font-family: Arial;">it will be ready shortly </h4></center>
-<div id="loader">
-  
-</div>
-
+<body style="margin:0;background-color:#101a25" >
+  <center>
+        <h2 style="font-family: Arial;color:#cbcfd6">Application is being configured . . . </h2>
+  </center>
+  <center>
+        <h4 style="font-family: Arial;color:#cbcfd6">it will be ready shortly </h4>
+  </center>
+  <div class="center">
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+    <div class="wave"></div>
+  </div>
 </body>
 </html>
 
