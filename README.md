@@ -140,23 +140,20 @@ Follow the step-by-step instructions to configure and deploy the DBTop Monitorin
 
 1. Make sure you have sign in AWS Console already.
 2. Download AWS Cloudformation Template (DBMonitoringSolution.template) located into conf folder.
-3. [**Open AWS CloudFormation Console**](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=DBTopMonitoringSolution) and create an stack using Cloudformation template (DBMonitoringSolution.template) already downloaded.
-
-
-
-
-4. Input **Stack name** parameter. 
-5. Acknowledge **Application Update - Disclaimer** parameter.
-5. Input **Username** parameter, this username will be used to access the application. An email will be sent with temporary password from AWS Cognito Service. 
-6. Input **AWS Linux AMI** parameter, this parameter specify AWS AMI to build App EC2 Server. Keep default value.
-7. Select **Instance Type** parameter, indicate what instance size is needed.
-8. Select **VPC Name** parameter, indicate VPC to be used to deploy application server.
-9. Select **Subnet Name** parameter, indicate subnet to be used to deploy application server, this subnet needs to have outbound internet access to reach AWS APIs. Also application server needs to be able to reach AWS Database Resources, add appropiate inboud rules on AWS RDS security groups to allow network connections.
-10. Select **Public IP Address** parameter, the deployment will assign private IP Address by default to access the application, you can assign Public IP Address to access the application in case you need it, Select (true) to assign Public IP Address.
-11. Input **CIDR** parameter, specify CIDR inbound access rule, this will grant network access for the application.
-12. Click **Next**, Click **Next**, select **acknowledge that AWS CloudFormation might create IAM resources with custom names**. and Click **Submit**.
-13. Once Cloudformation has been deployed, gather application URL from output stack section. Username will be same you introduce on step 4 and temporary password will be sent by AWS Cognito Service.
-14. Application deployment will take around 5 minutes to be completed.
+3. [**Open AWS CloudFormation Console**](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=DBTopMonitoringSolution)
+4. Create an stack using Cloudformation template (DBMonitoringSolution.template) already downloaded on step 2.
+5. Input **Stack name** parameter. 
+6. Acknowledge **Application Update - Disclaimer** parameter.
+7. Input **Username** parameter, this username will be used to access the application. An email will be sent with temporary password from AWS Cognito Service. 
+8. Input **AWS Linux AMI** parameter, this parameter specify AWS AMI to build App EC2 Server. Keep default value.
+9. Select **Instance Type** parameter, indicate what instance size is needed.
+10. Select **VPC Name** parameter, indicate VPC to be used to deploy application server.
+11. Select **Subnet Name** parameter, indicate subnet to be used to deploy application server, this subnet needs to have outbound internet access to reach AWS APIs. Also application server needs to be able to reach AWS Database Resources, add appropiate inboud rules on AWS RDS security groups to allow network connections.
+12. Select **Public IP Address** parameter, the deployment will assign private IP Address by default to access the application, you can assign Public IP Address to access the application in case you need it, Select (true) to assign Public IP Address.
+13. Input **CIDR** parameter, specify CIDR inbound access rule, this will grant network access for the application.
+14. Click **Next**, Click **Next**, select **acknowledge that AWS CloudFormation might create IAM resources with custom names**. and Click **Submit**.
+15. Once Cloudformation has been deployed, gather application URL from output stack section. Username will be same you introduce on step 4 and temporary password will be sent by AWS Cognito Service.
+16. Application deployment will take around 5 minutes to be completed.
 
 > **Note:** Because you are connecting to a site with a self-signed, untrusted host certificate, your browser may display a series of security warnings. 
 Override the warnings and proceed to the site. To prevent site visitors from encountering warning screens, you must obtain a trusted, 
