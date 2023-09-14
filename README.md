@@ -85,8 +85,34 @@ https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_Monitoring.OS.Enabli
 
 #### VPC Network Access to AWS Database Instances
 
-DBTop Monitoring Solution needs to access privately AWS Database resources, grant access inboud rules and security groups.
+DBTop Monitoring Solution needs to access privately AWS Database resources, grant inboud access for security groups used by database resources.
 
+
+
+## Resource Usage and Cost
+
+DBTop Monitoring Solution will use following resources
+
+- **AWS EC2 instance** 
+     The cost of this resource will depend of size selected during the deployment process. AWS EC2 instance pricing can be review [here](https://aws.amazon.com/ec2/pricing/).
+
+- **AWS CloudWatch API Calls** 
+    The cost of this resource will depend how much time the application is being used and modules as well. 
+    DBTop Monitoring Solution uses data extracted from DBEngine itself and only extract information on demand from AWS CloudWatch (GetMetricData API) in case the module is selected.
+    AWS CloudWatch API Calls pricing can be review [here](https://aws.amazon.com/cloudwatch/pricing/).
+
+    
+
+
+
+- **Monitor instance performance.**
+    Visualize performance data on realtime, and correlate data to understand and resolve the root cause of performance issues in your database instances.
+
+- **Perform root cause analysis.**
+    Analyze database and operating system metrics to speed up debugging and reduce overall mean time to resolution.
+
+- **Optimize resources proactively.**
+    Identify top consumer sessions, gather SQL statements and resource usages.
 
 
 
