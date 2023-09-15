@@ -190,7 +190,7 @@ function Login() {
     };
     
   
-  //-- Call API to gather instances
+  //-- Call API to App Version
    async function gatherVersion (){
 
         //-- Application Update
@@ -215,25 +215,6 @@ function Login() {
    //-- Call API to gather instances
    async function gatherInstances (){
 
-        //-- Application Update
-        /*
-        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "rds"} );
-        
-        if (appVersionObject.release > configuration["apps-settings"]["release"] ){
-          setVersionMessage([
-                              {
-                                type: "info",
-                                content: "New Application version is available, new features and modules will improve monitoring capabilities and user experience.",
-                                dismissible: true,
-                                dismissLabel: "Dismiss message",
-                                onDismiss: () => setVersionMessage([]),
-                                id: "message_1"
-                              }
-          ]);
-      
-        }
-        */
-        
         //--- GATHER INSTANCES
         var rdsItems=[];
         

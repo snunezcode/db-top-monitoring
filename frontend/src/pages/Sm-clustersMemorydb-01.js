@@ -186,12 +186,11 @@ function Login() {
     };
     
     
-   //-- Call API to gather instances
-   async function gatherClusters (){
-        
+    //-- Call API to App Version
+   async function gatherVersion (){
+
         //-- Application Update
-        var appVersionObject = await applicationVersionUpdate();
-      
+        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "memorydb"} );
         
         if (appVersionObject.release > configuration["apps-settings"]["release"] ){
           setVersionMessage([
@@ -207,6 +206,12 @@ function Login() {
       
         }
         
+   }
+   
+   
+   //-- Call API to gather instances
+   async function gatherClusters (){
+       
         //--- GATHER INSTANCES
         var rdsItems=[];
         
@@ -283,6 +288,13 @@ function Login() {
         gatherClusters();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    
+    
+    useEffect(() => {
+        gatherVersion();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
     
     
   return (

@@ -162,13 +162,11 @@ function Login() {
     };
     
     
-    
-   //-- Call API to gather instances
-   async function gatherInstances (){
-  
+  //-- Call API to App Version
+   async function gatherVersion (){
+
         //-- Application Update
-        var appVersionObject = await applicationVersionUpdate();
-      
+        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "aurora"} );
         
         if (appVersionObject.release > configuration["apps-settings"]["release"] ){
           setVersionMessage([
@@ -183,6 +181,13 @@ function Login() {
           ]);
       
         }
+        
+   }
+   
+   
+   //-- Call API to gather instances
+   async function gatherInstances (){
+  
         
         //--- GATHER INSTANCES
         var rdsItems=[];
@@ -256,6 +261,11 @@ function Login() {
     // eslint-disable-next-line
     useEffect(() => {
         gatherInstances();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
+    useEffect(() => {
+        gatherVersion();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
