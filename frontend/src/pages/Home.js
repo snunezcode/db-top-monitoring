@@ -1,3 +1,5 @@
+import {useState,useEffect} from 'react'
+
 import { SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } from './Configs';
 
 import CustomHeader from "../components/HeaderApp";
@@ -5,7 +7,9 @@ import AppLayout from "@cloudscape-design/components/app-layout";
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 import ContentLayout from '@cloudscape-design/components/content-layout';
 import { configuration } from './Configs';
+import { applicationVersionUpdate } from '../components/Functions';
 
+import Flashbar from "@cloudscape-design/components/flashbar";
 import Button from "@cloudscape-design/components/button";
 import Container from "@cloudscape-design/components/container";
 import Header from "@cloudscape-design/components/header";
@@ -29,9 +33,41 @@ export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
 };
 
 
-function Login() {
+function Home() {
   
+    //-- Application Version
+    const [versionMessage, setVersionMessage] = useState([]);
+    
+    
+    //-- Call API to App Version
+    async function gatherVersion (){
 
+        //-- Application Update
+        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "global"} );
+        
+        if (appVersionObject.release > configuration["apps-settings"]["release"] ){
+          setVersionMessage([
+                              {
+                                type: "info",
+                                content: "New Application version is available, new features and modules will improve monitoring capabilities and user experience.",
+                                dismissible: true,
+                                dismissLabel: "Dismiss message",
+                                onDismiss: () => setVersionMessage([]),
+                                id: "message_1"
+                              }
+          ]);
+      
+        }
+        
+    }
+   
+   
+    useEffect(() => {
+        gatherVersion();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
+    
   return (
       
     <div style={{"background-color": "#f2f3f3"}}>
@@ -47,6 +83,7 @@ function Login() {
                             <Header variant="h2"
                                     description={
                                       <>
+                                      <Flashbar items={versionMessage} />
                                       <br/>
                                       <div style={{"color": "white", "font-family": "arial,sans-serif", "font-size": "20px"}}>          
                                         Welcome to {configuration["apps-settings"]["application-title"]}
@@ -175,4 +212,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Home;

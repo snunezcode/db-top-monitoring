@@ -17,7 +17,6 @@ const gatherVersionJsonFile = async (params) => {
                                 }).toString()
         );
         json = await response.json();
-        console.log(json);
     }
     catch{
         
