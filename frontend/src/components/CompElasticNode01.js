@@ -338,10 +338,10 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
             <tr>
                 <td style={{"width":"9%", "text-align":"left", "border-top": "1pt solid #595f69"}} >  
                     { dataStats.role === "master" &&
-                        <Badge color="blue"> M </Badge>
+                        <Badge color="blue"> P </Badge>
                     }
                     { dataStats.role === "slave" &&
-                        <Badge color="red"> S </Badge>
+                        <Badge color="red"> R </Badge>
                     }
                     &nbsp;
                     <Link  fontSize="body-s" onFollow={() => onClickNode()}>{nodeId}</Link>
@@ -490,7 +490,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                                     />
                                 </td>
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartBar01 series={[
+                                        <ChartLine02 series={[
                                                                 dataStats.refObject.getPropertyValues('operations')
                                                             ]} 
                                          timestamp={dataCommands.timestamp} title={"Operations/sec"} height="180px" 

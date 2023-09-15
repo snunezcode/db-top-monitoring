@@ -8,7 +8,7 @@ export const configuration =
         "api_url": "",
         "release" : "0.1.0",
         "application-title": "DBTop Monitoring",
-        "app-update-url-json" : "https://raw.githubusercontent.com/snunezcode/db-top-monitoring/master/frontend/public/version.json"
+        "version-code-url" : "https://version.code.ds.wwcs.aws.dev/"
     },
     "colors": {
         "fonts" : {

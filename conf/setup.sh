@@ -1,3 +1,5 @@
+#Verify code version
+version="$(curl https://version.code.ds.wwcs.aws.dev/?codeId=dbtop&moduleId=deploy)"
 
 #Install Software Packages
 sudo yum install -y openssl

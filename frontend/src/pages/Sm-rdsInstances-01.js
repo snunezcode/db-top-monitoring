@@ -189,13 +189,12 @@ function Login() {
             
     };
     
-    
-    
-   //-- Call API to gather instances
-   async function gatherInstances (){
+  
+  //-- Call API to gather instances
+   async function gatherVersion (){
 
         //-- Application Update
-        var appVersionObject = await applicationVersionUpdate();
+        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "rds"} );
         
         if (appVersionObject.release > configuration["apps-settings"]["release"] ){
           setVersionMessage([
@@ -211,6 +210,29 @@ function Login() {
       
         }
         
+   }
+    
+   //-- Call API to gather instances
+   async function gatherInstances (){
+
+        //-- Application Update
+        /*
+        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "rds"} );
+        
+        if (appVersionObject.release > configuration["apps-settings"]["release"] ){
+          setVersionMessage([
+                              {
+                                type: "info",
+                                content: "New Application version is available, new features and modules will improve monitoring capabilities and user experience.",
+                                dismissible: true,
+                                dismissLabel: "Dismiss message",
+                                onDismiss: () => setVersionMessage([]),
+                                id: "message_1"
+                              }
+          ]);
+      
+        }
+        */
         
         //--- GATHER INSTANCES
         var rdsItems=[];
@@ -282,6 +304,12 @@ function Login() {
     // eslint-disable-next-line
     useEffect(() => {
         gatherInstances();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
+    
+    useEffect(() => {
+        gatherVersion();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
