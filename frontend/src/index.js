@@ -29,6 +29,7 @@ import SmOracle01 from "./pages/Sm-oracle-01";
 import SmElasticache01 from "./pages/Sm-elasticache-01";
 import SmMemoryDB01 from "./pages/Sm-memorydb-01";
 import SmAuroraMysql01 from "./pages/Sm-aurora-mysql-01";
+import SmAuroraPostgresql01 from "./pages/Sm-aurora-postgresql-01";
 
 
 
@@ -82,6 +83,7 @@ Axios.get(`/aws-exports.json`,).then((data)=>{
                     <Route path="/sm-elasticache-01" element={<ProtectedApp><ProtectedDb> <SmElasticache01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-memorydb-01" element={<ProtectedApp><ProtectedDb> <SmMemoryDB01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-aurora-mysql-01" element={<ProtectedApp><ProtectedDb> <SmAuroraMysql01 /></ProtectedDb> </ProtectedApp>} />
+                    <Route path="/sm-aurora-postgresql-01" element={<ProtectedApp><ProtectedDb> <SmAuroraPostgresql01 /></ProtectedDb> </ProtectedApp>} />
                 </Routes>
               </BrowserRouter>
           </Authenticator.Provider>

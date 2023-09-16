@@ -252,8 +252,12 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
                       } else {
                         dbconnection.end();
                         var session_id=uuid.v4();
-                        postgresqlOpenConnection(session_id,params.host,params.port,params.username,params.password);
                         
+                        if (params.mode == "cluster")
+                            aurora["$" + session_id] = {};
+                        else
+                            postgresqlOpenConnection(session_id,params.host,params.port,params.username,params.password);
+                            
                         var token = generateToken({ session_id: session_id});
                         res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token});
                       }
@@ -528,6 +532,131 @@ function postgresqlOpenConnection(session_id,host,port,user,password){
     
     
 }
+
+
+
+// POSTGRESQL : Create Connection per cluster node
+app.post("/api/postgres/cluster/connection/open", (req,res)=>{
+
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+
+    // API Call
+    var params = req.body.params;
+    var sessionId =  "$" + standardToken.session_id;
+    var instanceId = "$" + params.instance;
+    try {
+            
+            if (!(("$" + params.instance) in aurora[sessionId])) {
+                    aurora[sessionId][instanceId]= function() {}
+                    aurora[sessionId][instanceId]["connection"]= function() {}
+                    aurora[sessionId][instanceId]["connection"]  = new postgresql({
+                            host: params.host,
+                            user: params.username,
+                            password: params.password,
+                            database: "postgres",
+                            port: params.port,
+                            max: 2,
+                    });
+                    
+                    console.log("Postgresql Connection opened for session_id : " + standardToken.session_id + "#" + params.instance);
+                    res.status(200).send( {"result":"connection opened", "session_id": standardToken.session_id });
+            }
+            else {
+                console.log("Re-using - Postgresql Instance connection : " + standardToken.session_id + "#" + params.instance )
+                res.status(200).send( {"result":"auth1" });
+            }
+            
+    }
+    catch(err) {
+        console.log(err)
+        res.status(404).send(err);
+    }
+   
+    
+})
+
+
+// POSTGRESQL : Close Connection per cluster node
+app.get("/api/postgres/cluster/connection/close", (req,res)=>{
+    
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+    var params = req.query;
+    
+    try
+            {
+                
+                var instances = aurora["$" + standardToken.session_id];
+                for (index of Object.keys(instances)) {
+                        try
+                          {
+                                console.log("Postgresql Cluster Disconnection : " + standardToken.session_id + "#" + index );
+                                instances[index]["connection"].end();
+                          }
+                          catch{
+                              console.log("Postgresql Cluster Disconnection error : " + standardToken.session_id + "#" + index );
+                          }
+                }
+                
+                delete aurora[standardToken.session_id];
+                res.status(200).send( {"result":"disconnected"});
+    }
+    catch(err){
+                console.log(err);
+    }
+})
+
+
+
+// POSTGRESQL : API Execute SQL Query
+app.get("/api/postgres/cluster/sql/", (req,res)=>{
+
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+    // API Call
+    var params = req.query;
+    try {
+        
+        var sessionId =  "$" + standardToken.session_id;
+        var instanceId = "$" + params.instance;
+    
+        aurora[sessionId][instanceId]["connection"].query(params.sql_statement, (err,result)=>{
+                        if(err) {
+                            console.log(err)
+                            res.status(404).send(err);
+                        } 
+                        else
+                        {
+                            res.status(200).send(result);
+                         }
+                        
+                }
+            );   
+
+           
+    } catch(error) {
+        console.log(error)
+                
+    }
+
+});
+
 
 
 // POSTGRESQL : API Execute SQL Query

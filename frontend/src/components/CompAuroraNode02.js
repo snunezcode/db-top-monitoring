@@ -14,7 +14,6 @@ import Box from "@cloudscape-design/components/box";
 import Table from "@cloudscape-design/components/table";
 import Header from "@cloudscape-design/components/header";
 
-
 const ComponentObject = memo(({  sessionId, instance, host, port, username, password, status, size, az, monitoring, resourceId, syncClusterEvent, }) => {
 
     const [detailsVisible, setDetailsVisible] = useState(false);
@@ -23,21 +22,24 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
     const initProcessMetricSync = useRef(0);
     const initProcess = useRef(0);
    
-    const [nodeStats, setNodeStats] = useState({
+     const [nodeStats, setNodeStats] = useState({
                                         cpu: 0,
                                         memory: 0,
                                         ioreads: 0,
                                         iowrites: 0,
                                         netin: 0,
                                         netout: 0,
-                                        queries: 0,
-                                        questions: 0,
-                                        comSelect: 0,
-                                        comInsert: 0,
-                                        comDelete: 0,
-                                        comUpdate: 0,
-                                        threads : 0,
-                                        threadsRunning : 0,
+                                        xactTotal: 0,
+                                        xactCommit: 0,
+                                        xactRollback: 0,
+                                        tupReturned: 0,
+                                        tupFetched: 0,
+                                        tupInserted: 0,
+                                        tupDeleted: 0,
+                                        tupInserted: 0,
+                                        tupUpdated: 0,
+                                        numbackends : 0,
+                                        numbackendsActive : 0,
                                         timestamp:0,
                                         objMetric : new classMetric([
                                                         { name: "cpu", history: 20 },
@@ -46,18 +48,19 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                                         { name: "iowrites", history: 20 },
                                                         { name: "netin", history: 20 },
                                                         { name: "netout", history: 20 },
-                                                        { name: "queries", history: 20 },
-                                                        { name: "questions", history: 20 },
-                                                        { name: "comSelect", history: 20 },
-                                                        { name: "comInsert", history: 20 },
-                                                        { name: "comDelete", history: 20 },
-                                                        { name: "comUpdate", history: 20 },
-                                                        { name: "threads", history: 20 },
-                                                        { name: "threadsRunning", history: 20 },
+                                                        { name: "xactTotal", history: 20 },
+                                                        { name: "xactCommit", history: 20 },
+                                                        { name: "xactRollback", history: 20 },
+                                                        { name: "tupReturned", history: 20 },
+                                                        { name: "tupFetched", history: 20 },
+                                                        { name: "tupInserted", history: 20 },
+                                                        { name: "tupDeleted", history: 20 },
+                                                        { name: "tupUpdated", history: 20 },
+                                                        { name: "numbackends", history: 20 },
+                                                        { name: "numbackendsActive", history: 20 },
                                         ]),
-                                        sessions : [],
     });
-
+                                                        
     const metricObject = useRef({
                                         cpu: 0,
                                         memory: 0,
@@ -65,15 +68,17 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                         iowrites: 0,
                                         netin: 0,
                                         netout: 0,
-                                        queries: 0,
-                                        questions: 0,
-                                        comSelect: 0,
-                                        comInsert: 0,
-                                        comDelete: 0,
-                                        comUpdate: 0,
-                                        threads : 0,
-                                        threadsRunning : 0,
-                                        timestamp:0,
+                                        xactTotal: 0,
+                                        xactCommit: 0,
+                                        xactRollback: 0,
+                                        tupReturned: 0,
+                                        tupFetched: 0,
+                                        tupInserted: 0,
+                                        tupDeleted: 0,
+                                        tupInserted: 0,
+                                        tupUpdated: 0,
+                                        numbackends : 0,
+                                        numbackendsActive : 0,
                                         objMetric : new classMetric([
                                                         { name: "cpu", history: 20 },
                                                         { name: "memory", history: 20 },
@@ -81,36 +86,41 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                                         { name: "iowrites", history: 20 },
                                                         { name: "netin", history: 20 },
                                                         { name: "netout", history: 20 },
-                                                        { name: "queries", history: 20 },
-                                                        { name: "questions", history: 20 },
-                                                        { name: "comSelect", history: 20 },
-                                                        { name: "comInsert", history: 20 },
-                                                        { name: "comDelete", history: 20 },
-                                                        { name: "comUpdate", history: 20 },
-                                                        { name: "threads", history: 20 },
-                                                        { name: "threadsRunning", history: 20 },
+                                                        { name: "xactTotal", history: 20 },
+                                                        { name: "xactCommit", history: 20 },
+                                                        { name: "xactRollback", history: 20 },
+                                                        { name: "tupReturned", history: 20 },
+                                                        { name: "tupFetched", history: 20 },
+                                                        { name: "tupInserted", history: 20 },
+                                                        { name: "tupDeleted", history: 20 },
+                                                        { name: "tupUpdated", history: 20 },
+                                                        { name: "numbackends", history: 20 },
+                                                        { name: "numbackendsActive", history: 20 },
                                         ]),
+                                        sessions : []
     });
     
-    
-    const dataSessionColumns=[
-                    { id: "ThreadID",header: "ThreadID",cell: item => item['ThreadID'] || "-",sortingField: "ThreadID",isRowHeader: true },
+   
+   const dataSessionColumns=[
+                    { id: "PID",header: "PID",cell: item => item['PID'] || "-",sortingField: "PID",isRowHeader: true },
                     { id: "Username",header: "Username",cell: item => item['Username'] || "-",sortingField: "Username",isRowHeader: true },
-                    { id: "Host",header: "Host",cell: item => item['Host'] || "-",sortingField: "Host",isRowHeader: true },
-                    { id: "Database",header: "Database",cell: item => item['Database'] || "-",sortingField: "Database",isRowHeader: true },
-                    { id: "Command",header: "Command",cell: item => item['Command'] || "-",sortingField: "Command",isRowHeader: true },
-                    { id: "ElapsedTime",header: "ElapsedTime",cell: item => item['Time'] || "-",sortingField: "Time",isRowHeader: true },
                     { id: "State",header: "State",cell: item => item['State'] || "-",sortingField: "State",isRowHeader: true },
+                    { id: "WaitEvent",header: "WaitEvent",cell: item => item['WaitEvent'] || "-",sortingField: "WaitEvent",isRowHeader: true },
+                    { id: "Database",header: "Database",cell: item => item['Database'] || "-",sortingField: "Database",isRowHeader: true },
+                    { id: "ElapsedTime",header: "ElapsedTime",cell: item => item['ElapsedTime'] || "-",sortingField: "ElapsedTime",isRowHeader: true },
+                    { id: "AppName",header: "AppName",cell: item => item['AppName'] || "-",sortingField: "AppName",isRowHeader: true },
+                    { id: "Host",header: "Host",cell: item => item['Host'] || "-",sortingField: "Host",isRowHeader: true },
                     { id: "SQLText",header: "SQLText",cell: item => item['SQLText'] || "-",sortingField: "SQLText",isRowHeader: true } 
                     ];
-   
+                    
+                    
     //-- Function Open Connections
     async function openConnection() {
 
         var api_url = configuration["apps-settings"]["api_url"];
 
         Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
-        await Axios.post(`${api_url}/api/mysql/cluster/connection/open`, {
+        await Axios.post(`${api_url}/api/postgres/cluster/connection/open`, {
                 params: {  instance : instance, host : host,  port : port, username : username, password : password }
             }).then((data) => {
                 
@@ -118,7 +128,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
 
             })
             .catch((err) => {
-                console.log('Timeout API Call : /api/mysql/cluster/connection/open');
+                console.log('Timeout API Call : /api/postgres/cluster/connection/open');
                 console.log(err);
 
             });
@@ -303,25 +313,27 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                       connection: sessionId,
                       instance : instance,
                       sql_statement: `
-                                        SELECT ID as 'ThreadID',USER as 'Username',HOST as 'Host',DB as 'Database',COMMAND as 'Command',SEC_TO_TIME(TIME) as 'Time',STATE as 'State',INFO as 'SQLText' FROM INFORMATION_SCHEMA.PROCESSLIST WHERE COMMAND <> 'Sleep' AND COMMAND <> 'Daemon' AND CONNECTION_ID()<> ID ORDER BY TIME DESC LIMIT 250
+                                        select pid as "PID",usename as "Username",state as "State",wait_event as "WaitEvent",datname as "Database",CAST(CURRENT_TIMESTAMP-query_start AS VARCHAR)  as "ElapsedTime",application_name as "AppName",client_addr as "Host",query as "SQLText" from pg_stat_activity where pid <> pg_backend_pid() and state = \'active\' order by query_start asc limit 250;
                                      `
                       };
         
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/mysql/cluster/sql/`,{
+        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/postgres/cluster/sql/`,{
               params: api_params
               }).then((data)=>{
                 
-                  metricObject.current.sessions = data.data;
+                  metricObject.current.sessions = data.data.rows;
                   
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/mysql/cluster/sql/' );
+                  console.log('Timeout API Call : /api/postgres/cluster/sql/' );
                   console.log(err)
               });
             
     
     }
-    
+   
+   
+   
     //-- Function Gather RealTime Metrics
     async function fetchMetrics() {
       
@@ -329,16 +341,32 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
         var api_params = {
                       connection: sessionId,
                       instance : instance,
-                      sql_statement: "SHOW GLOBAL STATUS"
+                      sql_statement: `
+                                        SELECT 
+                                            SUM(numbackends) as numbackends,
+                                            SUM(tup_returned) as tup_returned, 
+                                            SUM(tup_fetched) as tup_fetched, 
+                                            SUM(tup_inserted) as tup_inserted,
+                                            SUM(tup_updated) as tup_updated,
+                                            SUM(tup_deleted) as tup_deleted, 
+                                            SUM(blk_read_time) as blk_read_time, 
+                                            SUM(blk_write_time) as blk_write_time, 
+                                            SUM(xact_commit) as xact_commit, 
+                                            SUM(xact_rollback) as xact_rollback,
+                                            (select count(*) from pg_stat_activity where pid <> pg_backend_pid() and state = \'active\' ) numbackendsActive
+                                        FROM pg_stat_database
+                                `
                       };
 
         
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/mysql/cluster/sql/`,{
+        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/postgres/cluster/sql/`,{
               params: api_params
               }).then((data)=>{
-                    
+                  
                   var timeNow = new Date();
-                  var currentCounters = convertArrayToObject(data.data,'Variable_name');
+                  var currentCounters=data.data.rows[0];
+                  
+                  
                   
                   if ( initProcess.current === 0 ){
                     //-- Initialize snapshot data
@@ -353,29 +381,34 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                   metricObject.current.objMetric.newSnapshot(currentCounters, timeNow.getTime());
                   
                   //-- Add metrics
-                  metricObject.current.comSelect = metricObject.current.objMetric.getDelta('Com_select');
-                  metricObject.current.comUpdate = metricObject.current.objMetric.getDelta('Com_update');
-                  metricObject.current.comDelete = metricObject.current.objMetric.getDelta('Com_delete');
-                  metricObject.current.comInsert = metricObject.current.objMetric.getDelta('Com_insert');
-                  metricObject.current.queries   = metricObject.current.objMetric.getDelta('Queries');
-                  metricObject.current.questions = metricObject.current.objMetric.getDelta('Questions');
-                  metricObject.current.threads   = metricObject.current.objMetric.getValue('Threads_connected');
-                  metricObject.current.threadsRunning   = metricObject.current.objMetric.getValue('Threads_running');
                   
-                  metricObject.current.objMetric.addPropertyValue('comSelect',metricObject.current.comSelect);
-                  metricObject.current.objMetric.addPropertyValue('comUpdate',metricObject.current.comUpdate);
-                  metricObject.current.objMetric.addPropertyValue('comDelete',metricObject.current.comDelete);
-                  metricObject.current.objMetric.addPropertyValue('comInsert',metricObject.current.comInsert);
-                  metricObject.current.objMetric.addPropertyValue('queries',metricObject.current.queries);
-                  metricObject.current.objMetric.addPropertyValue('questions',metricObject.current.questions);
-                  metricObject.current.objMetric.addPropertyValue('threads',metricObject.current.threads);
-                  metricObject.current.objMetric.addPropertyValue('threadsRunning',metricObject.current.threadsRunning);
+                  metricObject.current.xactTotal = metricObject.current.objMetric.getDeltaByIndex('xact_commit') + metricObject.current.objMetric.getDeltaByIndex('xact_rollback');
+                  metricObject.current.xactCommit = metricObject.current.objMetric.getDeltaByIndex('xact_commit');
+                  metricObject.current.xactRollback = metricObject.current.objMetric.getDeltaByIndex('xact_rollback');
+                  metricObject.current.tupReturned = metricObject.current.objMetric.getDeltaByIndex('tup_returned');
+                  metricObject.current.tupFetched = metricObject.current.objMetric.getDeltaByIndex('tup_fetched');
+                  metricObject.current.tupInserted = metricObject.current.objMetric.getDeltaByIndex('tup_inserted');
+                  metricObject.current.tupUpdated   = metricObject.current.objMetric.getDeltaByIndex('tup_updated');
+                  metricObject.current.tupDeleted = metricObject.current.objMetric.getDeltaByIndex('tup_deleted');
+                  metricObject.current.numbackends   = metricObject.current.objMetric.getValueByIndex('numbackends');
+                  metricObject.current.numbackendsActive   = metricObject.current.objMetric.getValueByIndex('numbackendsactive');
                   
                   
+                  metricObject.current.objMetric.addPropertyValue('xactTotal',metricObject.current.xactTotal);
+                  metricObject.current.objMetric.addPropertyValue('xactCommit',metricObject.current.xactCommit);
+                  metricObject.current.objMetric.addPropertyValue('xactRollback',metricObject.current.xactRollback);
+                  metricObject.current.objMetric.addPropertyValue('tupReturned',metricObject.current.tupReturned);
+                  metricObject.current.objMetric.addPropertyValue('tupFetched',metricObject.current.tupFetched);
+                  metricObject.current.objMetric.addPropertyValue('tupInserted',metricObject.current.tupInserted);
+                  metricObject.current.objMetric.addPropertyValue('tupDeleted',metricObject.current.tupUpdated);
+                  metricObject.current.objMetric.addPropertyValue('tupUpdated',metricObject.current.tupDeleted);
+                  metricObject.current.objMetric.addPropertyValue('numbackends',metricObject.current.numbackends);
+                  metricObject.current.objMetric.addPropertyValue('numbackendsActive',metricObject.current.numbackendsActive);
+
                 
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/mysql/cluster/sql/' );
+                  console.log('Timeout API Call : /api/postgres/cluster/sql/' );
                   console.log(err)
                     
               });
@@ -393,6 +426,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
         else{
             metricObject.current.sessions = [];
         }
+        
         await fetchOSMetrics();
         metricObject.current.timestamp = timeNow.getTime();
         syncCluster();
@@ -403,6 +437,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
 
     function syncCluster() {
 
+                
         if (initProcessMetricSync.current === 1) {
             syncClusterEvent({
                 name: instance,
@@ -412,14 +447,22 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 iowrites: metricObject.current.iowrites,
                 netin: metricObject.current.netin,
                 netout: metricObject.current.netout,
-                queries: metricObject.current.queries,
-                questions: metricObject.current.questions,
-                comSelect: metricObject.current.comSelect,
-                comUpdate: metricObject.current.comUpdate,
-                comDelete: metricObject.current.comDelete,
-                cpuInsert: metricObject.current.comInsert,
-                threads: metricObject.current.threads,
-                threadsRunning: metricObject.current.threadsRunning,
+                xactTotal: metricObject.current.xactTotal,
+                xactCommit: metricObject.current.xactCommit,
+                xactRollback: metricObject.current.xactRollback,
+                tuples: (
+                            metricObject.current.tupFetched +
+                            metricObject.current.tupInserted +
+                            metricObject.current.tupDeleted +
+                            metricObject.current.tupUpdated
+                        ),
+                tupReturned: metricObject.current.tupReturned,
+                tupFetched: metricObject.current.tupFetched,
+                tupInserted: metricObject.current.tupInserted,
+                tupDeleted: metricObject.current.tupDeleted,
+                tupUpdated: metricObject.current.tupUpdated,
+                numbackends: metricObject.current.numbackends,
+                numbackendsActive: metricObject.current.numbackendsActive,
             });
     
         }
@@ -474,7 +517,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                      <CompMetric04
-                        value={nodeStats.questions}
+                        value={nodeStats.xactTotal}
                         precision={0
                             
                         }
@@ -490,7 +533,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={nodeStats.objMetric.getValue('Threads_connected')}
+                        value={nodeStats.numbackends}
                         title={""}
                         precision={0}
                         format={3}
@@ -500,7 +543,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={nodeStats.objMetric.getValue('Threads_running')}
+                        value={(nodeStats.tupInserted + nodeStats.tupDeleted + nodeStats.tupUpdated  + nodeStats.tupFetched )   || 0}
                         title={""}
                         precision={0}
                         format={3}
@@ -554,17 +597,16 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
             <tr>
                 <td></td>
                 <td colspan="11" style={{"border-left": "8px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                
                         <br />
                         <Box variant="h2">{instance}</Box>
                         <span style={{"font-size": "12px", "font-weight": "500", }}>Instance</span>
-                        
+                            
                         <table style={{"width":"100%"}}>
                             <tr>  
                                 <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.questions}
-                                            title={"Questions/sec"}
+                                            value={nodeStats.xactTotal}
+                                            title={"Transactions/sec"}
                                             precision={0}
                                             format={1}
                                             fontColorValue={configuration.colors.fonts.metric100}
@@ -573,8 +615,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 </td>
                                  <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={(nodeStats.comInsert + nodeStats.comUpdate + nodeStats.comDelete)   || 0}
-                                            title={"WriteOps/sec"}
+                                            value={(nodeStats.tupInserted + nodeStats.tupDeleted + nodeStats.tupUpdated)   || 0}
+                                            title={"WriteTuples/sec"}
                                             precision={0}
                                             format={1}
                                             fontColorValue={configuration.colors.fonts.metric100}
@@ -583,8 +625,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                         <br/>        
                                         <br/> 
                                         <CompMetric01 
-                                            value={nodeStats.comSelect || 0}
-                                            title={"ReadOps/sec"}
+                                            value={nodeStats.tupFetched || 0}
+                                            title={"ReadTuples/sec"}
                                             precision={0}
                                             format={1}
                                             fontColorValue={configuration.colors.fonts.metric100}
@@ -627,60 +669,71 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                         </table> 
                         <br />
                         <br />
-                        <br />
+                        <br/>
+                        <br/>
                         <table style={{"width":"100%"}}>
                                 <tr> 
-                                    <td style={{"width":"11%", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.threadsRunning}
-                                            title={"ThreadsRunning"}
+                                            value={nodeStats.numbackends}
+                                            title={"Sessions"}
                                             precision={0}
                                             format={3}
                                             fontColorValue={configuration.colors.fonts.metric100}
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.comSelect  || 0}
-                                            title={"ComSelect/sec"}
+                                            value={nodeStats.tupReturned  || 0}
+                                            title={"tupReturned/sec"}
                                             precision={0}
                                             format={1}
                                             fontColorValue={configuration.colors.fonts.metric100}
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.comInsert || 0}
-                                            title={"ComInsert/sec"}
+                                            value={nodeStats.tupFetched || 0}
+                                            title={"tupFetched/sec"}
                                             precision={0}
                                             format={1}
                                             fontColorValue={configuration.colors.fonts.metric100}
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.comUpdate || 0}
-                                            title={"ComUpdate/sec"}
+                                            value={nodeStats.tupInserted || 0}
+                                            title={"tupInserted/sec"}
                                             precision={0}
                                             format={1}
                                             fontColorValue={configuration.colors.fonts.metric100}
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.comDelete || 0}
-                                            title={"ComDelete/sec"}
+                                            value={nodeStats.tupDeleted || 0}
+                                            title={"tupDeleted/sec"}
                                             precision={0}
                                             format={1}
                                             fontColorValue={configuration.colors.fonts.metric100}
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                        <CompMetric01 
+                                            value={nodeStats.tupUpdated || 0}
+                                            title={"tupUpdated/sec"}
+                                            precision={0}
+                                            format={1}
+                                            fontColorValue={configuration.colors.fonts.metric100}
+                                            fontSizeValue={"16px"}
+                                        />
+                                    </td>
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.ioreads}
                                             title={"IO Reads/sec"}
@@ -690,7 +743,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.iowrites}
                                             title={"IO Writes/sec"}
@@ -700,7 +753,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.netin}
                                             title={"Network-In"}
@@ -710,7 +763,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.netout}
                                             title={"Network-Out"}
@@ -724,39 +777,44 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                         </table>  
                         <br/>
                         <br/>
-                        <br />
-                        <br />
+                        <br/>
+                        <br/>
+                        <br/>
                         <table style={{"width":"100%"}}>
                               <tr>  
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('threadsRunning'),
-                                                            nodeStats.objMetric.getPropertyValues('threads')
+                                                            nodeStats.objMetric.getPropertyValues('numbackends'),
+                                                            nodeStats.objMetric.getPropertyValues('numbackendsActive')
                                                         ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Threads"} height="180px" 
+                                                    timestamp={nodeStats.timestamp} title={"Sessions"} height="180px" 
                                     />  
                                 </td>
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('questions')
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Questions/sec"} height="180px" 
-                                    />  
-                                </td>
-                                <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('comSelect'),
-                                                            nodeStats.objMetric.getPropertyValues('comDelete'),
-                                                            nodeStats.objMetric.getPropertyValues('comInsert'),
-                                                            nodeStats.objMetric.getPropertyValues('comUpdate'),
+                                                            nodeStats.objMetric.getPropertyValues('xactCommit'),
+                                                            nodeStats.objMetric.getPropertyValues('xactRollback'),
                                                             
                                                         ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Operations/sec"} height="180px" 
+                                                    timestamp={nodeStats.timestamp} title={"Transactions/sec"} height="180px" 
+                                    />  
+                                </td>
+                                <td style={{"width":"33%", "padding-left": "1em"}}>  
+                                     <ChartLine02 series={[
+                                                            nodeStats.objMetric.getPropertyValues('tupReturned'),
+                                                            nodeStats.objMetric.getPropertyValues('tupFetched'),
+                                                            nodeStats.objMetric.getPropertyValues('tupInserted'),
+                                                            nodeStats.objMetric.getPropertyValues('tupDeleted'),
+                                                            nodeStats.objMetric.getPropertyValues('tupUpdated'),
+                                                            
+                                                        ]} 
+                                                    timestamp={nodeStats.timestamp} title={"Tuples/sec"} height="180px" 
                                     />
                                 </td>
                                 
                               </tr>
                         </table>
+                        <br />
                         <br />
                         <br />
                         <br />
@@ -797,6 +855,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                             </tr>  
                         </table>  
                         
+                          
                 </td>
             </tr>
             
