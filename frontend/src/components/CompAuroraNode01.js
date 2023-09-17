@@ -36,6 +36,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                         comInsert: 0,
                                         comDelete: 0,
                                         comUpdate: 0,
+                                        comCommit: 0,
+                                        comRollback : 0,
                                         threads : 0,
                                         threadsRunning : 0,
                                         timestamp:0,
@@ -52,6 +54,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                                         { name: "comInsert", history: 20 },
                                                         { name: "comDelete", history: 20 },
                                                         { name: "comUpdate", history: 20 },
+                                                        { name: "comCommit", history: 20 },
+                                                        { name: "comRollback", history: 20 },
                                                         { name: "threads", history: 20 },
                                                         { name: "threadsRunning", history: 20 },
                                         ]),
@@ -71,6 +75,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                         comInsert: 0,
                                         comDelete: 0,
                                         comUpdate: 0,
+                                        comCommit: 0,
+                                        comRollback : 0,
                                         threads : 0,
                                         threadsRunning : 0,
                                         timestamp:0,
@@ -87,6 +93,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                                         { name: "comInsert", history: 20 },
                                                         { name: "comDelete", history: 20 },
                                                         { name: "comUpdate", history: 20 },
+                                                        { name: "comCommit", history: 20 },
+                                                        { name: "comRollback", history: 20 },
                                                         { name: "threads", history: 20 },
                                                         { name: "threadsRunning", history: 20 },
                                         ]),
@@ -357,6 +365,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                   metricObject.current.comUpdate = metricObject.current.objMetric.getDelta('Com_update');
                   metricObject.current.comDelete = metricObject.current.objMetric.getDelta('Com_delete');
                   metricObject.current.comInsert = metricObject.current.objMetric.getDelta('Com_insert');
+                  metricObject.current.comCommit = metricObject.current.objMetric.getDelta('Com_commit');
+                  metricObject.current.comRollback = metricObject.current.objMetric.getDelta('Com_rollback');
                   metricObject.current.queries   = metricObject.current.objMetric.getDelta('Queries');
                   metricObject.current.questions = metricObject.current.objMetric.getDelta('Questions');
                   metricObject.current.threads   = metricObject.current.objMetric.getValue('Threads_connected');
@@ -366,6 +376,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                   metricObject.current.objMetric.addPropertyValue('comUpdate',metricObject.current.comUpdate);
                   metricObject.current.objMetric.addPropertyValue('comDelete',metricObject.current.comDelete);
                   metricObject.current.objMetric.addPropertyValue('comInsert',metricObject.current.comInsert);
+                  metricObject.current.objMetric.addPropertyValue('comCommit',metricObject.current.comCommit);
+                  metricObject.current.objMetric.addPropertyValue('comRollback',metricObject.current.comRollback);
                   metricObject.current.objMetric.addPropertyValue('queries',metricObject.current.queries);
                   metricObject.current.objMetric.addPropertyValue('questions',metricObject.current.questions);
                   metricObject.current.objMetric.addPropertyValue('threads',metricObject.current.threads);
@@ -417,7 +429,9 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 comSelect: metricObject.current.comSelect,
                 comUpdate: metricObject.current.comUpdate,
                 comDelete: metricObject.current.comDelete,
-                cpuInsert: metricObject.current.comInsert,
+                comInsert: metricObject.current.comInsert,
+                comCommit: metricObject.current.comCommit,
+                comRollback: metricObject.current.comRollback,
                 threads: metricObject.current.threads,
                 threadsRunning: metricObject.current.threadsRunning,
             });
@@ -553,12 +567,9 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
             { detailsVisible === true &&
             <tr>
                 <td></td>
-                <td colspan="11" style={{"border-left": "8px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                
-                        <br />
-                        <Box variant="h2">{instance}</Box>
-                        <span style={{"font-size": "12px", "font-weight": "500", }}>Instance</span>
-                        
+                <td colspan="11" style={{"padding-left": "2em", "border-left": "1px solid " + configuration.colors.lines.separator100 }}>
+                        <br/>
+                        <br/>
                         <table style={{"width":"100%"}}>
                             <tr>  
                                 <td style={{"width":"10%", "padding-left": "1em"}}>  
@@ -630,7 +641,17 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                         <br />
                         <table style={{"width":"100%"}}>
                                 <tr> 
-                                    <td style={{"width":"11%", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "padding-left": "1em"}}>  
+                                        <CompMetric01 
+                                            value={ (nodeStats.comCommit + nodeStats.comRollback ) || 0}
+                                            title={"Transactions/sec"}
+                                            precision={0}
+                                            format={3}
+                                            fontColorValue={configuration.colors.fonts.metric100}
+                                            fontSizeValue={"16px"}
+                                        />
+                                    </td>
+                                    <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.threadsRunning}
                                             title={"ThreadsRunning"}
@@ -640,7 +661,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.comSelect  || 0}
                                             title={"ComSelect/sec"}
@@ -650,7 +671,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.comInsert || 0}
                                             title={"ComInsert/sec"}
@@ -660,7 +681,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.comUpdate || 0}
                                             title={"ComUpdate/sec"}
@@ -670,7 +691,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.comDelete || 0}
                                             title={"ComDelete/sec"}
@@ -680,7 +701,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.ioreads}
                                             title={"IO Reads/sec"}
@@ -690,7 +711,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.iowrites}
                                             title={"IO Writes/sec"}
@@ -700,7 +721,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.netin}
                                             title={"Network-In"}
@@ -710,7 +731,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                             fontSizeValue={"16px"}
                                         />
                                     </td>
-                                    <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                    <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
                                             value={nodeStats.netout}
                                             title={"Network-Out"}
@@ -796,6 +817,9 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 </td>  
                             </tr>  
                         </table>  
+                        <br />
+                        <br />
+                        
                         
                 </td>
             </tr>

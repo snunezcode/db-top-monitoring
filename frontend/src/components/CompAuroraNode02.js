@@ -596,11 +596,9 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
             { detailsVisible === true &&
             <tr>
                 <td></td>
-                <td colspan="11" style={{"border-left": "8px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                        <br />
-                        <Box variant="h2">{instance}</Box>
-                        <span style={{"font-size": "12px", "font-weight": "500", }}>Instance</span>
-                            
+                <td colspan="11" style={{"padding-left": "2em", "border-left": "1px solid " + configuration.colors.lines.separator100 }}>
+                        <br/>
+                        <br/>
                         <table style={{"width":"100%"}}>
                             <tr>  
                                 <td style={{"width":"10%", "padding-left": "1em"}}>  
@@ -854,7 +852,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 </td>  
                             </tr>  
                         </table>  
-                        
+                        <br />
+                        <br />
                           
                 </td>
             </tr>

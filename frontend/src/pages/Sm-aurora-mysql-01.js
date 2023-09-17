@@ -102,6 +102,8 @@ function App() {
                                                         {name : "comInsert", history : historyChartDetails },
                                                         {name : "comDelete", history : historyChartDetails },
                                                         {name : "comUpdate", history : historyChartDetails },
+                                                        {name : "comCommit", history : historyChartDetails },
+                                                        {name : "comRollback", history : historyChartDetails },
                                                         {name : "threads", history : historyChartDetails },
                                                         {name : "threadsRunning", history : historyChartDetails },
                                                         
@@ -126,6 +128,8 @@ function App() {
                                                 comInsert: 0,
                                                 comDelete: 0,
                                                 comUpdate: 0,
+                                                comCommit: 0,
+                                                comRollback: 0,
                                                 threads : 0,
                                                 threadsRunning : 0,
                                                 timestamp : 0,
@@ -142,6 +146,8 @@ function App() {
                                                                                 {name : "comInsert", history : historyChartDetails },
                                                                                 {name : "comDelete", history : historyChartDetails },
                                                                                 {name : "comUpdate", history : historyChartDetails },
+                                                                                {name : "comCommit", history : historyChartDetails },
+                                                                                {name : "comRollback", history : historyChartDetails },
                                                                                 {name : "threads", history : historyChartDetails },
                                                                                 {name : "threadsRunning", history : historyChartDetails },
                                                                                 ]),
@@ -209,6 +215,8 @@ function App() {
                                                                                         comInsert: Array(historyChartDetails).fill(null), 
                                                                                         comDelete: Array(historyChartDetails).fill(null), 
                                                                                         comUpdate: Array(historyChartDetails).fill(null), 
+                                                                                        comCommit: Array(historyChartDetails).fill(null), 
+                                                                                        comRollback: Array(historyChartDetails).fill(null), 
                                                                                         threads : Array(historyChartDetails).fill(null),
                                                                                         threadsRunning : Array(historyChartDetails).fill(null), 
                                                                 };
@@ -251,7 +259,9 @@ function App() {
                                         comSelect: childNode.comSelect,
                                         comUpdate: childNode.comUpdate,
                                         comDelete: childNode.comDelete,
-                                        cpuInsert: childNode.comInsert,
+                                        comInsert: childNode.comInsert,
+                                        comCommit: childNode.comCommit,
+                                        comRollback: childNode.comRollback,
                                         threads: childNode.threads,
                                         threadsRunning: childNode.threadsRunning,
         
@@ -283,6 +293,8 @@ function App() {
                         comInsert: 0,
                         comDelete: 0,
                         comUpdate: 0,
+                        comCommit: 0,
+                        comRollback: 0,
                         threads : 0,
                         threadsRunning : 0,
         };
@@ -317,6 +329,8 @@ function App() {
             metrics.comInsert = metrics.comInsert + parseFloat(nodeList[index].comInsert) ;
             metrics.comDelete = metrics.comDelete + parseFloat(nodeList[index].comDelete) ;
             metrics.comUpdate = metrics.comUpdate + parseFloat(nodeList[index].comUpdate) ;
+            metrics.comCommit = metrics.comCommit + parseFloat(nodeList[index].comCommit) ;
+            metrics.comRollback = metrics.comRollback + parseFloat(nodeList[index].comRollback) ;
             metrics.threads = metrics.threads + parseFloat(nodeList[index].threads) ;
             metrics.threadsRunning = metrics.threadsRunning + parseFloat(nodeList[index].threadsRunning) ;
                         
@@ -383,6 +397,8 @@ function App() {
         metricObjectGlobal.current.addPropertyValue('comInsert', metrics.comInsert );
         metricObjectGlobal.current.addPropertyValue('comDelete', metrics.comDelete );
         metricObjectGlobal.current.addPropertyValue('comUpdate', metrics.comUpdate );
+        metricObjectGlobal.current.addPropertyValue('comCommit', metrics.comUpdate );
+        metricObjectGlobal.current.addPropertyValue('comRollback', metrics.comUpdate );
         metricObjectGlobal.current.addPropertyValue('threads', metrics.threads );
         metricObjectGlobal.current.addPropertyValue('threadsRunning', metrics.threadsRunning );
         
@@ -397,9 +413,11 @@ function App() {
             queries: metrics.queries,
             questions: metrics.questions,
             comSelect: metrics.comSelect,
-            comInsert: metrics.comUpdate,
+            comInsert: metrics.comInsert,
             comDelete: metrics.comDelete,
             comUpdate: metrics.comUpdate,
+            comCommit: metrics.comCommit,
+            comRollback: metrics.comRollback,
             threads : metrics.threads,
             threadsRunning : metrics.threadsRunning,
             refObject : metricObjectGlobal.current,
@@ -659,7 +677,16 @@ function App() {
                                                                 <br />
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr> 
-                                                                        <td style={{"width":"11%", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={ ( dataMetrics.comCommit + dataMetrics.comRollback) || 0 }
+                                                                                title={"Transactions/sec"}
+                                                                                precision={0}
+                                                                                format={3}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={dataMetrics.threadsRunning}
                                                                                 title={"ThreadsRunning"}
@@ -668,7 +695,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={dataMetrics.comSelect  || 0}
                                                                                 title={"ComSelect/sec"}
@@ -677,7 +704,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
                                                                                     value={dataMetrics.comInsert || 0}
                                                                                     title={"ComInsert/sec"}
@@ -686,7 +713,7 @@ function App() {
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
                                                                                     value={dataMetrics.comUpdate || 0}
                                                                                     title={"ComUpdate/sec"}
@@ -695,7 +722,7 @@ function App() {
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
                                                                                     value={dataMetrics.comDelete || 0}
                                                                                     title={"ComDelete/sec"}
@@ -704,7 +731,7 @@ function App() {
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={dataMetrics.ioreads}
                                                                                 title={"IO Reads/sec"}
@@ -713,7 +740,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={dataMetrics.iowrites}
                                                                                 title={"IO Writes/sec"}
@@ -722,7 +749,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={dataMetrics.netin}
                                                                                 title={"Network-In"}
@@ -731,7 +758,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"11%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={dataMetrics.netout}
                                                                                 title={"Network-Out"}
@@ -790,7 +817,7 @@ function App() {
                                                             <table style={{"width":"100%" }}>
                                                                         <tr>
                                                                             <td style={{ "width":"9%", "text-align":"left","padding-left":"1em", "font-size": "12px", "font-weight": "600"}}>
-                                                                                NodeId
+                                                                                Instance
                                                                             </td>
                                                                             <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
                                                                                 Status
