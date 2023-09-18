@@ -19,6 +19,7 @@ import SmRdsInstances from "./pages/Sm-rdsInstances-01";
 import SmClustersElasticache from "./pages/Sm-clustersElasticache-01";
 import SmClustersMemoryDB from "./pages/Sm-clustersMemorydb-01";
 import SmClustersAurora from "./pages/Sm-clustersAurora-01";
+import SmClustersDocumentDB from "./pages/Sm-clustersDocumentDB-01";
 import Logout from "./pages/Logout";
 import SmMysql01 from "./pages/Sm-mysql-01";
 import SmMysql02 from "./pages/Sm-mysql-02";
@@ -30,6 +31,7 @@ import SmElasticache01 from "./pages/Sm-elasticache-01";
 import SmMemoryDB01 from "./pages/Sm-memorydb-01";
 import SmAuroraMysql01 from "./pages/Sm-aurora-mysql-01";
 import SmAuroraPostgresql01 from "./pages/Sm-aurora-postgresql-01";
+import SmDocumentDB01 from "./pages/Sm-documentdb-01";
 
 
 
@@ -73,6 +75,7 @@ Axios.get(`/aws-exports.json`,).then((data)=>{
                     <Route path="/clusters/elasticache" element={<ProtectedApp><SmClustersElasticache /> </ProtectedApp>} />
                     <Route path="/clusters/memorydb" element={<ProtectedApp><SmClustersMemoryDB /> </ProtectedApp>} />
                     <Route path="/clusters/aurora" element={<ProtectedApp><SmClustersAurora /> </ProtectedApp>} />
+                    <Route path="/clusters/documentdb" element={<ProtectedApp><SmClustersDocumentDB /> </ProtectedApp>} />
                     <Route path="/logout" element={<ProtectedApp><Logout /> </ProtectedApp>} />
                     <Route path="/sm-mysql-01" element={<ProtectedApp><ProtectedDb> <SmMysql01 /> </ProtectedDb> </ProtectedApp>}  />
                     <Route path="/sm-mysql-02" element={<ProtectedApp><ProtectedDb> <SmMysql02 /></ProtectedDb> </ProtectedApp>} />
@@ -84,6 +87,7 @@ Axios.get(`/aws-exports.json`,).then((data)=>{
                     <Route path="/sm-memorydb-01" element={<ProtectedApp><ProtectedDb> <SmMemoryDB01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-aurora-mysql-01" element={<ProtectedApp><ProtectedDb> <SmAuroraMysql01 /></ProtectedDb> </ProtectedApp>} />
                     <Route path="/sm-aurora-postgresql-01" element={<ProtectedApp><ProtectedDb> <SmAuroraPostgresql01 /></ProtectedDb> </ProtectedApp>} />
+                    <Route path="/sm-documentdb-01" element={<ProtectedApp><ProtectedDb> <SmDocumentDB01 /></ProtectedDb> </ProtectedApp>} />
                 </Routes>
               </BrowserRouter>
           </Authenticator.Provider>

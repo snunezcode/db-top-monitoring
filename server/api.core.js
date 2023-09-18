@@ -71,6 +71,10 @@ var memorydb = new AWS.MemoryDB();
 var dbRedis = {};
 
 
+// DocumentDB Variables
+const { MongoClient } = require("mongodb");
+var docdb = {};
+
 // Startup - Download PEMs Keys
 gatherPemKeys(issCognitoIdp);
 
@@ -1212,6 +1216,148 @@ async function getRedisClusterStats(req, res) {
 
 
 //--#################################################################################################### 
+//   ---------------------------------------- DOCUMENTDB
+//--#################################################################################################### 
+
+
+// DOCUMENTDB : Auth Connection
+app.post("/api/documentdb/connection/auth/", authDocumentDBConnection);
+
+async function authDocumentDBConnection(req, res) {
+
+    var params = req.body.params;
+
+    try {
+        
+                    const uri = "mongodb://" + params.username  + ":" + params.password +"@" + params.host + ":" + params.port +"/?tls=true&tlsCAFile=global-bundle.pem&retryWrites=false";
+                    
+                    const client = new MongoClient(uri);
+
+                    var session_id=uuid.v4();
+                    var token = generateToken({ session_id: session_id});
+    
+                    await client.connect();
+                    await client.db("admin").command({ ping: 1 });
+    
+                    docdb["$" + session_id] = {}
+                    await client.close();
+                    res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token });
+                   
+                   
+      } 
+      catch (error) {
+        console.log(error);
+        res.status(200).send( {"result":"auth0", "session_id": session_id, "session_token": token });
+    }
+    
+    
+}
+
+
+
+// DOCUMENTDB : API Cluster Stats - Single
+app.get("/api/documentdb/cluster/command/", getDocumentDBCommand);
+
+async function getDocumentDBCommand(req, res) {
+    
+    var params = req.query;
+ 
+    try {
+        
+          const result = await docdb["$" + params.connectionId]["$" + params.instance]["connection"].db("admin").command(params.command);
+          return res.status(200).send(result);
+    
+      } catch (error) {
+        console.error(error);
+        res.status(404).send("Data unavailable");
+    }
+}
+
+
+// DOCUMENTDB : Open Connection - Single
+app.post("/api/documentdb/connection/open/", openDocumentDBConnectionSingle);
+
+async function openDocumentDBConnectionSingle(req, res) {
+ 
+    var params = req.body.params;;
+         
+    try {
+        
+            const uriDocDB = "mongodb://" + params.username  + ":" + params.password +"@" + params.host + ":" + params.port +"/?tls=true&tlsCAFile=global-bundle.pem&retryWrites=false&directConnection=true";
+            
+            var connectionId = "$" + params.connectionId;
+            var instanceId = "$" + params.instance;
+            if (!(instanceId in docdb[connectionId])) {
+            
+                docdb[connectionId][instanceId] = function(){};
+                docdb[connectionId][instanceId]["connection"] = function(){};
+                docdb[connectionId][instanceId]["connection"] = new MongoClient(uriDocDB);
+                
+                try {
+                    
+                    await docdb[connectionId][instanceId]["connection"].connect();
+                    await docdb[connectionId][instanceId]["connection"].db("admin").command({ ping: 1 });
+                    
+                    console.log("DocumentDB Instance Connected : " + params.connectionId + "#" + params.instance )
+                    res.status(200).send( {"result":"auth1" });
+                        
+                }
+                catch {
+                    
+                    console.log("DocumentDB Instance Connected with Errors : " + params.connectionId + "#" + params.instance )
+                    res.status(200).send( {"result":"auth0" });
+                    
+                }
+                    
+            }
+            else {
+                console.log("Re-using - DocumentDB Instance connection : " + params.connectionId + "#" + params.instance )
+                res.status(200).send( {"result":"auth1" });
+            }
+    
+        
+    }
+    catch (error) {
+        console.log(error)
+        res.status(500).send(error);
+    }}
+    
+
+
+
+
+// DOCUMENTDB : Close Connection
+app.get("/api/documentdb/connection/close/", closeDocumentDBConnectionAll);
+
+async function closeDocumentDBConnectionAll(req, res) {
+ 
+        try
+            {
+                var params = req.query;
+                var instances = docdb["$" + params.connectionId];
+                for (index of Object.keys(instances)) {
+                        try
+                          {
+                                console.log("DocumentDB Disconnection : " + params.connectionId + "#" + index );
+                                instances[index]["connection"].close();
+                          }
+                          catch{
+                              console.log("DocumentDB Disconnection error : " + params.connectionId + "#" + index );
+                          }
+                }
+                
+                delete dbRedis[params.connectionId];
+                res.status(200).send( {"result":"disconnected"});
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+
+
+
+//--#################################################################################################### 
 //   ---------------------------------------- AWS
 //--#################################################################################################### 
 
@@ -1499,6 +1645,41 @@ app.get("/api/aws/region/memorydb/cluster/nodes/", (req,res)=>{
           }
     });
 
+
+});
+
+
+
+// AWS : DocumentDB List clusters - by Region
+app.get("/api/aws/docdb/cluster/region/list/", (req,res)=>{
+   
+    // Token Validation
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+    if (cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid"});
+
+    // API Call
+    var docDB = new AWS.DocDB({region: configData.aws_region});
+    
+    var paramsQuery = req.query;
+    
+    var params = {
+        DBClusterIdentifier: paramsQuery.cluster,
+        MaxRecords: 100
+    };
+
+    try {
+        docDB.describeDBClusters(params, function(err, data) {
+            if (err) 
+                console.log(err, err.stack); // an error occurred
+            res.status(200).send({ csrfToken: req.csrfToken(), data:data });
+        });
+
+    } catch(error) {
+        console.log(error)
+                
+    }
 
 });
 

@@ -36,7 +36,7 @@ export const SideMainLayoutMenu = [
         { type: 'link', text: 'Aurora Clusters', href: '/clusters/aurora/'},
         { type: 'link', text: 'ElastiCache Clusters', href: '/clusters/elasticache/' },
         { type: 'link', text: 'Memory Clusters', href: '/clusters/memorydb/'},
-        { type: 'link', text: 'DocumentDB Clusters', href: '#'}
+        { type: 'link', text: 'DocumentDB Clusters', href: '/clusters/documentdb'}
       ],
     },
     { type: "divider" },
