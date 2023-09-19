@@ -33,18 +33,21 @@ DBTop Monitoring Solution currently supports following database engines:
 - AWS RDS for MySQL
 - AWS RDS for PostgreSQL
 - AWS RDS for MariaDB
-- Amazon Aurora MySQL-Compatible Edition (Instance Level)
-- Amazon Aurora PostgreSQL-Compatible Edition (Instance Level)
 - AWS RDS for Oracle
 - AWS RDS for SQLServer
+- Amazon Aurora Instance MySQL-Compatible Edition
+- Amazon Aurora Instance PostgreSQL-Compatible Edition
 - Amazon ElastiCache for Redis
 - Amazon MemoryDB for Redis
 - Amazon Aurora Clusters (MySQL-Compatible Edition)
+- Amazon Aurora Clusters (PostgreSQL-Compatible Edition)
+- Amazon DocumentDB
 
 Additional expanded support coming later to :
 
-- Amazon Aurora Clusters (PostgreSQL-Compatible Edition)
-- Amazon DocumentDB
+- Amazon OpenSearch
+
+
 
 
 
@@ -146,6 +149,17 @@ CREATE USER monitor IDENTIFIED BY '<PASSWORD>';
 GRANT CREATE SESSION,SELECT ANY DICTIONARY TO monitor;
 ```
 
+
+#### Amazon DocumentDB
+```
+db.createUser(
+{
+    user: "monitor",
+    pwd: "<PASSWORD>",
+    roles: [ "clusterMonitor" ]
+}
+)
+```
 
 ### Launch CloudFormation Stack
 

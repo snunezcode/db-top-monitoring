@@ -378,6 +378,11 @@ function App() {
             metrics.transactionsStarted = metrics.transactionsStarted + parseFloat(nodeList[index].transactionsStarted) ;
             
             
+             
+            
+            
+            
+            
             // cpu
             nodeMembers.current[nodeList[index].name]['cpu'].push(parseFloat(nodeList[index].cpu));
             nodeMembers.current[nodeList[index].name]['cpu'] = nodeMembers.current[nodeList[index].name]['cpu'].slice(nodeMembers.current[nodeList[index].name]['cpu'].length-historyChartDetails);
@@ -402,24 +407,24 @@ function App() {
             metricDetails['network'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['network'] });
             
             // operations
-            nodeMembers.current[nodeList[index].name]['operations'].push(parseFloat(nodeList[index].ioreads));
+            nodeMembers.current[nodeList[index].name]['operations'].push( parseFloat(nodeList[index].opsInsert) + parseFloat(nodeList[index].opsQuery)  + parseFloat(nodeList[index].opsUpdate) + parseFloat(nodeList[index].opsDelete) + parseFloat(nodeList[index].opsGetmore)  + parseFloat(nodeList[index].opsCommand)  );
             nodeMembers.current[nodeList[index].name]['operations'] = nodeMembers.current[nodeList[index].name]['operations'].slice(nodeMembers.current[nodeList[index].name]['operations'].length-historyChartDetails);
             metricDetails['operations'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['operations'] });
             
             // docops
-            nodeMembers.current[nodeList[index].name]['docops'].push(parseFloat(nodeList[index].ioreads));
+            nodeMembers.current[nodeList[index].name]['docops'].push( parseFloat(nodeList[index].docsDeleted) + parseFloat(nodeList[index].docsInserted)  + parseFloat(nodeList[index].docsReturned)  + parseFloat(nodeList[index].docsUpdated) );
             nodeMembers.current[nodeList[index].name]['docops'] = nodeMembers.current[nodeList[index].name]['docops'].slice(nodeMembers.current[nodeList[index].name]['docops'].length-historyChartDetails);
             metricDetails['docops'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['docops'] });
             
             
             // connections
-            nodeMembers.current[nodeList[index].name]['connections'].push(parseFloat(nodeList[index].ioreads));
+            nodeMembers.current[nodeList[index].name]['connections'].push(parseFloat(nodeList[index].connectionsCurrent));
             nodeMembers.current[nodeList[index].name]['connections'] = nodeMembers.current[nodeList[index].name]['connections'].slice(nodeMembers.current[nodeList[index].name]['connections'].length-historyChartDetails);
             metricDetails['connections'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['connections'] });
             
             
             // connectionsSec
-            nodeMembers.current[nodeList[index].name]['connectionsSec'].push(parseFloat(nodeList[index].ioreads));
+            nodeMembers.current[nodeList[index].name]['connectionsSec'].push(parseFloat(nodeList[index].connectionsCreated));
             nodeMembers.current[nodeList[index].name]['connectionsSec'] = nodeMembers.current[nodeList[index].name]['connectionsSec'].slice(nodeMembers.current[nodeList[index].name]['connectionsSec'].length-historyChartDetails);
             metricDetails['connectionsSec'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['connectionsSec'] });
             
@@ -1016,18 +1021,17 @@ function App() {
                                                                                 AvailabilityZone
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() =>  onClickMetric('xactTotal','Operations/sec')}>Operations/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() =>  onClickMetric('operations','Operations/sec')}>Operations/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('numbackends','DocumentOps/sec')}>DocumentOps/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('docops','DocumentOps/sec')}>DocumentOps/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('tuples','Connections')}>Connections</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connections','Connections')}>Connections</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('tuples','Connections/sec')}>Connections/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connectionsSec','Connections/sec')}>Connections/sec</Link>
                                                                             </td>
-                                                                            
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('cpu','CPU(%)')}>CPU(%)</Link>
                                                                             </td>
