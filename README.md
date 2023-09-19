@@ -55,7 +55,7 @@ Additional expanded support coming later to :
 
 - **Frontend.** React Developed Application to provide user interface to visualize performance database information.
 
-- **Backend.** NodeJS API Component to gather performance information from database engines, AWS CloudWatch and RDS Enhanced Monitoring.
+- **Backend.** NodeJS API Component to gather performance information from database engines, AWS CloudWatch and Enhanced Monitoring.
 
 
 ## Architecture
