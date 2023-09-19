@@ -41,7 +41,7 @@ DBTop Monitoring Solution currently supports following database engines:
 - Amazon MemoryDB for Redis
 - Amazon Aurora Clusters (MySQL-Compatible Edition)
 - Amazon Aurora Clusters (PostgreSQL-Compatible Edition)
-- Amazon DocumentDB
+- Amazon DocumentDB Clusters
 
 Additional expanded support coming later to :
 
