@@ -35,8 +35,8 @@ DBTop Monitoring Solution currently supports following database engines:
 - AWS RDS for MariaDB
 - AWS RDS for Oracle
 - AWS RDS for SQLServer
-- Amazon Aurora Instance MySQL-Compatible Edition
-- Amazon Aurora Instance PostgreSQL-Compatible Edition
+- Amazon Aurora Instance (MySQL-Compatible Edition)
+- Amazon Aurora Instance (PostgreSQL-Compatible Edition)
 - Amazon ElastiCache for Redis
 - Amazon MemoryDB for Redis
 - Amazon Aurora Clusters (MySQL-Compatible Edition)
