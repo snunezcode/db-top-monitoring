@@ -8,7 +8,8 @@ export const configuration =
         "api_url": "",
         "release" : "0.1.0",
         "application-title": "DBTop Monitoring",
-        "version-code-url" : "https://version.code.ds.wwcs.aws.dev/"
+        "version-code-url" : "https://version.code.ds.wwcs.aws.dev/",
+        "items-per-page": 10
     },
     "colors": {
         "fonts" : {

@@ -138,9 +138,17 @@ function Login() {
                                                                             rds_user : userId, 
                                                                             rds_password : txtPassword, 
                                                                             rds_host : selectedItems[0]['endpoint'], 
+                                                                            rds_port : selectedItems[0]['port'], 
                                                                             rds_engine : selectedItems[0]['engine'],
                                                                             rds_auth : currentTabId.current,
-                                                                            rds_ssl : selectedItems[0]['ssl']
+                                                                            rds_ssl : selectedItems[0]['ssl'],
+                                                                            rds_size : selectedItems[0]['size'],
+                                                                            rds_shards : selectedItems[0]['shards'],
+                                                                            rds_nodes : selectedItems[0]['nodes'],
+                                                                            rds_tier : selectedItems[0]['tier'],
+                                                                            rds_status : selectedItems[0]['status'],
+                                                                            rds_version : selectedItems[0]['version'],
+                                                                            rds_acl : selectedItems[0]['authmode'],
                                                                             }), 
                                                             data.data.session_id
                                                             ).toString();

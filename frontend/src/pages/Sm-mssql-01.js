@@ -659,7 +659,7 @@ export default function App() {
                                                             value={dataEnhancedMonitor['counters']['io_reads_bytes'][0]['value'] }
                                                             title={"Reads (Bytes/sec)"}
                                                             precision={0}
-                                                            format={3}
+                                                            format={2}
                                                             fontColorValue={configuration.colors.fonts.metric100}
                                                           />
                                                       </td>
@@ -890,7 +890,7 @@ export default function App() {
                                                         <div style={{"text-align":"center"}}>
                                                             <CLWChart 
                                                                               title="CPU" 
-                                                                              subtitle="%" 
+                                                                              subtitle="Usage (%)" 
                                                                               height="180px" 
                                                                               color="orange" 
                                                                               namespace="AWS/RDS" 

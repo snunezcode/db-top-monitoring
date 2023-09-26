@@ -1,8 +1,6 @@
 import { useState,useEffect,useRef } from 'react';
 import Axios from 'axios';
-import * as awsui from '@cloudscape-design/design-tokens';
 import { configuration } from './Configs';
-import {classMetric} from '../components/Functions';
 import { useSearchParams } from 'react-router-dom';
 import CustomHeader from "../components/Header";
 import CustomLayout from "../components/Layout";
@@ -11,17 +9,15 @@ import Tabs from "@cloudscape-design/components/tabs";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import { SplitPanel } from '@cloudscape-design/components';
 
+import Pagination from "@cloudscape-design/components/pagination";
 import Link from "@cloudscape-design/components/link";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import ElasticNode  from '../components/CompElasticNode01';
-import CompSparkline01  from '../components/ChartSparkline01';
 import CompMetric01  from '../components/Metric01';
-import CompMetric04  from '../components/Metric04';
 import ChartLine02  from '../components/ChartLine02';
-import CLWChart  from '../components/ChartCLW02';
+import CLWChart  from '../components/ChartCLW03';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
-import ChartBar01 from '../components/ChartBar01';
 import ChartColumn01 from '../components/ChartColumn01';
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
@@ -60,7 +56,6 @@ function App() {
     //-- Configuration variables
     const cnf_connection_id=parameter_object_values["session_id"];  
     const cnf_identifier=parameter_object_values["rds_id"];  
-    const cnf_engine=parameter_object_values["engine"];
     const cnf_username=parameter_object_values["rds_user"];
     const cnf_password=parameter_object_values["rds_password"];
     const cnf_auth=parameter_object_values["rds_auth"];
@@ -77,391 +72,151 @@ function App() {
     //--######## RealTime Metric Features
     
     //-- Variable for Split Panels
-    const historyChartDetails = 20;
     const [splitPanelShow,setsplitPanelShow] = useState(false);
-    
-      
-    const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
-    
-    const metricObjectGlobal = useRef(new classMetric([
-                                                        {name : "Operations", history : historyChartDetails },
-                                                        {name : "GetCalls", history : historyChartDetails },
-                                                        {name : "SetCalls", history : historyChartDetails },
-                                                        {name : "GetLatency", history : historyChartDetails },
-                                                        {name : "SetLatency", history : historyChartDetails },
-                                                        {name : "CacheHits", history : historyChartDetails },
-                                                        {name : "CacheMisses", history : historyChartDetails },
-    ]));
-    
-    var nodeMetrics = useRef([]);
-    var nodeMembers = useRef([]);
     const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
-    const [dataMetrics,setDataMetrics] = useState({ 
-                                                cpu : 0,
-                                                memory : 0,
-                                                memoryUsed : 0,
-                                                memoryTotal : 0,
-                                                operations : 0,
-                                                getCalls : 0,
-                                                setCalls : 0,
-                                                getLatency : 0,
-                                                setLatency : 0,
-                                                connections : 0,
-                                                keyspaceHits : 0,
-                                                keyspaceMisses : 0,
-                                                totalNetInputBytes : 0,
-                                                totalNetOutputBytes : 0,
-                                                totalConnectionsReceived : 0,
-                                                totalCommandsProcessed : 0,
-                                                timestamp : 0,
-                                                refObject : new classMetric([
-                                                                                    {name : "Operations", history : historyChartDetails },
-                                                                                    {name : "GetCalls", history : historyChartDetails },
-                                                                                    {name : "SetCalls", history : historyChartDetails },
-                                                                                    {name : "GetLatency", history : historyChartDetails },
-                                                                                    {name : "SetLatency", history : historyChartDetails },
-                                                                                    {name : "CacheHits", history : historyChartDetails },
-                                                                                    {name : "CacheMisses", history : historyChartDetails },
-                                                                                ]),
-                                                metricDetails : []
-                                                
-    });
-    const [dataNodes,setDataNodes] = useState({ 
-                                                    MemberClusters : [],
-                                                    ConfigurationEndpoint : "",
-                                                    Port : "",
-                                                    CacheNodeType : "",
-                                                    ReplicationGroupId : "",
-                                                    Status : "",
-                                                    Version : "",
-                                                    Shards : "",
-                                                    ConfigurationUid : "",
-                                                    ClusterEnabled : "",
-                                                    MultiAZ : "",
-                                                    DataTiering : "",
-                                                    clwDimensions : "",
-                                    });
-                
-
+    
+    
+    //-- Variable for Paging
+    const [currentPageIndex,setCurrentPageIndex] = useState(1);
+    var pageId = useRef(1);
+    var itemsPerPage = configuration["apps-settings"]["items-per-page"];
+    var totalPages = Math.trunc( parameter_object_values['rds_nodes'] / itemsPerPage)
+    
+    //-- Variable for Cluster Stats
+    var timeNow = new Date();
+    const nodeList = useRef("");
+    const [clusterStats,setClusterStats] = useState({ 
+                                cluster : {
+                                            cpu: 0,
+                                            memory: 0,
+                                            memoryUsed: 0,
+                                            memoryTotal: 0,
+                                            operations: 0,
+                                            getCalls: 0,
+                                            setCalls: 0,
+                                            connectedClients: 0,
+                                            getLatency: 0,
+                                            setLatency: 0,
+                                            keyspaceHits: 0,
+                                            keyspaceMisses: 0,
+                                            cacheHitRate : 0,
+                                            netIn: 0,
+                                            netOut: 0,
+                                            connectionsTotal: 0,
+                                            commands: 0,
+                                            history : {
+                                                operations : [],
+                                                getCalls : [],
+                                                setCalls : [],
+                                                getLatency : [],
+                                                setLatency : [],
+                                                keyspaceHits : [],
+                                                keyspaceMisses : [],
+                                            }
+                                },
+                                nodes : [],
+                });
+    
+    
+    
+    
+    
     //-- Function Gather Metrics
-    async function fetchDataCluster() {
+    async function openClusterConnection() {
         
         var api_url = configuration["apps-settings"]["api_url"];
-        
-        await Axios.get(`${api_url}/api/aws/region/elasticache/cluster/nodes/`,{
-                      params: { cluster : cnf_identifier }
-                  }).then((data)=>{
-                    if (data.data.ReplicationGroups.length> 0) {
-                            
-                            
-                            var rg = data.data.ReplicationGroups[0];
-                            
-                            var nodeList = [];
-                            var clwDimensions = "";
-                            var nodePort;
-                            var clusterEndpoint;
-                            //-- Cluster Enable Mode
-                            
-                            if( rg['ClusterEnabled'] == true ){
-                            
-                                nodePort = rg.ConfigurationEndpoint.Port;
-                                clusterEndpoint = rg.ConfigurationEndpoint.Address;
-                                var clusterUid = clusterEndpoint.split('.');
-                                rg.NodeGroups.forEach(function(nodeGroup) {
-                                             nodeGroup.NodeGroupMembers.forEach(function(nodeItem) {
-                                                var endPoint = "";
-                                                if (clusterUid[0] == "clustercfg" )
-                                                    endPoint = nodeItem.CacheClusterId + "." + rg.ReplicationGroupId +  "." + clusterUid[2] + "."  + clusterUid[3] + "." + clusterUid[4] + "." + clusterUid[5] + "." + clusterUid[6];
-                                                
-                                                if (clusterUid[2] == "clustercfg" )
-                                                    endPoint = nodeItem.CacheClusterId + "." + clusterUid[1] + "." + nodeItem.CacheNodeId + "." + clusterUid[3] + "." + clusterUid[4] + "." + clusterUid[5] + "." + clusterUid[6];
-                                                
-                                                    
-                                                 nodeList.push({
-                                                                nodeId : nodeItem.CacheClusterId,
-                                                                endPoint : endPoint 
-                                                                });
-                                                 
-                                                 nodeMembers.current[nodeItem.CacheClusterId] = { 
-                                                                                                    cpu : Array(historyChartDetails).fill(null), 
-                                                                                                    memory : Array(historyChartDetails).fill(null),
-                                                                                                    operations : Array(historyChartDetails).fill(null), 
-                                                                                                    getCalls : Array(historyChartDetails).fill(null), 
-                                                                                                    setCalls : Array(historyChartDetails).fill(null), 
-                                                                                                    getLatency : Array(historyChartDetails).fill(null), 
-                                                                                                    setLatency : Array(historyChartDetails).fill(null), 
-                                                                                                    connections : Array(historyChartDetails).fill(null),
-                                                                                                    cacheHits : Array(historyChartDetails).fill(null),
-                                                                                                    cacheHitRate : Array(historyChartDetails).fill(null),
-                                                                                                    
-                                                                                                 };
-                                                 clwDimensions = clwDimensions + ( nodeItem.CacheClusterId + "|" + nodeItem.CacheNodeId) + "," 
-                                                 
-                                             });
-                                            
-                                });
-                            }
-                            else{
-                                
-                                rg.NodeGroups.forEach(function(nodeGroup) {
-                                    
-                                             
-                                            nodePort = nodeGroup['PrimaryEndpoint']['Port'];
-                                            clusterEndpoint = nodeGroup['PrimaryEndpoint']['Address'];
-                                
-                                            nodeGroup.NodeGroupMembers.forEach(function(nodeItem) {
-                               
-                                                 nodeList.push({
-                                                                nodeId : nodeItem.CacheClusterId,
-                                                                endPoint : nodeItem['ReadEndpoint']['Address']
-                                                                });
-                                                 
-                                                 console.log(nodeList);   
-                                                 nodeMembers.current[nodeItem.CacheClusterId] = { 
-                                                                                                    cpu : Array(historyChartDetails).fill(null), 
-                                                                                                    memory : Array(historyChartDetails).fill(null),
-                                                                                                    operations : Array(historyChartDetails).fill(null), 
-                                                                                                    getCalls : Array(historyChartDetails).fill(null), 
-                                                                                                    setCalls : Array(historyChartDetails).fill(null), 
-                                                                                                    getLatency : Array(historyChartDetails).fill(null), 
-                                                                                                    setLatency : Array(historyChartDetails).fill(null), 
-                                                                                                    connections : Array(historyChartDetails).fill(null),
-                                                                                                    cacheHits : Array(historyChartDetails).fill(null),
-                                                                                                    cacheHitRate : Array(historyChartDetails).fill(null),
-                                                                                                    
-                                                                                                 };
-                                                 clwDimensions = clwDimensions + ( nodeItem.CacheClusterId + "|" + nodeItem.CacheNodeId) + "," 
-                                                 
-                                             });
-                                            
-                                });
-                                
-                            }
-                            
-                            
-                            
-                            setDataNodes({
-                                    MemberClusters : nodeList,
-                                    ConfigurationEndpoint : clusterEndpoint,
-                                    ConfigurationUid : "",
-                                    Port : nodePort,
-                                    CacheNodeType : rg.CacheNodeType,
-                                    ReplicationGroupId : rg.ReplicationGroupId,
-                                    Shards : rg.NodeGroups.length,
-                                    Status : rg.Status,
-                                    ClusterEnabled : String(rg.ClusterEnabled),
-                                    MultiAZ : rg.MultiAZ,
-                                    DataTiering : rg.DataTiering, 
-                                    clwDimensions : clwDimensions.slice(0, -1)
-                                    }
-                            );  
-                    }
-                    
-                    
-                     
-                    
+        Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
+        await Axios.post(`${api_url}/api/redis/elasticache/cluster/connection/open/`,{
+                      params: { 
+                                connectionId : cnf_connection_id,
+                                clusterId : cnf_identifier,
+                                username : cnf_username,
+                                password : cnf_password,
+                                auth : cnf_auth,
+                                ssl : cnf_ssl,
+                             }
+              }).then((data)=>{
+                
+                nodeList.current = data.data.nodes;
                   
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/aws/region/elasticache/cluster/nodes/' );
+                  console.log('Timeout API Call : /api/redis/elasticache/cluster/connection/open/' );
                   console.log(err);
                   
               });
               
     }
     
-    
-    
-    
-    function syncData(childNode) {
-    
-        nodeMetrics.current[childNode.name] = { 
-                                    name : childNode.name,  
-                                    cpu_sys : childNode.cpu_sys,
-                                    cpu_user : childNode.cpu_user, 
-                                    memory : childNode.memory ,
-                                    memoryUsed : childNode.memoryUsed , 
-                                    memoryTotal : childNode.memoryTotal , 
-                                    operations : childNode.operations, 
-                                    getCalls : childNode.getCalls, 
-                                    setCalls : childNode.setCalls,
-                                    getLatency : childNode.getLatency, 
-                                    setLatency : childNode.setLatency,
-                                    connections : childNode.connected_clients,
-                                    keyspaceHits : childNode.keyspace_hits,
-                                    keyspaceMisses : childNode.keyspace_misses,
-                                    totalNetInputBytes : childNode.total_net_input_bytes,
-                                    totalNetOutputBytes : childNode.total_net_output_bytes,
-                                    totalConnectionsReceived : childNode.total_connections_received,
-                                    totalCommandsProcessed : childNode.total_commands_processed
+    //-- Function Cluster Update Stats
+    async function updateClusterStats() {
         
-        };
+        var api_url = configuration["apps-settings"]["api_url"];
         
-        
-        
+        await Axios.get(`${api_url}/api/redis/cluster/stats/update`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier }
+                  }).then((data)=>{
+                   
+                   //console.log(data);         
+                     
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/redis/cluster/stats/update' );
+                  console.log(err);
+                  
+              });
+              
     }
     
-    function updateClusterMetrics() {
-    
+
+
+    //-- Function Cluster Gather Stats
+    async function gatherClusterStats() {
+        
         if (currentTabId.current != "tab01") {
             return;
         }
         
-        var timeNow = new Date();
-        var metrics = { 
-                        cpu : 0, 
-                        memory : 0,
-                        memoryUsed : 0, 
-                        memoryTotal : 0, 
-                        operations : 0, 
-                        getCalls : 0, 
-                        setCalls : 0,
-                        connections : 0,
-                        getLatency : 0,
-                        setLatency : 0,
-                        keyspaceHits : 0,
-                        keyspaceMisses : 0,
-                        totalNetInputBytes : 0,
-                        totalNetOutputBytes : 0,
-                        totalConnectionsReceived : 0,
-                        totalCommandsProcessed : 0
-        };
-        var nodes = 0;
+        var api_url = configuration["apps-settings"]["api_url"];
         
-        var nodeList = nodeMetrics.current;
-        var index;
-        var metricDetails = [];
-        
-        metricDetails['cpu'] = [];
-        metricDetails['memory'] = [];
-        metricDetails['cacheHitRate'] = [];
-        metricDetails['cacheHits'] = [];
-        metricDetails['operations'] = [];
-        metricDetails['getCalls'] = [];
-        metricDetails['setCalls'] = [];
-        metricDetails['getLatency'] = [];
-        metricDetails['setLatency'] = [];
-        metricDetails['connections'] = [];
-        
-        for (index of Object.keys(nodeList)) {
-            metrics.cpu = metrics.cpu + parseFloat(nodeList[index].cpu_user) + parseFloat(nodeList[index].cpu_sys);
-            metrics.memory = metrics.memory + parseFloat(nodeList[index].memory);
-            metrics.memoryUsed = metrics.memoryUsed + parseFloat(nodeList[index].memoryUsed);
-            metrics.memoryTotal = metrics.memoryTotal + parseFloat(nodeList[index].memoryTotal);
-            metrics.operations = metrics.operations + parseFloat(nodeList[index].operations);
-            metrics.getCalls = metrics.getCalls + parseFloat(nodeList[index].getCalls);
-            metrics.setCalls = metrics.setCalls + parseFloat(nodeList[index].setCalls);
-            metrics.connections = metrics.connections + parseFloat(nodeList[index].connections);
-            metrics.getLatency = metrics.getLatency + parseFloat(nodeList[index].getLatency);
-            metrics.setLatency = metrics.setLatency + parseFloat(nodeList[index].setLatency);
-            metrics.keyspaceHits = metrics.keyspaceHits + parseFloat(nodeList[index].keyspaceHits);
-            metrics.keyspaceMisses = metrics.keyspaceMisses + parseFloat(nodeList[index].keyspaceMisses);
-            metrics.totalNetInputBytes  = metrics.totalNetInputBytes + parseFloat(nodeList[index].totalNetInputBytes);
-            metrics.totalNetOutputBytes  = metrics.totalNetOutputBytes + parseFloat(nodeList[index].totalNetOutputBytes);
-            metrics.totalConnectionsReceived  = metrics.totalConnectionsReceived + parseFloat(nodeList[index].totalConnectionsReceived);
-            metrics.totalCommandsProcessed  = metrics.totalCommandsProcessed + parseFloat(nodeList[index].totalCommandsProcessed);
-                        
-            
-            // cpu
-            nodeMembers.current[nodeList[index].name]['cpu'].push(parseFloat(nodeList[index].cpu_user) + parseFloat(nodeList[index].cpu_sys));
-            nodeMembers.current[nodeList[index].name]['cpu'] = nodeMembers.current[nodeList[index].name]['cpu'].slice(nodeMembers.current[nodeList[index].name]['cpu'].length-historyChartDetails);
-            metricDetails['cpu'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cpu'] });
-            
-            // memory
-            nodeMembers.current[nodeList[index].name]['memory'].push(parseFloat(nodeList[index].memory));
-            nodeMembers.current[nodeList[index].name]['memory'] = nodeMembers.current[nodeList[index].name]['memory'].slice(nodeMembers.current[nodeList[index].name]['memory'].length-historyChartDetails);
-            metricDetails['memory'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['memory'] });
-            
-            // cacheHitRate
-            nodeMembers.current[nodeList[index].name]['cacheHitRate'].push( ( ( parseFloat(nodeList[index].keyspaceHits) / ( parseFloat(nodeList[index].keyspaceHits) + parseFloat(nodeList[index].keyspaceMisses))) * 100 ) || 0);
-            nodeMembers.current[nodeList[index].name]['cacheHitRate'] = nodeMembers.current[nodeList[index].name]['cacheHitRate'].slice(nodeMembers.current[nodeList[index].name]['cacheHitRate'].length-historyChartDetails);
-            metricDetails['cacheHitRate'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cacheHitRate'] });
-
-            // cacheHits
-            nodeMembers.current[nodeList[index].name]['cacheHits'].push(parseFloat(nodeList[index].keyspaceHits));
-            nodeMembers.current[nodeList[index].name]['cacheHits'] = nodeMembers.current[nodeList[index].name]['cacheHits'].slice(nodeMembers.current[nodeList[index].name]['cacheHits'].length-historyChartDetails);
-            metricDetails['cacheHits'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cacheHits'] });
-
-            // operations
-            nodeMembers.current[nodeList[index].name]['operations'].push(parseFloat(nodeList[index].operations));
-            nodeMembers.current[nodeList[index].name]['operations'] = nodeMembers.current[nodeList[index].name]['operations'].slice(nodeMembers.current[nodeList[index].name]['operations'].length-historyChartDetails);
-            metricDetails['operations'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['operations'] });
-            
-            // getCalls
-            nodeMembers.current[nodeList[index].name]['getCalls'].push(parseFloat(nodeList[index].getCalls));
-            nodeMembers.current[nodeList[index].name]['getCalls'] = nodeMembers.current[nodeList[index].name]['getCalls'].slice(nodeMembers.current[nodeList[index].name]['getCalls'].length-historyChartDetails);
-            metricDetails['getCalls'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['getCalls'] });
-            
-            // setCalls
-            nodeMembers.current[nodeList[index].name]['setCalls'].push(parseFloat(nodeList[index].setCalls));
-            nodeMembers.current[nodeList[index].name]['setCalls'] = nodeMembers.current[nodeList[index].name]['setCalls'].slice(nodeMembers.current[nodeList[index].name]['setCalls'].length-historyChartDetails);
-            metricDetails['setCalls'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['setCalls'] });
-            
-            // getLatency
-            nodeMembers.current[nodeList[index].name]['getLatency'].push(parseFloat(nodeList[index].getLatency));
-            nodeMembers.current[nodeList[index].name]['getLatency'] = nodeMembers.current[nodeList[index].name]['getLatency'].slice(nodeMembers.current[nodeList[index].name]['getLatency'].length-historyChartDetails);
-            metricDetails['getLatency'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['getLatency'] });
-            
-            // setLatency
-            nodeMembers.current[nodeList[index].name]['setLatency'].push(parseFloat(nodeList[index].setLatency));
-            nodeMembers.current[nodeList[index].name]['setLatency'] = nodeMembers.current[nodeList[index].name]['setLatency'].slice(nodeMembers.current[nodeList[index].name]['setLatency'].length-historyChartDetails);
-            metricDetails['setLatency'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['setLatency'] });
-            
-            // connections
-            nodeMembers.current[nodeList[index].name]['connections'].push(parseFloat(nodeList[index].connections));
-            nodeMembers.current[nodeList[index].name]['connections'] = nodeMembers.current[nodeList[index].name]['connections'].slice(nodeMembers.current[nodeList[index].name]['connections'].length-historyChartDetails);
-            metricDetails['connections'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['connections'] });
-            
-            nodes++;
-
-        }
-        
-        metricObjectGlobal.current.addPropertyValue('Operations', metrics.operations);
-        metricObjectGlobal.current.addPropertyValue('GetCalls', metrics.getCalls);
-        metricObjectGlobal.current.addPropertyValue('SetCalls', metrics.setCalls);
-        metricObjectGlobal.current.addPropertyValue('GetLatency', (metrics.getLatency / nodes) || 0 );
-        metricObjectGlobal.current.addPropertyValue('SetLatency', (metrics.setLatency / nodes) || 0 );
-        metricObjectGlobal.current.addPropertyValue('CacheHits', metrics.keyspaceHits );
-        metricObjectGlobal.current.addPropertyValue('CacheMisses', metrics.keyspaceMisses );
-        
-        
-        setDataMetrics({
-            cpu : metrics.cpu / nodes ,
-            memory : metrics.memory / nodes ,
-            memoryUsed : metrics.memoryUsed ,
-            memoryTotal : metrics.memoryTotal ,
-            operations : metrics.operations ,
-            getCalls : metrics.getCalls ,
-            setCalls : metrics.setCalls ,
-            getLatency : metrics.getLatency / nodes ,
-            setLatency : metrics.setLatency / nodes ,
-            connections : metrics.connections,
-            keyspaceHits : metrics.keyspaceHits ,
-            keyspaceMisses : metrics.keyspaceMisses ,
-            totalNetInputBytes : metrics.totalNetInputBytes ,
-            totalNetOutputBytes : metrics.totalNetOutputBytes ,
-            totalConnectionsReceived : metrics.totalConnectionsReceived ,
-            totalCommandsProcessed : metrics.totalCommandsProcessed,
-            refObject : metricObjectGlobal.current,
-            timestamp : timeNow.getTime(),
-            metricDetails : metricDetails,
-        });
+        await Axios.get(`${api_url}/api/redis/cluster/stats/gather`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier, beginItem : ( (pageId.current-1) * itemsPerPage), endItem : (( (pageId.current-1) * itemsPerPage) + itemsPerPage) }
+                  }).then((data)=>{
+                   
+                   setClusterStats({
+                         cluster : data.data.cluster,
+                         nodes : data.data.nodes,
+                    });
+                     
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/redis/cluster/stats/gather' );
+                  console.log(err);
+                  
+              });
+              
         
         
     }
-    
-    
-    
+
+
+
     useEffect(() => {
-        fetchDataCluster();
+        openClusterConnection();
     }, []);
     
     useEffect(() => {
-        const id = setInterval(updateClusterMetrics, configuration["apps-settings"]["refresh-interval-elastic"]);
+        const id = setInterval(updateClusterStats, configuration["apps-settings"]["refresh-interval-elastic"]);
         return () => clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
+    
+    useEffect(() => {
+        const id = setInterval(gatherClusterStats, configuration["apps-settings"]["refresh-interval-elastic"]);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     
     
     
@@ -492,7 +247,7 @@ function App() {
     const closeDatabaseConnection = () => {
         
         Axios.get(`${configuration["apps-settings"]["api_url"]}/api/redis/connection/close/`,{
-                      params: { connectionId : cnf_connection_id, cluster : cnf_identifier }
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier }
                   }).then((data)=>{
                       closeTabWindow();
                       sessionStorage.removeItem(parameter_code_id);
@@ -524,14 +279,14 @@ function App() {
                                                       
     }
     
-    function metricDetailsToColumns(series){
+    function metricDetailsToColumnsBar(nodes,columnName){
         
         var seriesRaw = [];  
         var seriesData = { categories : [], data : [] };  
         try {  
-                if (series.length > 0){
-                    series.forEach(function(item, index) {
-                        seriesRaw.push({ name : item.name, value : item.data[item.data.length-1]  }  );
+                if (nodes.length > 0){
+                    nodes.forEach(function(node) {
+                        seriesRaw.push({ name : node.name, value :  node.history[columnName].data[node.history[columnName].data.length-1]  }  );
                     });
                 
                     var itemLimit = 0;
@@ -558,6 +313,19 @@ function App() {
         return seriesData;
     }
     
+    
+    function metricDetailsToColumnsLine(nodes,columnName){
+        
+        var data = [];
+        nodes.forEach(function(node) {
+                
+                data.push({ name : node.name, data : node.history[columnName].data });
+        });
+        
+        return data;
+        
+        
+    }
  
 
   return (
@@ -587,14 +355,16 @@ function App() {
                     <table style={{"width":"100%", "padding": "1em"}}>
                         <tr>  
                             <td style={{"width":"30%", "padding-left": "1em"}}>  
+                                
                                 <ChartColumn01 
-                                    series={metricDetailsToColumns(dataMetrics.metricDetails[metricDetailsIndex.index])} 
+                                    series={metricDetailsToColumnsBar(clusterStats['nodes'],metricDetailsIndex.index)} 
                                     height="200px" 
                                 />
+                                
                             </td>
                             <td style={{"width":"70%", "padding-left": "1em"}}>  
                                  <ChartLine02 
-                                    series={dataMetrics.metricDetails[metricDetailsIndex.index]} 
+                                    series={metricDetailsToColumnsLine(clusterStats['nodes'],metricDetailsIndex.index)} 
                                     timestamp={metricDetailsIndex.timestamp} 
                                     height="200px" 
                                   />
@@ -633,7 +403,7 @@ function App() {
                                                                     <tr>  
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.operations}
+                                                                                    value={clusterStats['cluster']['operations']}
                                                                                     title={"Operations/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -643,7 +413,7 @@ function App() {
                                                                         </td>
                                                                          <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.getLatency || 0}
+                                                                                    value={clusterStats['cluster']['getLatency'] || 0}
                                                                                     title={"getLatency(us)"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -652,7 +422,7 @@ function App() {
                                                                                 <br/>        
                                                                                 <br/> 
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.setLatency || 0}
+                                                                                    value={clusterStats['cluster']['setLatency']|| 0}
                                                                                     title={"setLatency(us)"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -660,30 +430,30 @@ function App() {
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(dataMetrics.cpu || 0)]} 
+                                                                                <ChartRadialBar01 series={[Math.round(clusterStats['cluster']['cpu'] || 0)]} 
                                                                                          height="180px" 
                                                                                          title={"CPU (%)"}
                                                                                 />
                                                                              
                                                                         </td>
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(dataMetrics.memory || 0)]} 
+                                                                                <ChartRadialBar01 series={[Math.round(clusterStats['cluster']['memory'] || 0)]} 
                                                                                          height="180px" 
                                                                                          title={"Memory (%)"}
                                                                                 />
                                                                         </td>
                                                                                 
                                                                         <td style={{"width":"12%", "padding-right": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[ Math.round( (  (dataMetrics.keyspaceHits / ( dataMetrics.keyspaceHits + dataMetrics.keyspaceMisses) ) * 100 ) || 0 ) ]} 
+                                                                                <ChartRadialBar01 series={[ Math.round( clusterStats['cluster']['cacheHitRate'] || 0 ) ]} 
                                                                                          height="180px" 
                                                                                          title={"HitRatio (%)"}
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"42%", "border-left": "1px solid red", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('Operations')
+                                                                                                    clusterStats['cluster']['history']['operations']
                                                                                                 ]} 
-                                                                            timestamp={dataMetrics.timestamp} title={"Operations/sec"} height="180px" />
+                                                                            timestamp={timeNow.getTime()} title={"Operations/sec"} height="180px" />
                                                                             {/*
                                                                             <ChartBar01 series={[
                                                                                                     dataMetrics.refObject.getPropertyValues('Operations')
@@ -704,7 +474,7 @@ function App() {
                                                                     <tr> 
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.getCalls}
+                                                                                value={clusterStats['cluster']['getCalls']}
                                                                                 title={"getCalls/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -713,7 +483,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.setCalls}
+                                                                                value={clusterStats['cluster']['setCalls']}
                                                                                 title={"setCalls/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -722,7 +492,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.memoryTotal || 0}
+                                                                                    value={clusterStats['cluster']['memoryTotal'] || 0}
                                                                                     title={"MemoryTotal"}
                                                                                     precision={0}
                                                                                     format={2}
@@ -731,7 +501,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.keyspaceHits}
+                                                                                value={clusterStats['cluster']['keyspaceHits']}
                                                                                 title={"Cache Hits/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -740,7 +510,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.totalNetInputBytes}
+                                                                                value={clusterStats['cluster']['netIn']}
                                                                                 title={"NetworkIn"}
                                                                                 precision={0}
                                                                                 format={2}
@@ -749,7 +519,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.totalNetOutputBytes}
+                                                                                value={clusterStats['cluster']['netOut']}
                                                                                 title={"NetworkOut"}
                                                                                 precision={0}
                                                                                 format={2}
@@ -758,7 +528,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.totalConnectionsReceived || 0}
+                                                                                    value={clusterStats['cluster']['connectionsTotal']}
                                                                                     title={"Connections/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -767,7 +537,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.connections}
+                                                                                value={clusterStats['cluster']['connectedClients']}
                                                                                 title={"CurConnections"}
                                                                                 precision={0}
                                                                                 format={3}
@@ -784,27 +554,27 @@ function App() {
                                                             <br />
                                                               <table style={{"width":"100%"}}>
                                                                   <tr>  
-                                                                    <td style={{"width":"30%","padding-left": "1em"}}> 
+                                                                    <td style={{"width":"33%","padding-left": "1em"}}> 
                                                                             <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('GetCalls') , 
-                                                                                                    dataMetrics.refObject.getPropertyValues('SetCalls') ,
+                                                                                                    clusterStats['cluster']['history']['getCalls'],
+                                                                                                    clusterStats['cluster']['history']['setCalls']
                                                                                                 ]} 
-                                                                            timestamp={dataMetrics.timestamp} title={"Calls/sec"} height="230px" />
+                                                                            timestamp={timeNow.getTime()} title={"Calls/sec"} height="230px" />
                                                                     </td>
                                                                     
-                                                                    <td style={{"width":"30%","padding-left": "1em"}}> 
+                                                                    <td style={{"width":"33%","padding-left": "1em"}}> 
                                                                             <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('GetLatency'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('SetLatency'),
+                                                                                                    clusterStats['cluster']['history']['getLatency'],
+                                                                                                    clusterStats['cluster']['history']['setLatency']
                                                                                                 ]} 
-                                                                             timestamp={dataMetrics.timestamp} title={"CallsLatency(us)"} height="230px" />
+                                                                             timestamp={timeNow.getTime()} title={"CallsLatency(us)"} height="230px" />
                                                                     </td>
-                                                                    <td style={{"width":"30%","padding-left": "1em"}}> 
+                                                                    <td style={{"width":"33%","padding-left": "1em"}}> 
                                                                             <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('CacheHits'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('CacheMisses'),
+                                                                                                    clusterStats['cluster']['history']['keyspaceHits'],
+                                                                                                    clusterStats['cluster']['history']['keyspaceMisses'],
                                                                                                 ]} 
-                                                                             timestamp={dataMetrics.timestamp} title={"Cache Efficiency/sec"} height="230px" />
+                                                                             timestamp={timeNow.getTime()} title={"Cache Efficiency/sec"} height="230px" />
                                                                     </td>
                                                                     
                                                                   </tr>
@@ -814,8 +584,26 @@ function App() {
                                                         </Container>
                                                         <br/>
                                                         <Container>
-                                                                
-                                                                  
+                                                            
+                                                            <table style={{"width":"100%" }}>
+                                                                        <tr>
+                                                                            <td style={{ "width":"100%", "align": "right"}}>
+                                                                                     <div style= {{ "float":"right"}}>
+                                                                                        <Pagination
+                                                                                              currentPageIndex={currentPageIndex}
+                                                                                              onChange={({ detail }) => {
+                                                                                                        setCurrentPageIndex(detail.currentPageIndex);
+                                                                                                        pageId.current = detail.currentPageIndex;
+                                                                                                        gatherClusterStats();
+                                                                                                }
+                                                                                              }
+                                                                                              pagesCount={ totalPages } 
+                                                                                        />
+                                                                                        <br/>
+                                                                                    </div>
+                                                                            </td>
+                                                                        </tr>
+                                                            </table>
                                                             <table style={{"width":"100%" }}>
                                                                         <tr>
                                                                             <td style={{ "width":"9%", "text-align":"left","padding-left":"1em", "font-size": "12px", "font-weight": "600"}}>
@@ -834,7 +622,7 @@ function App() {
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHitRate','CacheHitRate(%)')}>CacheHitRate(%)</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHits','CacheHits/sec')}>CacheHits/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('keyspaceHits','CacheHits/sec')}>CacheHits/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('getLatency','getLatency(us)')}> getLatency(us)</Link>
@@ -843,7 +631,7 @@ function App() {
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('setLatency','setLatency(us)')}>setLatency(us)</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connections','Connections')}>Connections</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connectedClients','Connections')}>Connections</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() =>  onClickMetric('cpu','CPU Usage(%)')}>CPU Usage(%)</Link>
@@ -853,22 +641,23 @@ function App() {
                                                                             </td>
                                                                         </tr>
                                                                                 
-                                                                        {dataNodes.MemberClusters.map((item,key) => (
+                                                                        {clusterStats['nodes'].map((item,key) => (
                                                                                                  <ElasticNode
                                                                                                     connectionId = {cnf_connection_id}
                                                                                                     clusterId = {cnf_identifier}
                                                                                                     nodeId = {item.nodeId}
                                                                                                     instance = {item.endPoint}
-                                                                                                    port={dataNodes.Port}
-                                                                                                    syncClusterEvent={syncData}
+                                                                                                    port={item.port}
                                                                                                     username = {cnf_username}
                                                                                                     password = {cnf_password}
                                                                                                     auth = {cnf_auth}
                                                                                                     ssl = {cnf_ssl}
+                                                                                                    node = {item}
                                                                                                 />
                                                                            
                                                                            
                                                                             ))}
+                                                                        
                                                             </table>
                                                 
                                                         </Container>
@@ -886,6 +675,24 @@ function App() {
                                         content: 
                                           
                                           <>    
+                                                <table style={{"width":"100%" }}>
+                                                    <tr>
+                                                        <td style={{ "width":"100%", "align": "right"}}>
+                                                                 <div style= {{ "float":"right"}}>
+                                                                    <Pagination
+                                                                          currentPageIndex={currentPageIndex}
+                                                                          onChange={({ detail }) => {
+                                                                                    setCurrentPageIndex(detail.currentPageIndex);
+                                                                                    pageId.current = detail.currentPageIndex;
+                                                                            }
+                                                                          }
+                                                                          pagesCount={ totalPages } 
+                                                                    />
+                                                                    <br/>
+                                                                </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
                                                 <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                 <tr>  
                                                    <td> 
@@ -898,7 +705,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CPUUtilization"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -907,6 +714,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -920,7 +729,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="EngineCPUUtilization"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -929,6 +738,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -942,7 +753,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DatabaseMemoryUsagePercentage"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -951,6 +762,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -964,7 +777,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DatabaseCapacityUsagePercentage"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -973,6 +786,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -986,7 +801,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="NetworkBytesIn"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -995,6 +810,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1008,7 +825,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="NetworkBytesOut"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1017,6 +834,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1030,7 +849,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CurrConnections"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1039,6 +858,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={3}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1052,7 +873,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CurrItems"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1061,6 +882,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1074,7 +897,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="GetTypeCmds"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1083,6 +906,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1096,7 +921,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="SetTypeCmds"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1105,6 +930,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1118,7 +945,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="GetTypeCmdsLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1127,6 +954,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1140,7 +969,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="SetTypeCmdsLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1149,6 +978,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1162,7 +993,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CacheHits"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1170,6 +1001,8 @@ function App() {
                                                                   current_metric_mode={"total"}
                                                                   metric_precision={0}
                                                                   format={1}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1183,7 +1016,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CacheMisses"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1192,6 +1025,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1205,7 +1040,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CacheHitRate"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1214,6 +1049,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1227,7 +1064,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/ElastiCache" 
                                                                   dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="Evictions"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1236,7 +1073,10 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
+                                                            
                                                         </Container>
                                                 
                                                     </td>
@@ -1260,19 +1100,19 @@ function App() {
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Cluster name</Box>
-                                                                            <div>{dataNodes['ReplicationGroupId']}</div>
+                                                                            <div>{parameter_object_values['rds_id']}</div>
                                                                       </div>
                                                                       <div>
                                                                             <Box variant="awsui-key-label">CacheNodeType</Box>
-                                                                            <div>{dataNodes['CacheNodeType']}</div>
+                                                                            <div>{parameter_object_values['rds_size']}</div>
                                                                       </div>
                                                                       <div>
                                                                             <Box variant="awsui-key-label">ConfigurationEndpoint</Box>
-                                                                            <div>{dataNodes['ConfigurationEndpoint']}</div>
+                                                                            <div>{parameter_object_values['rds_host']}</div>
                                                                       </div>
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Port</Box>
-                                                                            <div>{dataNodes['Port']}</div>
+                                                                            <div>{parameter_object_values['rds_port']}</div>
                                                                       </div>
                                                                     </ColumnLayout>
                                                                     <br/>
@@ -1280,19 +1120,19 @@ function App() {
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                         <div>
                                                                             <Box variant="awsui-key-label">Status</Box>
-                                                                            <div>{dataNodes['Status']}</div>
+                                                                            <div>{parameter_object_values['rds_status']}</div>
                                                                         </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">ClusterEnabled</Box>
-                                                                            <div>{dataNodes['ClusterEnabled']}</div>
+                                                                            <div>{parameter_object_values['rds_mode']}</div>
                                                                         </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">Shards</Box>
-                                                                            <div>{dataNodes['Shards']}</div>
+                                                                            <div>{parameter_object_values['rds_shards']}</div>
                                                                         </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">Nodes</Box>
-                                                                            <div>{dataNodes['MemberClusters'].length}</div>
+                                                                            <div>{parameter_object_values['rds_nodes']}</div>
                                                                         </div>
                                                                     </ColumnLayout>
                                                                     <br/>
@@ -1300,11 +1140,11 @@ function App() {
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                         <div>
                                                                             <Box variant="awsui-key-label">MultiAZ</Box>
-                                                                            <div>{dataNodes['MultiAZ']}</div>
+                                                                            <div>{parameter_object_values['rds_multiaz']}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <Box variant="awsui-key-label">DataTiering</Box>
-                                                                            <div>{dataNodes['DataTiering']}</div>
+                                                                            <Box variant="awsui-key-label">AutheticationMode</Box>
+                                                                            <div>{parameter_object_values['rds_auth']}</div>
                                                                         </div>
                                                                     </ColumnLayout>
                                                                     <br/>
