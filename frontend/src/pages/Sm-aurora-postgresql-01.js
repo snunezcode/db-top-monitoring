@@ -548,6 +548,7 @@ function App() {
             onClickMenu={handleClickMenu}
             onClickDisconnect={handleClickDisconnect}
             sessionInformation={parameter_object_values}
+            titleItem={parameter_object_values['rds_host']}
         />
         
         <CustomLayout
@@ -615,7 +616,7 @@ function App() {
                                                                     <tr>  
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.xactTotal}
+                                                                                    value={dataMetrics.xactTotal || 0}
                                                                                     title={"Transactions/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -738,7 +739,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.ioreads}
+                                                                                value={dataMetrics.ioreads || 0}
                                                                                 title={"IO Reads/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -747,7 +748,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.iowrites}
+                                                                                value={dataMetrics.iowrites || 0}
                                                                                 title={"IO Writes/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -756,7 +757,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.netin}
+                                                                                value={dataMetrics.netin || 0}
                                                                                 title={"Network-In"}
                                                                                 precision={0}
                                                                                 format={2}
@@ -765,7 +766,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.netout}
+                                                                                value={dataMetrics.netout || 0}
                                                                                 title={"Network-Out"}
                                                                                 precision={0}
                                                                                 format={2}

@@ -266,7 +266,7 @@ function Login() {
                                                 endpoint: endPoint,
                                                 port : port,
                                                 multiaz : item['MultiAZ'],
-                                                ssl : String(item['TransitEncryptionMode']),
+                                                ssl : ( String(item['TransitEncryptionMode']) =='required' ? 'required' : '-'),
                                                 auth : authMode,
                                                 authmode : authMode
                                   });

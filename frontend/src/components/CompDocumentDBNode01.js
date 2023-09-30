@@ -7,7 +7,6 @@ import ChartRadialBar01 from './ChartRadialBar01';
 import CompMetric01 from './Metric01';
 import CompMetric04 from './Metric04';
 import { configuration } from './../pages/Configs';
-import { classMetric } from './Functions';
 import Badge from "@cloudscape-design/components/badge";
 import Link from "@cloudscape-design/components/link";
 import Box from "@cloudscape-design/components/box";
@@ -15,121 +14,11 @@ import Table from "@cloudscape-design/components/table";
 import Header from "@cloudscape-design/components/header";
 
 
-const ComponentObject = memo(({  sessionId, instance, host, port, username, password, status, size, az, monitoring, resourceId, syncClusterEvent, }) => {
+const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
 
     const [detailsVisible, setDetailsVisible] = useState(false);
     const detailsVisibleState = useRef(false);
-    
-    const initProcessMetricSync = useRef(0);
-    const initProcess = useRef(0);
-   
-    const [nodeStats, setNodeStats] = useState({
-                                        cpu: 0,
-                                        memory: 0,
-                                        ioreads: 0,
-                                        iowrites: 0,
-                                        netin: 0,
-                                        netout: 0,
-                                        connectionsCurrent : 0,
-                                        connectionsAvailable : 0,
-                                        connectionsCreated : 0,
-                                        opsInsert : 0,
-                                        opsQuery : 0,
-                                        opsUpdate : 0,
-                                        opsDelete : 0,
-                                        opsGetmore : 0,
-                                        opsCommand : 0,
-                                        docsDeleted : 0,
-                                        docsInserted : 0,
-                                        docsReturned : 0,
-                                        docsUpdated : 0,
-                                        transactionsActive : 0,
-                                        transactionsCommited : 0,
-                                        transactionsAborted : 0,
-                                        transactionsStarted : 0,
-                                        timestamp:0,
-                                        objMetric : new classMetric([
-                                                        { name: "cpu", history: 20 },
-                                                        { name: "memory", history: 20 },
-                                                        { name: "ioreads", history: 20 },
-                                                        { name: "iowrites", history: 20 },
-                                                        { name: "netin", history: 20 },
-                                                        { name: "netout", history: 20 },
-                                                        { name: "connectionsCurrent", history: 20 },
-                                                        { name: "connectionsAvailable", history: 20 },
-                                                        { name: "connectionsCreated", history: 20 },
-                                                        { name: "opsInsert", history: 20 },
-                                                        { name: "opsQuery", history: 20 },
-                                                        { name: "opsUpdate", history: 20 },
-                                                        { name: "opsDelete", history: 20 },
-                                                        { name: "opsGetmore", history: 20 },
-                                                        { name: "opsCommand", history: 20 },
-                                                        { name: "docsDeleted", history: 20 },
-                                                        { name: "docsInserted", history: 20 },
-                                                        { name: "docsReturned", history: 20 },
-                                                        { name: "docsUpdated", history: 20 },
-                                                        { name: "transactionsActive", history: 20 },
-                                                        { name: "transactionsCommited", history: 20 },
-                                                        { name: "transactionsAborted", history: 20 },
-                                                        { name: "transactionsStarted", history: 20 },
-                                                        
-                                        ]),
-                                        sessions : [],
-    });
-
-    const metricObject = useRef({
-                                        cpu: 0,
-                                        memory: 0,
-                                        ioreads: 0,
-                                        iowrites: 0,
-                                        netin: 0,
-                                        netout: 0,
-                                        connectionsCurrent : 0,
-                                        connectionsAvailable : 0,
-                                        connectionsCreated : 0,
-                                        opsInsert : 0,
-                                        opsQuery : 0,
-                                        opsUpdate : 0,
-                                        opsDelete : 0,
-                                        opsGetmore : 0,
-                                        opsCommand : 0,
-                                        docsDeleted : 0,
-                                        docsInserted : 0,
-                                        docsReturned : 0,
-                                        docsUpdated : 0,
-                                        transactionsActive : 0,
-                                        transactionsCommited : 0,
-                                        transactionsAborted : 0,
-                                        transactionsStarted : 0,
-                                        timestamp:0,
-                                        timestampClw : 0,
-                                        objMetric : new classMetric([
-                                                        { name: "cpu", history: 20 },
-                                                        { name: "memory", history: 20 },
-                                                        { name: "ioreads", history: 20 },
-                                                        { name: "iowrites", history: 20 },
-                                                        { name: "netin", history: 20 },
-                                                        { name: "netout", history: 20 },
-                                                        { name: "connectionsCurrent", history: 20 },
-                                                        { name: "connectionsAvailable", history: 20 },
-                                                        { name: "connectionsCreated", history: 20 },
-                                                        { name: "opsInsert", history: 20 },
-                                                        { name: "opsQuery", history: 20 },
-                                                        { name: "opsUpdate", history: 20 },
-                                                        { name: "opsDelete", history: 20 },
-                                                        { name: "opsGetmore", history: 20 },
-                                                        { name: "opsCommand", history: 20 },
-                                                        { name: "docsDeleted", history: 20 },
-                                                        { name: "docsInserted", history: 20 },
-                                                        { name: "docsReturned", history: 20 },
-                                                        { name: "docsUpdated", history: 20 },
-                                                        { name: "transactionsActive", history: 20 },
-                                                        { name: "transactionsCommited", history: 20 },
-                                                        { name: "transactionsAborted", history: 20 },
-                                                        { name: "transactionsStarted", history: 20 },
-                                        ]),
-    });
-    
+    const activeSessions = useRef([]);
     
     const dataSessionColumns=[
                     { id: "opid",header: "PID",cell: item => item['opid'] || "-",sortingField: "opid",isRowHeader: true },
@@ -142,414 +31,79 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                     { id: "command",header: "Command",cell: item => JSON.stringify(item['command']) || "-",sortingField: "command",isRowHeader: true },
                     ];
    
-    //-- Function Open Connections
-    async function openConnection() {
-
-        var api_url = configuration["apps-settings"]["api_url"];
-
-        Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
-        await Axios.post(`${api_url}/api/documentdb/connection/open/`, {
-                params: {  connectionId : sessionId, instance : instance, host : host,  port : port, username : username, password : password }
-            }).then((data) => {
-                
-            })
-            .catch((err) => {
-                console.log('Timeout API Call : /api/documentdb/connection/open/');
-                console.log(err);
-
-            });
-
-    }
-    
-    
-    //-- Function Open Connections
-    async function fetchOSMetrics() {
-
-        var api_url = configuration["apps-settings"]["api_url"];
-        
-        //-- Gather Metrics from Enhaced Monitoring
-        if ( monitoring == "em") {
-                await Axios.get(`${api_url}/api/aws/clw/region/logs/`, {
-                        params: {  resource_id : resourceId }
-                    }).then((data) => {
-                        
-                        var message=JSON.parse(data.data.events[0].message);
-                        
-                        metricObject.current.cpu = message.cpuUtilization.total;
-                        metricObject.current.memory = message.memory.free;
-                        metricObject.current.ioreads = message.diskIO[0].readIOsPS + message.diskIO[1].readIOsPS;
-                        metricObject.current.iowrites = message.diskIO[0].writeIOsPS + message.diskIO[1].writeIOsPS;
-                        metricObject.current.netin = message.network[0].rx;
-                        metricObject.current.netout = message.network[0].tx;
-                        
-                        metricObject.current.objMetric.addPropertyValue('cpu',metricObject.current.cpu);
-                        metricObject.current.objMetric.addPropertyValue('memory', metricObject.current.memory);
-                        metricObject.current.objMetric.addPropertyValue('ioreads',metricObject.current.ioreads);
-                        metricObject.current.objMetric.addPropertyValue('iowrites',metricObject.current.iowrites);
-                        metricObject.current.objMetric.addPropertyValue('netin',metricObject.current.netin);
-                        metricObject.current.objMetric.addPropertyValue('netout',metricObject.current.netout);
-                       
-                    })
-                    .catch((err) => {
-                        console.log('Timeout API Call : /api/aws/clw/region/logs/');
-                        console.log(err);
-        
-                    });
-        }
-        else {
-            
-                //-- Gather Metrics from CloudWatch
-                
-                    var dimension = [ { Name: "DBInstanceIdentifier", Value: instance } ];
-                    var metrics = [{
-                                        namespace : "AWS/DocDB",
-                                        metric : "CPUUtilization",
-                                        dimension : dimension
-                                    },
-                                    {
-                                        namespace : "AWS/DocDB",
-                                        metric : "FreeableMemory",
-                                        dimension : dimension
-                                    },
-                                    {
-                                        namespace : "AWS/DocDB",
-                                        metric : "ReadIOPS",
-                                        dimension : dimension
-                                    },
-                                    {
-                                        namespace : "AWS/DocDB",
-                                        metric : "WriteIOPS",
-                                        dimension : dimension
-                                    },
-                                    {
-                                        namespace : "AWS/DocDB",
-                                        metric : "NetworkReceiveThroughput",
-                                        dimension : dimension
-                                    },
-                                    {
-                                        namespace : "AWS/DocDB",
-                                        metric : "NetworkTransmitThroughput",
-                                        dimension : dimension
-                                    },
-                                ];
-          
-                    var dataQueries = [];
-                    var queryId = 0;
-                    metrics.forEach(function(item) {
-                        
-                        dataQueries.push({
-                                Id: "m0" + String(queryId),
-                                MetricStat: {
-                                    Metric: {
-                                        Namespace: item.namespace,
-                                        MetricName: item.metric,
-                                        Dimensions: item.dimension
-                                    },
-                                    Period: "60",
-                                    Stat: "Average"
-                                },
-                                Label: item.metric
-                        });
-                        
-                        queryId++;
-                        
-                    });
-                    
-                    var d_end_time = new Date();
-                    var d_start_time = new Date(d_end_time - ((20*1) * 60000) );
-                    var queryclw = {
-                        MetricDataQueries: dataQueries,
-                        "StartTime": d_start_time,
-                        "EndTime": d_end_time
-                    };
-                    
-                      
-                    Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/clw/region/query/`,{
-                     params: queryclw
-                    }).then((data)=>{
-                        
-                            var metricResults = data.data.MetricDataResults;
-                            
-                            metricResults.forEach(function(item) {
-                            
-                                    switch(item.Label){
-                                        
-                                        case "CPUUtilization":
-                                                metricObject.current.cpu = item.Values[0];
-                                                metricObject.current.objMetric.addPropertyValueByArray('cpu',item.Values.reverse());
-                                                break;
-                                        
-                                        case "FreeableMemory":
-                                                metricObject.current.memory = item.Values[0];
-                                                metricObject.current.objMetric.addPropertyValueByArray('memory',item.Values.reverse());
-                                                break;
-                                                
-                                        case "ReadIOPS":
-                                                metricObject.current.ioreads = item.Values[0];
-                                                metricObject.current.objMetric.addPropertyValueByArray('ioreads',item.Values.reverse());
-                                                break;
-                                                
-                                        
-                                        case "WriteIOPS":
-                                                metricObject.current.iowrites = item.Values[0];
-                                                metricObject.current.objMetric.addPropertyValueByArray('iowrites',item.Values.reverse());
-                                                break;
-                                                
-                                        case "NetworkReceiveThroughput":
-                                                metricObject.current.netin = item.Values[0];
-                                                metricObject.current.objMetric.addPropertyValueByArray('netin',item.Values.reverse());
-                                                break;
-                                                
-                                        case "NetworkTransmitThroughput":
-                                                metricObject.current.netout = item.Values[0];
-                                                metricObject.current.objMetric.addPropertyValueByArray('netout',item.Values.reverse());
-                                                break;
-                                            
-                                            
-                                            
-                                    }
-                                    metricObject.current.timestampClw = item.Timestamps[0];
-                                    
-                                
-                            });
-                            
-                         
-                        
-                          
-                    })
-                      .catch((err) => {
-                          console.log('Timeout API Call : /api/aws/clw/region/query/' );
-                          console.log(err);
-                          
-                    });
-
-            
-            
-            
-            
-            
-        }
-        
-        
-    }
+   
     
     //-- Function Gather RealTime Metrics
     async function fetchSessions() {
-      
         //--- API Call Gather Sessions
-        var api_params = {
-                      connectionId: sessionId,
-                      instance : instance,
-                      command : { currentOp: 1 }
-                      };
-        
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/documentdb/cluster/command/`,{
-              params: api_params
-              }).then((data)=>{
+        if (detailsVisibleState.current == true) {
+                var api_params = {
+                              connectionId: sessionId,
+                              clusterId : clusterId,
+                              instanceId : nodeStats.name,
+                              command : { currentOp: 1 }
+                              };
                 
-                  metricObject.current.sessions = data.data.inprog;
-                  
-              })
-              .catch((err) => {
-                  console.log('Timeout API Call : /api/documentdb/cluster/command/' );
-                  console.log(err)
-              });
+                Axios.get(`${configuration["apps-settings"]["api_url"]}/api/documentdb/cluster/command/`,{
+                      params: api_params
+                      }).then((data)=>{
+                        
+                          activeSessions.current = data.data.inprog;
+                          
+                      })
+                      .catch((err) => {
+                          console.log('Timeout API Call : /api/documentdb/cluster/command/' );
+                          console.log(err)
+                      });
+                
+                console.log("gather active sessions");      
             
-    
-    }
-    
-    //-- Function Gather RealTime Metrics
-    async function fetchMetrics() {
-      
-        //--- API Call Performance Counters
-        var api_params = {
-                      connectionId: sessionId,
-                      instance : instance,
-                      command : { serverStatus: 1 }
-                      };
-
-        
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/documentdb/cluster/command/`,{
-              params: api_params
-              }).then((data)=>{
-                
-                    var timeNow = new Date();
-                    var currentCounters = {
-                            ...convertJsonToArray("connections.",data.data.connections),
-                            ...convertJsonToArray("operations.",data.data.opcounters),
-                            ...convertJsonToArray("metrics.",data.data.metrics.document),
-                            ...convertJsonToArray("transactions.",data.data.transactions)
-                      };
-                      
-                    if ( initProcess.current === 0 ){
-                        //-- Initialize snapshot data
-                        metricObject.current.objMetric.newSnapshot(currentCounters, timeNow.getTime());
-                        initProcess.current = 1;
-                    }
-                    else {
-                        initProcessMetricSync.current = 1;
-                    }
-                      
-                    //-- Update the snapshot data
-                    metricObject.current.objMetric.newSnapshot(currentCounters, timeNow.getTime());
-                      
-                    //-- Add metrics
-                    metricObject.current.connectionsCurrent = metricObject.current.objMetric.getValue('connections.current');
-                    metricObject.current.connectionsAvailable = metricObject.current.objMetric.getValue('connections.available');
-                    metricObject.current.connectionsCreated = metricObject.current.objMetric.getDelta('connections.totalCreated');
-                    metricObject.current.opsInsert = metricObject.current.objMetric.getDelta('operations.insert');
-                    metricObject.current.opsQuery = metricObject.current.objMetric.getDelta('operations.query');
-                    metricObject.current.opsUpdate = metricObject.current.objMetric.getDelta('operations.update');
-                    metricObject.current.opsDelete = metricObject.current.objMetric.getDelta('operations.delete');
-                    metricObject.current.opsGetmore = metricObject.current.objMetric.getDelta('operations.getmore');
-                    metricObject.current.opsCommand = metricObject.current.objMetric.getDelta('operations.command');
-                    metricObject.current.docsDeleted = metricObject.current.objMetric.getDelta('metrics.deleted');
-                    metricObject.current.docsInserted = metricObject.current.objMetric.getDelta('metrics.inserted');
-                    metricObject.current.docsReturned = metricObject.current.objMetric.getDelta('metrics.returned');
-                    metricObject.current.docsUpdated = metricObject.current.objMetric.getDelta('metrics.updated');
-                    metricObject.current.transactionsActive = metricObject.current.objMetric.getValue('transactions.currentActive');
-                    metricObject.current.transactionsCommited = metricObject.current.objMetric.getDelta('transactions.totalCommitted');
-                    metricObject.current.transactionsAborted = metricObject.current.objMetric.getDelta('transactions.totalAborted');
-                    metricObject.current.transactionsStarted = metricObject.current.objMetric.getDelta('transaction.totalStarted');
-                
-                    metricObject.current.objMetric.addPropertyValue('connectionsCurrent',metricObject.current.connectionsCurrent);
-                    metricObject.current.objMetric.addPropertyValue('connectionsAvailable',metricObject.current.connectionsAvailable);
-                    metricObject.current.objMetric.addPropertyValue('connectionsCreated',metricObject.current.connectionsCreated);
-                    metricObject.current.objMetric.addPropertyValue('opsInsert',metricObject.current.opsInsert);
-                    metricObject.current.objMetric.addPropertyValue('opsQuery',metricObject.current.opsQuery);
-                    metricObject.current.objMetric.addPropertyValue('opsUpdate',metricObject.current.opsUpdate);
-                    metricObject.current.objMetric.addPropertyValue('opsDelete',metricObject.current.opsDelete);
-                    metricObject.current.objMetric.addPropertyValue('opsGetmore',metricObject.current.opsGetmore);
-                    metricObject.current.objMetric.addPropertyValue('opsCommand',metricObject.current.opsCommand);
-                    metricObject.current.objMetric.addPropertyValue('docsDeleted',metricObject.current.docsDeleted);
-                    metricObject.current.objMetric.addPropertyValue('docsInserted',metricObject.current.docsInserted);
-                    metricObject.current.objMetric.addPropertyValue('docsReturned',metricObject.current.docsReturned);
-                    metricObject.current.objMetric.addPropertyValue('docsUpdated',metricObject.current.docsUpdated);
-                    metricObject.current.objMetric.addPropertyValue('transactionsActive',metricObject.current.transactionsActive);
-                    metricObject.current.objMetric.addPropertyValue('transactionsCommited',metricObject.current.transactionsCommited);
-                    metricObject.current.objMetric.addPropertyValue('transactionsAborted',metricObject.current.transactionsAborted);
-                    metricObject.current.objMetric.addPropertyValue('transactionsStarted',metricObject.current.transactionsStarted);
-                
-                 
-                  
-                
-              })
-              .catch((err) => {
-                  console.log('Timeout API Call : /api/documentdb/cluster/command/' );
-                  console.log(err)
-                    
-              });
-              
-
-    }
-
-
-    
-    async function fetchData() {
-        var timeNow = new Date();
-                  
-        await fetchMetrics();
-        if ( detailsVisibleState.current == true) {
-            await fetchSessions();
         }
-        else{
-            metricObject.current.sessions = [];
+        else {
+                activeSessions.current = [];
         }
-        await fetchOSMetrics();
-        metricObject.current.timestamp = timeNow.getTime();
-        syncCluster();
-        setNodeStats({...metricObject.current});
-                
-
-    }
-
-    function syncCluster() {
-
-        if (initProcessMetricSync.current === 1) {
-            syncClusterEvent({
-                name: instance,
-                cpu: metricObject.current.cpu,
-                memory: metricObject.current.memory,
-                ioreads: metricObject.current.ioreads,
-                iowrites: metricObject.current.iowrites,
-                netin: metricObject.current.netin,
-                netout: metricObject.current.netout,
-                connectionsCurrent : metricObject.current.connectionsCurrent,
-                connectionsAvailable : metricObject.current.connectionsAvailable,
-                connectionsCreated : metricObject.current.connectionsCreated,
-                opsInsert : metricObject.current.opsInsert,
-                opsQuery : metricObject.current.opsQuery,
-                opsUpdate : metricObject.current.opsUpdate,
-                opsDelete : metricObject.current.opsDelete,
-                opsGetmore : metricObject.current.opsGetmore,
-                opsCommand : metricObject.current.opsCommand,
-                docsDeleted : metricObject.current.docsDeleted,
-                docsInserted : metricObject.current.docsInserted,
-                docsReturned : metricObject.current.docsReturned,
-                docsUpdated : metricObject.current.docsUpdated,
-                transactionsActive : metricObject.current.transactionsActive,
-                transactionsCommited : metricObject.current.transactionsCommited,
-                transactionsAborted : metricObject.current.transactionsAborted,
-                transactionsStarted : metricObject.current.transactionsStarted,
-                timestampClw : metricObject.current.timestampClw,
-                cpuHistory : metricObject.current.objMetric.getPropertyValues('cpu'),
-                ioreadsHistory: metricObject.current.objMetric.getPropertyValues('ioreads'),
-                iowritesHistory: metricObject.current.objMetric.getPropertyValues('iowrites'),
-                netinHistory: metricObject.current.objMetric.getPropertyValues('netin'),
-                netoutHistory: metricObject.current.objMetric.getPropertyValues('netout'),
-            });
     
-        }
-
     }
+    
+    
 
     function onClickNode() {
 
         detailsVisibleState.current = (!(detailsVisibleState.current));
         setDetailsVisible(detailsVisibleState.current);
-
+        fetchSessions();
     }
 
 
-    //-- Function Convert Array to Type Json
-    function convertJsonToArray(namespace,jsonObject){
-        var data = [];
-        for (let index of Object.keys(jsonObject)) {
-            data[namespace + index] = {}
-            data[namespace + index]['Value'] = jsonObject[index];
-        }
-        return data;
-    }
-    
-    // eslint-disable-next-line
     useEffect(() => {
-        openConnection();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // eslint-disable-next-line
-    useEffect(() => {
-        const id = setInterval(fetchData, configuration["apps-settings"]["refresh-interval-elastic"]);
+        const id = setInterval(fetchSessions, configuration["apps-settings"]["refresh-interval-documentdb-sessions"]);
         return () => clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
 
-
     return (
         <>
             <tr>
-                <td style={{"width":"9%", "text-align":"left", "border-top": "1pt solid #595f69"}} >  
-                    <Link  fontSize="body-s" onFollow={() => onClickNode()}>{instance}</Link>
+                <td style={{"width":"10%", "text-align":"left", "border-top": "1pt solid #595f69"}} >  
+                     N{nodeStats.nodeId+1} &nbsp;
+                    { nodeStats.role === "P" &&
+                        <Badge color="blue"> P </Badge>
+                    }
+                    { nodeStats.role === "R" &&
+                        <Badge color="red"> R </Badge>
+                    }
+                    &nbsp;
+                    <Link  fontSize="body-s" onFollow={() => onClickNode()}>{nodeStats.name}</Link>
+                </td>
+                <td style={{"width":"5%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                   {nodeStats.status}
                 </td>
                 <td style={{"width":"6%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
-                   {status}
+                   {nodeStats.size}
                 </td>
                 <td style={{"width":"6%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
-                   {size}
-                </td>
-                <td style={{"width":"6%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
-                   {az}
+                   {nodeStats.az}
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                      <CompMetric04
@@ -643,6 +197,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 <td colspan="11" style={{"padding-left": "2em", "border-left": "1px solid " + configuration.colors.lines.separator100 }}>
                         <br/>
                         <br/>
+                        
                         <table style={{"width":"100%"}}>
                             <tr>  
                                 <td style={{"width":"10%", "padding-left": "1em"}}>  
@@ -684,7 +239,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('cpu')
+                                                            nodeStats.history.cpu
                                                             
                                                         ]} 
                                                     timestamp={nodeStats.timestamp} title={"CPU Usage (%)"} height="180px" 
@@ -692,8 +247,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('ioreads'),
-                                                            nodeStats.objMetric.getPropertyValues('iowrites')
+                                                            nodeStats.history.ioreads,
+                                                            nodeStats.history.iowrites
                                                             
                                                         ]} 
                                                     timestamp={nodeStats.timestamp} title={"IOPS"} height="180px" 
@@ -701,8 +256,8 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('netin'),
-                                                            nodeStats.objMetric.getPropertyValues('netout'),
+                                                            nodeStats.history.netin,
+                                                            nodeStats.history.netout
                                                         ]} 
                                                     timestamp={nodeStats.timestamp} title={"NetworkTraffic"} height="180px" 
                                     />  
@@ -716,7 +271,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 <tr> 
                                     <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={ (nodeStats.opsInsert ) || 0}
+                                            value={ nodeStats.opsInsert  || 0}
                                             title={"opsInsert/sec"}
                                             precision={0}
                                             format={3}
@@ -776,7 +331,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.docsInserted}
+                                            value={nodeStats.docsInserted || 0}
                                             title={"docsInserted/sec"}
                                             precision={0}
                                             format={1}
@@ -786,7 +341,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.docsDeleted}
+                                            value={nodeStats.docsDeleted || 0}
                                             title={"docsDeleted/sec"}
                                             precision={0}
                                             format={1}
@@ -796,7 +351,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.docsUpdated}
+                                            value={nodeStats.docsUpdated || 0}
                                             title={"docsUpdated/sec"}
                                             precision={0}
                                             format={2}
@@ -806,7 +361,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.docsReturned}
+                                            value={nodeStats.docsReturned || 0}
                                             title={"docsReturned/sec"}
                                             precision={0}
                                             format={2}
@@ -822,7 +377,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 <tr> 
                                     <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={ (nodeStats.connectionsCurrent ) || 0}
+                                            value={ nodeStats.connectionsCurrent  || 0}
                                             title={"Connections"}
                                             precision={0}
                                             format={3}
@@ -832,7 +387,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.connectionsAvailable}
+                                            value={nodeStats.connectionsAvailable || 0}
                                             title={"ConnectionsAvailable"}
                                             precision={0}
                                             format={3}
@@ -882,7 +437,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.ioreads}
+                                            value={nodeStats.ioreads || 0}
                                             title={"IO Reads/sec"}
                                             precision={0}
                                             format={1}
@@ -892,7 +447,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.iowrites}
+                                            value={nodeStats.iowrites || 0}
                                             title={"IO Writes/sec"}
                                             precision={0}
                                             format={1}
@@ -902,7 +457,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.netin}
+                                            value={nodeStats.netin || 0}
                                             title={"Network-In"}
                                             precision={0}
                                             format={2}
@@ -912,7 +467,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.netout}
+                                            value={nodeStats.netout || 0}
                                             title={"Network-Out"}
                                             precision={0}
                                             format={2}
@@ -926,23 +481,24 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                         <br/>
                         <br />
                         <br />
+                        
                         <table style={{"width":"100%"}}>
                               <tr>  
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('connectionsCurrent')
+                                                            nodeStats.history.connectionsCurrent
                                                         ]} 
                                                     timestamp={nodeStats.timestamp} title={"Connections"} height="180px" 
                                     />  
                                 </td>
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('opsInsert'),
-                                                            nodeStats.objMetric.getPropertyValues('opsQuery'),
-                                                            nodeStats.objMetric.getPropertyValues('opsUpdate'),
-                                                            nodeStats.objMetric.getPropertyValues('opsDelete'),
-                                                            nodeStats.objMetric.getPropertyValues('opsGetmore'),
-                                                            nodeStats.objMetric.getPropertyValues('opsCommand')
+                                                            nodeStats.history.opsInsert,
+                                                            nodeStats.history.opsQuery,
+                                                            nodeStats.history.opsUpdate,
+                                                            nodeStats.history.opsDelete,
+                                                            nodeStats.history.opsGetmore,
+                                                            nodeStats.history.opsCommand
                                                             
                                                         ]} 
                                                     timestamp={nodeStats.timestamp} title={"Operations/sec"} height="180px" 
@@ -950,10 +506,10 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                 </td>
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
                                      <ChartLine02 series={[
-                                                            nodeStats.objMetric.getPropertyValues('docsDeleted'),
-                                                            nodeStats.objMetric.getPropertyValues('docsInserted'),
-                                                            nodeStats.objMetric.getPropertyValues('docsReturned'),
-                                                            nodeStats.objMetric.getPropertyValues('docsUpdated'),
+                                                            nodeStats.history.docsDeleted,
+                                                            nodeStats.history.docsInserted,
+                                                            nodeStats.history.docsReturned,
+                                                            nodeStats.history.docsUpdated,
                                                             
                                                         ]} 
                                                     timestamp={nodeStats.timestamp} title={"DocumentOps/sec"} height="180px" 
@@ -965,7 +521,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                         <br />
                         <br />
                         <br />
-                       
+                        
                         <table style={{"width":"100%"}}>
                             <tr>  
                                 <td style={{"padding-left": "1em"}}>  
@@ -974,7 +530,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                         <Table
                                             stickyHeader
                                             columnDefinitions={dataSessionColumns}
-                                            items={nodeStats.sessions}
+                                            items={activeSessions.current}
                                             loadingText="Loading records"
                                             sortingDisabled
                                             variant="embedded"
@@ -991,7 +547,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                               </Box>
                                             }
                                             filter={
-                                             <Header variant="h3" counter={"(" +  nodeStats.sessions.length + ")"}
+                                             <Header variant="h3" counter={"(" +  activeSessions.current.length + ")"}
                                               >
                                                 Active sessions
                                             </Header>
@@ -1004,9 +560,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                         </table>  
                         <br />
                         <br />
-                       
-                        
-                        
+
                 </td>
             </tr>
             

@@ -2,7 +2,6 @@ import {useState,useEffect,useRef,memo} from 'react'
 import Axios from 'axios'
 import { configuration } from '../pages/Configs';
 import Chart from 'react-apexcharts';
-import Pagination from "@cloudscape-design/components/pagination";
 
 const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dimension_value,metric_name,stat_type,period,interval,metric_precision,format,current_metric_mode,font_color_value="#4595dd", pageId=1, itemsPerPage=2, groupByDimensionId = 0}) => {
     
@@ -33,7 +32,10 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                  toolbar: {
                     show: false,
                  }
-
+              },
+              legend: {
+                    show: true,
+                    showForSingleSeries: true,
               },
               markers: {
                   size: 4,
@@ -120,6 +122,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
     
     function fetchMetrics(){
         
+            
             var dataQueries = [];
             var dimensionNames = dimension_name.split("|");
             var dimensionValues = dimension_value.split(",");
@@ -131,7 +134,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
             dimensionValues.forEach(function(item) {
                 
                     if ( queryId >= beginItem && queryId < endItem ) {
-                        
+                            
                             var values = item.split("|");
                             var dimensions =  [];
                             dimensionNames.forEach(function(dimension, index) {
@@ -209,6 +212,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                                     
                                     lastValue.push(item.Values[item.Values.length-1]);
                                     
+                                    
                             })
                             
                             averageGlobal = averageGlobal / data.data.MetricDataResults.length;
@@ -228,7 +232,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                             
                             switch (format) {
                                                   case 1:
-                                                        metric = (CustomFormatNumberRaw(metricValue,metric_precision));
+                                                        metric = (CustomFormatNumberRaw(metricValue,metric_precision)) || 0;
                                                         stats = ({
                                                                     avg : CustomFormatNumberRaw(averageGlobal,metric_precision),
                                                                     max : CustomFormatNumberRaw(maxGlobal,metric_precision),
@@ -237,7 +241,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                                                         break;
                                                     
                                                   case 2:
-                                                        metric = (CustomFormatNumberData(metricValue,metric_precision));
+                                                        metric = (CustomFormatNumberData(metricValue,metric_precision))  || 0;
                                                         stats =  ({
                                                                     avg : CustomFormatNumberData(averageGlobal,metric_precision),
                                                                     max : CustomFormatNumberData(maxGlobal,metric_precision),
@@ -246,7 +250,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                                                     break;
                                                   
                                                   case 3:
-                                                        metric = (CustomFormatNumberRawInteger(metricValue,0));
+                                                        metric = (CustomFormatNumberRawInteger(metricValue,0))  || 0;
                                                         stats =  ({
                                                                     avg : CustomFormatNumberRawInteger(averageGlobal,0),
                                                                     max : CustomFormatNumberRawInteger(maxGlobal,0),
@@ -255,6 +259,7 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                                                     break;
                                           
                             }
+                        
                         refreshOnDemand.current = 0;
                         timestampMetric.current = data.data.MetricDataResults[0].Timestamps[0];          
                         setChartData({
@@ -318,14 +323,14 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
         const id = setInterval(fetchMetrics, configuration["apps-settings"]["refresh-interval-clw"]);
         return () => clearInterval(id);
     }, []);
-    
+        
     
     return (
                 <div>
                     <table style={{"width":"100%"}}>
                         <tr>  
                            <td style={{"width":"20%", "text-align":"center", "padding-left": "4em"}}>  
-                                <span style={{"font-size": "26px", "font-weight": "500","font-family": "Orbitron", "color": font_color_value }}>{chartData.metric}</span>
+                                <span style={{"font-size": "26px", "font-weight": "500","font-family": "Orbitron", "color": font_color_value }}>{chartData.metric || 0}</span>
                                 <br/>  
                                 <span style={{"font-size": "10px", "font-weight": "500", }}>{subtitle}</span>
                                 <br/>  

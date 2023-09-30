@@ -2,7 +2,7 @@ import TopNavigation from '@cloudscape-design/components/top-navigation';
 import { configuration } from '../pages/Configs';
 import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 
-export default function App({sessionInformation,onClickMenu, onClickDisconnect}) {
+export default function App({sessionInformation,onClickMenu, onClickDisconnect, titleItem = ""}) {
 
 
     //-- Navigation settings
@@ -67,10 +67,16 @@ export default function App({sessionInformation,onClickMenu, onClickDisconnect})
           i18nStrings={i18nStrings}
           identity={{
             href: '#',
-            title: configuration['apps-settings']['application-title'] + " Solution"
+            title: configuration['apps-settings']['application-title'] + " Solution " 
           }}
           
           utilities={[
+            {
+              type: "button",
+              text: titleItem,
+              href: "#",
+              external: false
+            },
             {
               type: 'button',
               iconName: 'notification',

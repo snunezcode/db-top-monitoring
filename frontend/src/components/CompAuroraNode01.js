@@ -488,7 +488,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                      <CompMetric04
-                        value={nodeStats.questions}
+                        value={nodeStats.questions || 0}
                         precision={0
                             
                         }
@@ -504,7 +504,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={nodeStats.objMetric.getValue('Threads_connected')}
+                        value={nodeStats.objMetric.getValue('Threads_connected') || 0}
                         title={""}
                         precision={0}
                         format={3}
@@ -514,7 +514,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={nodeStats.objMetric.getValue('Threads_running')}
+                        value={nodeStats.objMetric.getValue('Threads_running') || 0}
                         title={""}
                         precision={0}
                         format={3}
@@ -524,7 +524,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={nodeStats.cpu}
+                        value={nodeStats.cpu || 0}
                         title={""}
                         precision={2}
                         format={1}
@@ -534,7 +534,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={nodeStats.memory}
+                        value={nodeStats.memory || 0}
                         title={""}
                         precision={0}
                         format={2}
@@ -544,7 +544,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={nodeStats.ioreads + nodeStats.iowrites}
+                        value={ (nodeStats.ioreads + nodeStats.iowrites) || 0}
                         title={""}
                         precision={0}
                         format={3}
@@ -554,7 +554,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={ (nodeStats.netin + nodeStats.netout) }
+                        value={ (nodeStats.netin + nodeStats.netout) || 0}
                         title={""}
                         precision={0}
                         format={2}
@@ -574,7 +574,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                             <tr>  
                                 <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.questions}
+                                            value={nodeStats.questions || 0}
                                             title={"Questions/sec"}
                                             precision={0}
                                             format={1}
@@ -653,7 +653,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.threadsRunning}
+                                            value={nodeStats.threadsRunning || 0}
                                             title={"ThreadsRunning"}
                                             precision={0}
                                             format={3}
@@ -703,7 +703,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.ioreads}
+                                            value={nodeStats.ioreads || 0}
                                             title={"IO Reads/sec"}
                                             precision={0}
                                             format={1}
@@ -713,7 +713,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.iowrites}
+                                            value={nodeStats.iowrites || 0}
                                             title={"IO Writes/sec"}
                                             precision={0}
                                             format={1}
@@ -723,7 +723,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.netin}
+                                            value={nodeStats.netin || 0}
                                             title={"Network-In"}
                                             precision={0}
                                             format={2}
@@ -733,7 +733,7 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                     </td>
                                     <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                         <CompMetric01 
-                                            value={nodeStats.netout}
+                                            value={nodeStats.netout || 0}
                                             title={"Network-Out"}
                                             precision={0}
                                             format={2}

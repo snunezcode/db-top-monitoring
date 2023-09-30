@@ -1,6 +1,7 @@
 // AWS API Variables
 const fs = require('fs');
 var configData = JSON.parse(fs.readFileSync('./aws-exports.json'));
+var nodeCatalog = JSON.parse(fs.readFileSync('./aws-node-types.json'));
 
 // API Application Variables
 const express = require('express');
@@ -32,9 +33,12 @@ app.use(csrfProtection);
 var AWS = require('aws-sdk');
 AWS.config.update({region: configData.aws_region});
 
-var rds = new AWS.RDS();
-var cloudwatch = new AWS.CloudWatch();
+var rds = new AWS.RDS({region: configData.aws_region});
+var cloudwatch = new AWS.CloudWatch({region: configData.aws_region, apiVersion: '2010-08-01'});
 var cloudwatchlogs = new AWS.CloudWatchLogs();
+var docDB = new AWS.DocDB({region: configData.aws_region});
+            
+
 
 
 // Security Variables
@@ -96,9 +100,41 @@ var nodeType = {
     
 };
 
+
+
 // DocumentDB Variables
 const { MongoClient } = require("mongodb");
 var docdb = {};
+var documentDBCluster = {};
+
+var nodeTypeDocumentDB = {
+        name : "",
+        cpu: 0,
+        memory: 0,
+        ioreads: 0,
+        iowrites: 0,
+        netin: 0,
+        netout: 0,
+        connectionsCurrent : 0,
+        connectionsAvailable : 0,
+        connectionsCreated : 0,
+        opsInsert : 0,
+        opsQuery : 0,
+        opsUpdate : 0,
+        opsDelete : 0,
+        opsGetmore : 0,
+        opsCommand : 0,
+        docsDeleted : 0,
+        docsInserted : 0,
+        docsReturned : 0,
+        docsUpdated : 0,
+        transactionsActive : 0,
+        transactionsCommited : 0,
+        transactionsAborted : 0,
+        transactionsStarted : 0,
+        timestamp : 0,
+};
+
 
 // Startup - Download PEMs Keys
 gatherPemKeys(issCognitoIdp);
@@ -123,7 +159,7 @@ class classMetric {
                     
                     arrayMetrics.forEach(metric => {
                     
-                        this.dataHistory =  {...this.dataHistory, [metric.name]: { name : metric.name, history : metric.history, data : Array(metric.history).fill(null) } }
+                        this.dataHistory =  {...this.dataHistory, [metric.name]: { name : metric.name, history : metric.history, data : Array(metric.history).fill(null), timestamp: "" } }
                         
                     });
                     
@@ -188,6 +224,16 @@ class classMetric {
           addPropertyValue (propertyName,propertyValue){
                   this.dataHistory[propertyName].data.push(propertyValue);
                   this.dataHistory[propertyName].data = this.dataHistory[propertyName].data.slice(this.dataHistory[propertyName].data.length-this.dataHistory[propertyName].history);
+                  
+          }
+          
+          addPropertyValueWithTimestamp (propertyName,propertyValue,propertyTimestamp){
+              
+                    if ( this.dataHistory[propertyName].timestamp != propertyTimestamp){
+                        this.dataHistory[propertyName].data.push(propertyValue);
+                        this.dataHistory[propertyName].data = this.dataHistory[propertyName].data.slice(this.dataHistory[propertyName].data.length-this.dataHistory[propertyName].history);
+                        this.dataHistory[propertyName].timestamp = propertyTimestamp;
+                    }
                   
           }
           
@@ -1202,7 +1248,8 @@ async function openRedisElasticConnectionCluster(req, res) {
                                                                 nodeId : nodeItem.CacheClusterId,
                                                                 endPoint : endPoint,
                                                                 port : nodePort,
-                                                                nodeUid : nodeUid
+                                                                nodeUid : nodeUid,
+                                                                nodeType : rg['CacheNodeType']
                                                                 });
                                                 
                                                 nodeUid ++;
@@ -1232,7 +1279,8 @@ async function openRedisElasticConnectionCluster(req, res) {
                                                                 nodeId : nodeItem.CacheClusterId,
                                                                 endPoint : nodeItem['ReadEndpoint']['Address'],
                                                                 port : nodePort,
-                                                                nodeUid : nodeUid
+                                                                nodeUid : nodeUid,
+                                                                nodeType : rg['CacheNodeType']
                                                                 });
                                                 
                                                 nodeUid++;
@@ -1301,7 +1349,8 @@ async function openRedisMemoryDBConnectionCluster(req, res) {
                                                                 nodeId : node['Name'],
                                                                 endPoint : node['Endpoint']['Address'],
                                                                 port : nodePort,
-                                                                nodeUid : nodeUid
+                                                                nodeUid : nodeUid,
+                                                                nodeType : rg['NodeType']
                                                                 });
                                                 
                                         nodeUid ++;
@@ -1401,6 +1450,7 @@ async function openRedisConnectionNode(node){
                                                                                                                 {name : "memory", history : 20 },
                                                                                                                 {name : "netin", history : 20 },
                                                                                                                 {name : "netout", history : 20 },
+                                                                                                                {name : "network", history : 20 },
                                                                                                                 {name : "connectedClients", history : 20 },
                                                                                                                 {name : "operations", history : 20 },
                                                                                                                 {name : "getCalls", history : 20 },
@@ -1410,8 +1460,19 @@ async function openRedisConnectionNode(node){
                                                                                                                 {name : "keyspaceHits", history : 20 },
                                                                                                                 {name : "keyspaceMisses", history : 20 },
                                                                                                                 {name : "cacheHitRate", history : 20 }
-                                                                                                ]
-                                                                                            ) ;
+                                                                                                                ]
+                                                                        );
+                var nodeNetworkRate = 0;
+                try {
+                        nodeNetworkRate = nodeCatalog[node.nodeType];
+                }
+                catch {
+                    nodeNetworkRate = 0;
+                }
+                
+                dbRedisCluster[connectionId][clusterId][instanceId]["property"] = function(){};
+                dbRedisCluster[connectionId][clusterId][instanceId]["property"] = { nodeType : node.nodeType, nodeNetworkRate : nodeNetworkRate};
+                
                 
                 dbRedisCluster[connectionId][clusterId][instanceId]["node"].newSnapshot(nodeType,timeNow.getTime());
                 dbRedisCluster[connectionId][clusterId][instanceId]["connection"].on('error', err => {       
@@ -1604,52 +1665,66 @@ async function gatherStatsRedisCluster(req, res) {
                 for (let nodeId of Object.keys(nodes)) {
                         if (nodeId != "cluster" ) {
                             
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('cpu',(dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("cpuUser") * 100 ) +  (dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("cpuSys") * 100 ));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('memory',(dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryUsed")/dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryTotal") ) * 100);
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('netin',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netIn") * 1024);
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('netout',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netOut") * 1024);
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('connectedClients',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("connectedClients"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('operations',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("operations"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('getCalls',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("getCalls"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('setCalls',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("setCalls"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('getLatency',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("getUsec") / dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("getCalls"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('setLatency',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("setUsec") / dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("setCalls"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('keyspaceHits',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceHits"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('keyspaceMisses',dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceMisses"));
-                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('cacheHitRate',(dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceHits") /
-                                                                                                                    ( dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceHits") + dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceMisses"))
+                            var currentNode = dbRedisCluster[connectionId][clusterId][nodeId]["node"];
+                            var nodeNetworkRate = dbRedisCluster[connectionId][clusterId][nodeId]["property"]['nodeNetworkRate'];
+                            
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('cpu',(currentNode.getDeltaByIndex("cpuUser") * 100 ) +  (currentNode.getDeltaByIndex("cpuSys") * 100 ));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('memory',(currentNode.getValueByIndex("memoryUsed")/currentNode.getValueByIndex("memoryTotal") ) * 100);
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('netin',currentNode.getValueByIndex("netIn") * 1024);
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('netout',currentNode.getValueByIndex("netOut") * 1024);
+                            
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('network',
+                                                                                                         ( 
+                                                                                                            ( 
+                                                                                                                (currentNode.getValueByIndex("netOut") + currentNode.getValueByIndex("netIn") ) * 1024 
+                                                                                                            ) / nodeNetworkRate 
+                                                                                                         ) * 100
+                                                                                                    );
+                            
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('connectedClients',currentNode.getValueByIndex("connectedClients"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('operations',currentNode.getDeltaByIndex("getCalls") + currentNode.getDeltaByIndex("setCalls"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('getCalls',currentNode.getDeltaByIndex("getCalls"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('setCalls',currentNode.getDeltaByIndex("setCalls"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('getLatency',currentNode.getDeltaByIndex("getUsec") / currentNode.getDeltaByIndex("getCalls"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('setLatency',currentNode.getDeltaByIndex("setUsec") / currentNode.getDeltaByIndex("setCalls"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('keyspaceHits',currentNode.getDeltaByIndex("keyspaceHits"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('keyspaceMisses',currentNode.getDeltaByIndex("keyspaceMisses"));
+                            dbRedisCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('cacheHitRate',(currentNode.getDeltaByIndex("keyspaceHits") /
+                                                                                                                    ( currentNode.getDeltaByIndex("keyspaceHits") + currentNode.getDeltaByIndex("keyspaceMisses"))
                                                                                                                     ) * 100);
                             
                             
                             
                             var nodeStats = {
-                                    name : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getObjectName(),
-                                    nodeId : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getObjectId(),
-                                    role : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("role"),
-                                    cpu: (dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("cpuUser") * 100 ) +  (dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("cpuSys") * 100 ),
-                                    memory: (dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryUsed")/dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryTotal") ) * 100,
-                                    memoryUsed: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryUsed"),
-                                    memoryTotal: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryTotal"),
-                                    operations: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("operations"),
-                                    getCalls: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("getCalls"),
-                                    setCalls: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("setCalls"),
-                                    connectedClients: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("connectedClients"),
-                                    getLatency: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("getUsec") / dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("getCalls"),
-                                    setLatency: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("setUsec") / dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("setCalls"),
-                                    keyspaceHits: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceHits"),
-                                    keyspaceMisses: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceMisses"),
-                                    cacheHitRate: (dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceHits") /
-                                                    ( dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceHits") + dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("keyspaceMisses"))
+                                    name : currentNode.getObjectName(),
+                                    nodeId : currentNode.getObjectId(),
+                                    role : currentNode.getValueByIndex("role"),
+                                    cpu: (currentNode.getDeltaByIndex("cpuUser") * 100 ) +  (currentNode.getDeltaByIndex("cpuSys") * 100 ),
+                                    memory: (currentNode.getValueByIndex("memoryUsed")/currentNode.getValueByIndex("memoryTotal") ) * 100,
+                                    memoryUsed: currentNode.getValueByIndex("memoryUsed"),
+                                    memoryTotal: currentNode.getValueByIndex("memoryTotal"),
+                                    operations: currentNode.getDeltaByIndex("getCalls") + currentNode.getDeltaByIndex("setCalls"),
+                                    getCalls: currentNode.getDeltaByIndex("getCalls"),
+                                    setCalls: currentNode.getDeltaByIndex("setCalls"),
+                                    connectedClients: currentNode.getValueByIndex("connectedClients"),
+                                    getLatency: currentNode.getDeltaByIndex("getUsec") / currentNode.getDeltaByIndex("getCalls"),
+                                    setLatency: currentNode.getDeltaByIndex("setUsec") / currentNode.getDeltaByIndex("setCalls"),
+                                    keyspaceHits: currentNode.getDeltaByIndex("keyspaceHits"),
+                                    keyspaceMisses: currentNode.getDeltaByIndex("keyspaceMisses"),
+                                    cacheHitRate: (currentNode.getDeltaByIndex("keyspaceHits") /
+                                                    ( currentNode.getDeltaByIndex("keyspaceHits") + currentNode.getDeltaByIndex("keyspaceMisses"))
                                                    ) * 100,
-                                    netIn: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netIn") * 1024,
-                                    netOut: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netOut") * 1024,
-                                    connectionsTotal: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("connectionsTotal"),
-                                    commands: dbRedisCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("commands"),
+                                    netIn: currentNode.getValueByIndex("netIn") * 1024,
+                                    netOut: currentNode.getValueByIndex("netOut") * 1024,
+                                    network : ( ( ( currentNode.getValueByIndex("netIn") + currentNode.getValueByIndex("netOut")) * 1024 ) / nodeNetworkRate ) * 100,
+                                    connectionsTotal: currentNode.getDeltaByIndex("connectionsTotal"),
+                                    commands: currentNode.getDeltaByIndex("commands"),
                                     history : {
                                             cpu : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('cpu'),
                                             memory : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('memory'),
                                             netin : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netin'),
                                             netout : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netout'),
+                                            network : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('network'),
                                             connectedClients : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('connectedClients'),
                                             operations : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('operations'),
                                             getCalls : dbRedisCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('getCalls'),
@@ -1663,26 +1738,28 @@ async function gatherStatsRedisCluster(req, res) {
                             };
                             
                             
-                            if ( dbRedisCluster[connectionId][clusterId][nodeId]["node"].getObjectId() >= params.beginItem &&  dbRedisCluster[connectionId][clusterId][nodeId]["node"].getObjectId() < params.endItem )
+                            if ( currentNode.getObjectId() >= params.beginItem &&  currentNode.getObjectId() < params.endItem )
                                 nodesInfo.push(nodeStats);
                             
-                            clusterInfo.cpu = clusterInfo.cpu +  nodeStats.cpu;
-                            clusterInfo.memory = clusterInfo.memory +  nodeStats.memory;
-                            clusterInfo.memoryUsed = clusterInfo.memoryUsed +  nodeStats.memoryUsed;
-                            clusterInfo.memoryTotal = clusterInfo.memoryTotal +  nodeStats.memoryTotal;
-                            clusterInfo.operations = clusterInfo.operations +  nodeStats.operations;
-                            clusterInfo.getCalls = clusterInfo.getCalls +  nodeStats.getCalls;
-                            clusterInfo.setCalls = clusterInfo.setCalls +  nodeStats.setCalls;
-                            clusterInfo.connectedClients = clusterInfo.connectedClients +  nodeStats.connectedClients;
-                            clusterInfo.getLatency = clusterInfo.getLatency +  nodeStats.getLatency;
-                            clusterInfo.setLatency = clusterInfo.setLatency +  nodeStats.setLatency;
-                            clusterInfo.keyspaceHits = clusterInfo.keyspaceHits +  nodeStats.keyspaceHits;
-                            clusterInfo.keyspaceMisses = clusterInfo.keyspaceMisses +  nodeStats.keyspaceMisses;
-                            clusterInfo.cacheHitRate = clusterInfo.cacheHitRate +  nodeStats.cacheHitRate;
-                            clusterInfo.netIn = clusterInfo.netIn +  nodeStats.netIn;
-                            clusterInfo.netOut = clusterInfo.netOut +  nodeStats.netOut;
-                            clusterInfo.connectionsTotal = clusterInfo.connectionsTotal +  nodeStats.connectionsTotal;
-                            clusterInfo.commands = clusterInfo.commands +  nodeStats.commands;
+                            
+                            clusterInfo.cpu = clusterInfo.cpu +  ( nodeStats.cpu || 0 );
+                            clusterInfo.memory = clusterInfo.memory +  ( nodeStats.memory || 0 );
+                            clusterInfo.memoryUsed = clusterInfo.memoryUsed +  ( nodeStats.memoryUsed || 0 );
+                            clusterInfo.memoryTotal = clusterInfo.memoryTotal +  ( nodeStats.memoryTotal || 0 );
+                            clusterInfo.operations = clusterInfo.operations +  ( nodeStats.operations || 0 );
+                            clusterInfo.getCalls = clusterInfo.getCalls +  ( nodeStats.getCalls || 0 );
+                            clusterInfo.setCalls = clusterInfo.setCalls +  ( nodeStats.setCalls || 0 );
+                            clusterInfo.connectedClients = clusterInfo.connectedClients +  ( nodeStats.connectedClients || 0 );
+                            clusterInfo.getLatency = clusterInfo.getLatency +  ( nodeStats.getLatency || 0 );
+                            clusterInfo.setLatency = clusterInfo.setLatency +  ( nodeStats.setLatency || 0 );
+                            clusterInfo.keyspaceHits = clusterInfo.keyspaceHits +  ( nodeStats.keyspaceHits || 0 );
+                            clusterInfo.keyspaceMisses = clusterInfo.keyspaceMisses +  ( nodeStats.keyspaceMisses || 0 );
+                            clusterInfo.cacheHitRate = clusterInfo.cacheHitRate +  ( nodeStats.cacheHitRate || 0 );
+                            clusterInfo.netIn = clusterInfo.netIn +  ( nodeStats.netIn || 0 );
+                            clusterInfo.netOut = clusterInfo.netOut +  ( nodeStats.netOut || 0 );
+                            clusterInfo.network = clusterInfo.network +  ( nodeStats.network || 0 );
+                            clusterInfo.connectionsTotal = clusterInfo.connectionsTotal +  ( nodeStats.connectionsTotal || 0 );
+                            clusterInfo.commands = clusterInfo.commands +  ( nodeStats.commands || 0 );
                                     
                             totalNodes++;
                         
@@ -1694,6 +1771,7 @@ async function gatherStatsRedisCluster(req, res) {
                 
                 clusterInfo.cpu = clusterInfo.cpu / totalNodes;
                 clusterInfo.memory = clusterInfo.memory / totalNodes;
+                clusterInfo.network = clusterInfo.network / totalNodes;
                 clusterInfo.getLatency = clusterInfo.getLatency / totalNodes;
                 clusterInfo.setLatency = clusterInfo.setLatency / totalNodes;
                 clusterInfo.cacheHitRate = clusterInfo.cacheHitRate / totalNodes;
@@ -1790,6 +1868,37 @@ async function authDocumentDBConnection(req, res) {
                     await client.db("admin").command({ ping: 1 });
     
                     docdb["$" + session_id] = {}
+                    
+                    documentDBCluster["$" + session_id] = {}
+                    documentDBCluster["$" + session_id][ "$" + params.clusterId] = {};
+                    documentDBCluster["$" + session_id][ "$" + params.clusterId]["cluster"] = new classMetric(
+                                                                                                            0,
+                                                                                                            "cluster",[
+                                                                                                                { name: "cpu", history : 20 },
+                                                                                                                { name: "memory", history : 20 },
+                                                                                                                { name: "ioreads", history : 20 },
+                                                                                                                { name: "iowrites", history : 20 },
+                                                                                                                { name: "netin", history : 20 },
+                                                                                                                { name: "netout", history : 20 },
+                                                                                                                { name: "connectionsCurrent", history : 20 },
+                                                                                                                { name: "connectionsAvailable", history : 20 },
+                                                                                                                { name: "connectionsCreated", history : 20 },
+                                                                                                                { name: "opsInsert", history : 20 },
+                                                                                                                { name: "opsQuery", history : 20 },
+                                                                                                                { name: "opsUpdate", history : 20 },
+                                                                                                                { name: "opsDelete", history : 20 },
+                                                                                                                { name: "opsGetmore", history : 20 },
+                                                                                                                { name: "opsCommand", history : 20 },
+                                                                                                                { name: "docsDeleted", history : 20 },
+                                                                                                                { name: "docsInserted", history : 20 },
+                                                                                                                { name: "docsReturned", history : 20 },
+                                                                                                                { name: "docsUpdated", history : 20 },
+                                                                                                            ]
+                                                                                            ) ;
+                    documentDBCluster["$" + session_id][ "$" + params.clusterId]["property"]  = function(){};
+                    documentDBCluster["$" + session_id][ "$" + params.clusterId]["property"]  = { clusterId: params.clusterId, timestamp : "" }
+                    
+                    
                     await client.close();
                     res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token });
                    
@@ -1807,14 +1916,13 @@ async function authDocumentDBConnection(req, res) {
 
 // DOCUMENTDB : API Cluster Stats - Single
 app.get("/api/documentdb/cluster/command/", getDocumentDBCommand);
-
 async function getDocumentDBCommand(req, res) {
     
     var params = req.query;
  
     try {
-        
-          const result = await docdb["$" + params.connectionId]["$" + params.instance]["connection"].db("admin").command(params.command);
+          
+          const result = await documentDBCluster["$" + params.connectionId]["$" + params.clusterId]["$" + params.instanceId]["connection"].db("admin").command(params.command);
           return res.status(200).send(result);
     
       } catch (error) {
@@ -1824,6 +1932,696 @@ async function getDocumentDBCommand(req, res) {
 }
 
 
+
+// DOCUMENTDB : Open Connection - DocumentDB Cluster 
+app.post("/api/documentdb/cluster/connection/open/", openDocumentDBConnectionCluster);
+async function openDocumentDBConnectionCluster(req, res) {
+ 
+    var params = req.body.params;
+    
+    try {
+        
+
+            // Gather Roles
+            var parameterCluster = {
+                DBClusterIdentifier: params.clusterId,
+                MaxRecords: 100
+            };
+
+            var clusterData = await docDB.describeDBClusters(parameterCluster).promise();
+            var roleType = [];
+            
+            clusterData['DBClusters'][0]['DBClusterMembers'].forEach(function(instance) {
+                roleType[instance['DBInstanceIdentifier']] =  ( String(instance['IsClusterWriter']) == "true" ? "P" : "R" );
+            });
+            
+            
+            
+            
+            // Gather Instances
+            var parameter = {
+                MaxRecords: 100,
+                Filters: [
+                        {
+                          Name: 'db-cluster-id',
+                          Values: [params.clusterId]
+                        },
+                ],
+            };
+
+            
+            var Instancedata = await rds.describeDBInstances(parameter).promise();
+            var nodeList = "";
+            
+            if (Instancedata.DBInstances.length > 0) {
+                        
+                            var clusterNodes = Instancedata.DBInstances;
+                            var nodeUid = 0;
+                          
+                            clusterNodes.forEach(function(node) {
+                                
+                                openDocumentDBConnectionNode({
+                                                connectionId : params.connectionId,
+                                                clusterId : params.clusterId,
+                                                instanceId : node['DBInstanceIdentifier'],
+                                                host : node['Endpoint']['Address'],
+                                                port : node['Endpoint']['Port'],
+                                                username : params.username,
+                                                password : params.password,
+                                                nodeUid : nodeUid,
+                                                resourceId : node['DbiResourceId'],
+                                                monitoring : ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
+                                                role : roleType[node['DBInstanceIdentifier']],
+                                                size : node['DBInstanceClass'],
+                                                az : node['AvailabilityZone'],
+                                                status : node['DBInstanceStatus'],
+                                                });
+                                
+                                                                
+                                nodeUid++;
+                                nodeList = nodeList + node['DBInstanceIdentifier']  + "," 
+                        
+                            });
+                            
+                            res.status(200).send({ data : "Connection Request Opened", nodes : nodeList.slice(0, -1)});
+                            
+                              
+            }
+                    
+            
+    }
+    catch (error) {
+        console.log(error)
+        res.status(500).send(error);
+    }
+    
+    
+    
+}
+
+
+async function openDocumentDBConnectionNode(node) {
+
+    try {
+        
+            const uriDocDB = "mongodb://" + node.username  + ":" + node.password +"@" + node.host + ":" + node.port +"/?tls=true&tlsCAFile=global-bundle.pem&retryWrites=false&directConnection=true";
+            
+            var connectionId = "$" + node.connectionId;
+            var clusterId = "$" + node.clusterId;
+            var instanceId = "$" + node.instanceId;
+            
+            
+            if (!(instanceId in documentDBCluster[connectionId][clusterId])) {
+            
+                try {
+                    
+                    var timeNow = new Date();
+                
+                    documentDBCluster[connectionId][clusterId][instanceId] = function(){};
+                    
+                    
+                    documentDBCluster[connectionId][clusterId][instanceId]["connection"] = function(){};
+                    documentDBCluster[connectionId][clusterId][instanceId]["connection"] = new MongoClient(uriDocDB);
+                    
+                    documentDBCluster[connectionId][clusterId][instanceId]["node"] = function(){};
+                    documentDBCluster[connectionId][clusterId][instanceId]["node"] = new classMetric(
+                                                                                                    node.nodeUid,
+                                                                                                    node.nodeId,[
+                                                                                                                    { name: "cpu", history : 20 },
+                                                                                                                    { name: "memory", history : 20 },
+                                                                                                                    { name: "ioreads", history : 20 },
+                                                                                                                    { name: "iowrites", history : 20 },
+                                                                                                                    { name: "netin", history : 20 },
+                                                                                                                    { name: "netout", history : 20 },
+                                                                                                                    { name: "connectionsCurrent", history : 20 },
+                                                                                                                    { name: "connectionsAvailable", history : 20 },
+                                                                                                                    { name: "connectionsCreated", history : 20 },
+                                                                                                                    { name: "opsInsert", history : 20 },
+                                                                                                                    { name: "opsQuery", history : 20 },
+                                                                                                                    { name: "opsUpdate", history : 20 },
+                                                                                                                    { name: "opsDelete", history : 20 },
+                                                                                                                    { name: "opsGetmore", history : 20 },
+                                                                                                                    { name: "opsCommand", history : 20 },
+                                                                                                                    { name: "docsDeleted", history : 20 },
+                                                                                                                    { name: "docsInserted", history : 20 },
+                                                                                                                    { name: "docsReturned", history : 20 },
+                                                                                                                    { name: "docsUpdated", history : 20 },
+                                                                                                                    { name: "operations", history : 20 },
+                                                                                                                    { name: "docops", history : 20 },
+                                                                                                                    { name: "network", history : 20 },
+                                                                                                                    { name: "iops", history : 20 },
+                                                                                                    ]
+                                                                                                ) ;
+                    
+                    documentDBCluster[connectionId][clusterId][instanceId]["property"] = function(){};
+                    documentDBCluster[connectionId][clusterId][instanceId]["property"] = { 
+                                                                                            instanceId: node.instanceId, 
+                                                                                            resourceId : node.resourceId, 
+                                                                                            monitoring : node.monitoring, 
+                                                                                            size : node.size,
+                                                                                            az : node.az,
+                                                                                            status : node.status,
+                                                                                            role : node.role, 
+                                                                                            timestamp : ""
+                    }
+                    
+                    
+                    documentDBCluster[connectionId][clusterId][instanceId]["node"].newSnapshot(nodeTypeDocumentDB,timeNow.getTime());
+                
+                    await documentDBCluster[connectionId][clusterId][instanceId]["connection"].connect();
+                    await documentDBCluster[connectionId][clusterId][instanceId]["connection"].db("admin").command({ ping: 1 });
+                    
+                    console.log("DocumentDB Instance Connected : " + node.connectionId + " # " + node.clusterId + " # " + node.instanceId );
+                        
+                }
+                catch {
+                    
+                    console.log("DocumentDB Instance Connected with Errors : " + node.connectionId + " # " + node.clusterId + " # " + node.instanceId );
+                    
+                }
+                    
+            }
+            else {
+                console.log("Re-using - DocumentDB Instance connection : " + node.connectionId + " # " + node.clusterId + " # " + node.instanceId );
+                
+            }
+    
+        
+    }
+    catch (error) {
+        console.log(error)
+        
+    }}
+    
+
+
+// DOCUMENTDB : Request Update Stats per Cluster
+app.get("/api/documentdb/cluster/stats/update", updateStatsDocumentDBCluster);
+async function updateStatsDocumentDBCluster(req, res) {
+ 
+        try
+            {
+                var params = req.query;
+                
+                var nodes = documentDBCluster["$" + params.connectionId]["$" + params.clusterId];
+                for (let nodeId of Object.keys(nodes)) {
+                        if (nodeId != "cluster"  && nodeId != "property" ){
+                            updateStatsDocumentDBNode("$" + params.connectionId, "$" + params.clusterId, nodeId, nodes[nodeId]['property']['resourceId'], nodes[nodeId]['property']['monitoring'] );
+                        }
+                       
+                }
+                
+                res.status(200).send( {"result":"Cluster Update Stats Requested"});
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+
+async function updateStatsDocumentDBNode(connectionId,clusterId,nodeId, resourceId, monitoring) {
+    
+    
+    try
+    {
+            var timeNow = new Date();
+            
+            
+            //-- Current Operations
+            const currentOperations = await documentDBCluster[connectionId][clusterId][nodeId]["connection"].db("admin").command({ serverStatus: 1 });
+    
+            
+            //-- OS Metrics
+            const osMetrics = await gatherDocumentDBOsMetrics({ resourceId : resourceId, instanceId : nodeId.substring(1), monitoring : monitoring });
+            documentDBCluster[connectionId][clusterId][nodeId]["node"].newSnapshot({
+                                                                                        cpu: osMetrics.cpu,
+                                                                                        cpuTimestamp: osMetrics.cpuTimestamp,
+                                                                                        memory: osMetrics.memory,
+                                                                                        memoryTimestamp: osMetrics.memoryTimestamp,
+                                                                                        ioreads: osMetrics.ioreads,
+                                                                                        ioreadsTimestamp: osMetrics.ioreadsTimestamp,
+                                                                                        iowrites: osMetrics.iowrites,
+                                                                                        iowritesTimestamp: osMetrics.iowritesTimestamp,
+                                                                                        netin: osMetrics.netin,
+                                                                                        netinTimestamp: osMetrics.netinTimestamp,
+                                                                                        netout: osMetrics.netout,
+                                                                                        netoutTimestamp: osMetrics.netoutTimestamp,
+                                                                                        connectionsCurrent : currentOperations['connections']['current'],
+                                                                                        connectionsAvailable : currentOperations['connections']['available'],
+                                                                                        connectionsCreated : currentOperations['connections']['totalCreated'],
+                                                                                        opsInsert : currentOperations['opcounters']['insert'],
+                                                                                        opsQuery : currentOperations['opcounters']['query'],
+                                                                                        opsUpdate : currentOperations['opcounters']['update'],
+                                                                                        opsDelete : currentOperations['opcounters']['delete'],
+                                                                                        opsGetmore : currentOperations['opcounters']['getmore'],
+                                                                                        opsCommand : currentOperations['opcounters']['command'],
+                                                                                        docsDeleted : currentOperations['metrics']['document']['deleted'],
+                                                                                        docsInserted : currentOperations['metrics']['document']['inserted'],
+                                                                                        docsReturned : currentOperations['metrics']['document']['returned'],
+                                                                                        docsUpdated : currentOperations['metrics']['document']['updated'],
+                                                                                        transactionsActive : currentOperations['transactions']['currentActive'],
+                                                                                        transactionsCommited : currentOperations['transactions']['totalCommitted'],
+                                                                                        transactionsAborted : currentOperations['transactions']['totalAborted'],
+                                                                                        transactionsStarted : currentOperations['transactions']['totalStarted']
+                                                                                    
+                                                                                },
+                                                                                timeNow.getTime());
+            
+            documentDBCluster[connectionId][clusterId][nodeId]["property"]["timestamp"] =  osMetrics.timestamp;
+            
+          
+          
+            
+    }
+    catch(err){
+                console.log(err);
+    }
+                
+}
+
+
+
+async function gatherDocumentDBOsMetrics(node){
+    
+    var nodeMetrics = { 
+                        cpu : 0, 
+                        cpuTimestamp : "",
+                        memory : 0, 
+                        memoryTimestamp : "",
+                        ioreads : 0, 
+                        ioreadsTimestamp : "",
+                        iowrites : 0, 
+                        iowritesTimestamp : "",
+                        netin : 0,
+                        netinTimestamp : "",
+                        netout : 0,
+                        netoutTimestamp : "",
+                        timestamp : ""
+    };
+    
+    try {
+            //-- OS Metrics
+            if ( node.monitoring == "em") {
+                
+                    var params_logs = {
+                        logStreamName: node.resourceId,
+                        limit: '1',
+                        logGroupName: 'RDSOSMetrics',
+                        startFromHead: false
+                    };
+                
+                    var data = await cloudwatchlogs.getLogEvents(parameter).promise();
+                    
+                    var message=JSON.parse(data.events[0].message);
+                            
+                    nodeMetrics.cpu = message.cpuUtilization.total;
+                    nodeMetrics.memory = message.memory.free;
+                    nodeMetrics.ioreads = message.diskIO[0].readIOsPS + message.diskIO[1].readIOsPS;
+                    nodeMetrics.iowrites = message.diskIO[0].writeIOsPS + message.diskIO[1].writeIOsPS;
+                    nodeMetrics.netin = message.network[0].rx;
+                    nodeMetrics.netout = message.network[0].tx;
+                        
+                        
+            }
+            else {
+                
+                    //-- Gather Metrics from CloudWatch
+                
+                    var dimension = [ { Name: "DBInstanceIdentifier", Value: node.instanceId } ];
+                    var metrics = [{
+                                        namespace : "AWS/DocDB",
+                                        metric : "CPUUtilization",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/DocDB",
+                                        metric : "FreeableMemory",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/DocDB",
+                                        metric : "ReadIOPS",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/DocDB",
+                                        metric : "WriteIOPS",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/DocDB",
+                                        metric : "NetworkReceiveThroughput",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/DocDB",
+                                        metric : "NetworkTransmitThroughput",
+                                        dimension : dimension
+                                    },
+                                ];
+          
+                    var dataQueries = [];
+                    var queryId = 0;
+                    metrics.forEach(function(item) {
+                        
+                        dataQueries.push({
+                                Id: "m0" + String(queryId),
+                                MetricStat: {
+                                    Metric: {
+                                        Namespace: item.namespace,
+                                        MetricName: item.metric,
+                                        Dimensions: item.dimension
+                                    },
+                                    Period: "60",
+                                    Stat: "Average"
+                                },
+                                Label: item.metric
+                        });
+                        
+                        queryId++;
+                        
+                    });
+                    
+                    var d_end_time = new Date();
+                    var d_start_time = new Date(d_end_time - ((3*1) * 60000) );
+                    var queryClw = {
+                        MetricDataQueries: dataQueries,
+                        "StartTime": d_start_time,
+                        "EndTime": d_end_time
+                    };
+                   
+                    var data = await cloudwatch.getMetricData(queryClw).promise();
+                    
+                    data.MetricDataResults.forEach(function(item) {
+                            
+                                    switch(item.Label){
+                                        
+                                        case "CPUUtilization":
+                                                nodeMetrics.cpu = item.Values[0];
+                                                nodeMetrics.cpuTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                        
+                                        case "FreeableMemory":
+                                                nodeMetrics.memory = item.Values[0];
+                                                nodeMetrics.memoryTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                                
+                                        case "ReadIOPS":
+                                                nodeMetrics.ioreads = item.Values[0];
+                                                nodeMetrics.ioreadsTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                        
+                                        case "WriteIOPS":
+                                                nodeMetrics.iowrites = item.Values[0];
+                                                nodeMetrics.iowritesTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                                
+                                        case "NetworkReceiveThroughput":
+                                                nodeMetrics.netin = item.Values[0];
+                                                nodeMetrics.netinTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                                
+                                        case "NetworkTransmitThroughput":
+                                                nodeMetrics.netout = item.Values[0];
+                                                nodeMetrics.netoutTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                            
+                                            
+                                            
+                                    }
+                                    nodeMetrics.timestamp = item.Timestamps[0];
+                                    
+                                
+                    });
+                            
+            }
+    }
+    catch(err){
+        
+        console.log(err);
+        
+    }
+    
+    return nodeMetrics;
+    
+        
+}
+
+// GENERAL : Compare Array Elements
+
+const timestampEqual =
+    arr => arr.every(v => v === arr[0]);
+    
+
+// DOCUMENTDB : Request Update Stats per Cluster
+app.get("/api/documentdb/cluster/stats/gather", gatherStatsDocumentDBCluster);
+async function gatherStatsDocumentDBCluster(req, res) {
+ 
+        try
+            {
+                
+                var params = req.query;
+                var connectionId = "$" + params.connectionId;
+                var clusterId = "$" + params.clusterId;
+                var nodes = documentDBCluster[connectionId][clusterId];
+                var clusterInfo = {
+                                    cpu: 0,
+                                    memory: 0,
+                                    ioreads: 0,
+                                    iowrites: 0,
+                                    netin: 0,
+                                    netout: 0,
+                                    connectionsCurrent : 0,
+                                    connectionsAvailable : 0,
+                                    connectionsCreated : 0,
+                                    opsInsert : 0,
+                                    opsQuery : 0,
+                                    opsUpdate : 0,
+                                    opsDelete : 0,
+                                    opsGetmore : 0,
+                                    opsCommand : 0,
+                                    docsDeleted : 0,
+                                    docsInserted : 0,
+                                    docsReturned : 0,
+                                    docsUpdated : 0,
+                                    transactionsActive : 0,
+                                    transactionsCommited : 0,
+                                    transactionsAborted : 0,
+                                    transactionsStarted : 0
+                                
+                };
+                
+                var timestampValues = [];
+                var nodesInfo = [];
+                var totalNodes = 0;
+                for (let nodeId of Object.keys(nodes)) {
+                        if (nodeId != "cluster" && nodeId != "property" ) {
+                            
+                                
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('cpu',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpu"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpuTimestamp"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('memory',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memory"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryTimestamp"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('ioreads',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreadsTimestamp"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('iowrites',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowritesTimestamp"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('netin',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netinTimestamp"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('netout',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netoutTimestamp"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('network',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout") + documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netoutTimestamp"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('iops',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites") + documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"), documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowritesTimestamp"));
+                            
+                            
+                            
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('connectionsCurrent',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("connectionsCurrent"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('connectionsAvailable',documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("connectionsAvailable"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('connectionsCreated',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("connectionsCreated"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('opsInsert',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsInsert"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('opsQuery',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsQuery"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('opsUpdate',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsUpdate"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('opsDelete',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsDelete"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('opsGetmore',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsGetmore"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('opsCommand',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsCommand"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('docsDeleted',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsDeleted"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('docsInserted',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsInserted"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('docsReturned',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsReturned"));
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('docsUpdated',documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsUpdated"));
+                            
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('operations',
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsQuery") +
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsUpdate") +
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsDelete") +
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsInsert") +
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsCommand") 
+                                                                                                        );
+                            
+                            documentDBCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('docops',
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsDeleted") +
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsInserted") +
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsReturned") +
+                                                                                                        documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsUpdated")
+                                                                                                        );
+                            
+                                                                                                                
+                            
+                            
+                            var nodeStats = {
+                                    name : documentDBCluster[connectionId][clusterId][nodeId]["property"]["instanceId"],
+                                    role : documentDBCluster[connectionId][clusterId][nodeId]["property"]["role"],
+                                    size : documentDBCluster[connectionId][clusterId][nodeId]["property"]["size"],
+                                    az : documentDBCluster[connectionId][clusterId][nodeId]["property"]["az"],
+                                    status : documentDBCluster[connectionId][clusterId][nodeId]["property"]["status"],
+                                    nodeId : documentDBCluster[connectionId][clusterId][nodeId]["node"].getObjectId(),
+                                    cpu : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpu"),
+                                    memory : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memory"),
+                                    ioreads : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"),
+                                    iowrites : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"),
+                                    netin : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"),
+                                    netout : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"),
+                                    connectionsCurrent : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("connectionsCurrent"),
+                                    connectionsAvailable : documentDBCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("connectionsAvailable"),
+                                    connectionsCreated : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("connectionsCreated"),
+                                    opsInsert : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsInsert"),
+                                    opsQuery : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsQuery"),
+                                    opsUpdate : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsUpdate"),
+                                    opsDelete : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsDelete"),
+                                    opsGetmore : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsGetmore"),
+                                    opsCommand : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("opsCommand"),
+                                    docsDeleted : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsDeleted"),
+                                    docsInserted : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsInserted"),
+                                    docsReturned : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsReturned"),
+                                    docsUpdated : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("docsUpdated"),
+                                    transactionsActive : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("transactionsActive"),
+                                    transactionsCommited : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("transactionsCommited"),
+                                    transactionsAborted : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("transactionsAborted"),
+                                    transactionsStarted : documentDBCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("transactionsStarted"),
+                                    history : {
+                                            cpu : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('cpu'),
+                                            memory : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('memory'),
+                                            ioreads : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('ioreads'),
+                                            iowrites : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('iowrites'),
+                                            netin : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netin'),
+                                            netout : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netout'),
+                                            connectionsCurrent : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('connectionsCurrent'),
+                                            connectionsAvailable : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('connectionsAvailable'),
+                                            connectionsCreated : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('connectionsCreated'),
+                                            opsInsert : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('opsInsert'),
+                                            opsQuery : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('opsQuery'),
+                                            opsUpdate : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('opsUpdate'),
+                                            opsDelete : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('opsDelete'),
+                                            opsGetmore : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('opsGetmore'),
+                                            opsCommand : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('opsCommand'),
+                                            docsDeleted : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('docsDeleted'),
+                                            docsInserted : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('docsInserted'),
+                                            docsReturned : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('docsReturned'),
+                                            docsUpdated : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('docsUpdated'),
+                                            network : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('network'),
+                                            iops : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('iops'),
+                                            operations : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('operations'),
+                                            docops : documentDBCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('docops'),
+                                    }
+                            };
+                            
+                            
+                            if ( documentDBCluster[connectionId][clusterId][nodeId]["node"].getObjectId() >= params.beginItem &&  documentDBCluster[connectionId][clusterId][nodeId]["node"].getObjectId() < params.endItem )
+                                nodesInfo.push(nodeStats);
+                            
+                            clusterInfo.cpu = clusterInfo.cpu +  nodeStats.cpu;
+                            clusterInfo.memory = clusterInfo.memory +  nodeStats.memory;
+                            clusterInfo.ioreads = clusterInfo.ioreads +  nodeStats.ioreads;
+                            clusterInfo.iowrites = clusterInfo.iowrites +  nodeStats.iowrites;
+                            clusterInfo.netin = clusterInfo.netin +  nodeStats.netin;
+                            clusterInfo.netout = clusterInfo.netout +  nodeStats.netout;
+                            clusterInfo.connectionsCurrent = clusterInfo.connectionsCurrent +  nodeStats.connectionsCurrent;
+                            clusterInfo.connectionsAvailable = clusterInfo.connectionsAvailable +  nodeStats.connectionsAvailable;
+                            clusterInfo.connectionsCreated = clusterInfo.connectionsCreated +  nodeStats.connectionsCreated;
+                            clusterInfo.opsInsert = clusterInfo.opsInsert +  nodeStats.opsInsert;
+                            clusterInfo.opsQuery = clusterInfo.opsQuery +  nodeStats.opsQuery;
+                            clusterInfo.opsUpdate = clusterInfo.opsUpdate +  nodeStats.opsUpdate;
+                            clusterInfo.opsDelete = clusterInfo.opsDelete +  nodeStats.opsDelete;
+                            clusterInfo.opsGetmore = clusterInfo.opsGetmore +  nodeStats.opsGetmore;
+                            clusterInfo.opsCommand = clusterInfo.opsCommand +  nodeStats.opsCommand;
+                            clusterInfo.docsDeleted = clusterInfo.docsDeleted +  nodeStats.docsDeleted;
+                            clusterInfo.docsInserted = clusterInfo.docsInserted +  nodeStats.docsInserted;
+                            clusterInfo.docsReturned = clusterInfo.docsReturned +  nodeStats.docsReturned;
+                            clusterInfo.docsUpdated = clusterInfo.docsUpdated +  nodeStats.docsUpdated;
+                            clusterInfo.transactionsActive = clusterInfo.transactionsActive +  nodeStats.transactionsActive;
+                            clusterInfo.transactionsCommited = clusterInfo.transactionsCommited +  nodeStats.transactionsCommited;
+                            clusterInfo.transactionsAborted = clusterInfo.transactionsAborted +  nodeStats.transactionsAborted;
+                            clusterInfo.transactionsStarted = clusterInfo.transactionsStarted +  nodeStats.transactionsStarted;
+                            totalNodes++;
+                            
+                            timestampValues.push(String(documentDBCluster[connectionId][clusterId][nodeId]["property"]["timestamp"]));
+                            
+                        }
+                        
+                       
+                }
+                
+                clusterInfo.cpu = clusterInfo.cpu / totalNodes;
+                clusterInfo.memory = clusterInfo.memory / totalNodes;
+                
+                if ( timestampEqual(timestampValues) && (documentDBCluster[connectionId][clusterId]["property"]["timestamp"] != timestampValues[0] ) ){
+            
+                    documentDBCluster[connectionId][clusterId]["property"]["timestamp"] = timestampValues[0];
+                    documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('cpu',clusterInfo.cpu);
+                    documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('memory',clusterInfo.memory);
+                    documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('ioreads',clusterInfo.ioreads);
+                    documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('iowrites',clusterInfo.iowrites);
+                    documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('netin',clusterInfo.netin);
+                    documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('netout',clusterInfo.netout);
+        
+                }   
+        
+                
+                
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('connectionsCurrent',clusterInfo.connectionsCurrent);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('connectionsAvailable',clusterInfo.connectionsAvailable);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('connectionsCreated',clusterInfo.connectionsCreated);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('opsInsert',clusterInfo.opsInsert);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('opsQuery',clusterInfo.opsQuery);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('opsUpdate',clusterInfo.opsUpdate);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('opsDelete',clusterInfo.opsDelete);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('opsGetmore',clusterInfo.opsGetmore);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('opsCommand',clusterInfo.opsCommand);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('docsDeleted',clusterInfo.docsDeleted);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('docsInserted',clusterInfo.docsInserted);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('docsReturned',clusterInfo.docsReturned);
+                documentDBCluster[connectionId][clusterId]["cluster"].addPropertyValue('docsUpdated',clusterInfo.docsUpdated);
+                
+                res.status(200).send( { 
+                                        cluster : {
+                                                    ...clusterInfo,
+                                                    history : {
+                                                                cpu: documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('cpu'),
+                                                                memory: documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('memory'),
+                                                                ioreads: documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('ioreads'),
+                                                                iowrites: documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('iowrites'),
+                                                                netin: documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('netin'),
+                                                                netout: documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('netout'),
+                                                                connectionsCurrent : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('connectionsCurrent'),
+                                                                connectionsAvailable : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('connectionsAvailable'),
+                                                                connectionsCreated : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('connectionsCreated'),
+                                                                opsInsert : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('opsInsert'),
+                                                                opsQuery : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('opsQuery'),
+                                                                opsUpdate : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('opsUpdate'),
+                                                                opsDelete : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('opsDelete'),
+                                                                opsGetmore : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('opsGetmore'),
+                                                                opsCommand : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('opsCommand'),
+                                                                docsDeleted : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('docsDeleted'),
+                                                                docsInserted : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('docsInserted'),
+                                                                docsReturned : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('docsReturned'),
+                                                                docsUpdated : documentDBCluster[connectionId][clusterId]["cluster"].getPropertyValues('docsUpdated'),
+                                    
+                                                    }
+                                        },
+                                        nodes : nodesInfo 
+                });
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+/*
 // DOCUMENTDB : Open Connection - Single
 app.post("/api/documentdb/connection/open/", openDocumentDBConnectionSingle);
 
@@ -1873,31 +2671,38 @@ async function openDocumentDBConnectionSingle(req, res) {
     }}
     
 
-
+*/
 
 
 // DOCUMENTDB : Close Connection
-app.get("/api/documentdb/connection/close/", closeDocumentDBConnectionAll);
-
+app.get("/api/documentdb/cluster/connection/close/", closeDocumentDBConnectionAll);
 async function closeDocumentDBConnectionAll(req, res) {
  
         try
             {
                 var params = req.query;
-                var instances = docdb["$" + params.connectionId];
-                for (index of Object.keys(instances)) {
-                        try
-                          {
-                                console.log("DocumentDB Disconnection : " + params.connectionId + "#" + index );
-                                instances[index]["connection"].close();
+                
+                var connectionId = "$" + params.connectionId;
+                var clusterId = "$" + params.clusterId;
+                var nodes = documentDBCluster[connectionId][clusterId];
+                
+                for (let nodeId of Object.keys(nodes)) {
+                        try {
+                                    if (nodeId != "cluster"  && nodeId != "property" ) {
+                                        console.log("DocumentDB Disconnection  : " +  params.connectionId + " # " + params.clusterId + " # " + nodeId );
+                                        nodes[nodeId]["connection"].close();
+                                    }
+                            }
+                        catch{
+                              console.log("DocumentDB Disconnection error : " +  params.connectionId + " # " + params.clusterId + " # " + nodeId );
                           }
-                          catch{
-                              console.log("DocumentDB Disconnection error : " + params.connectionId + "#" + index );
-                          }
+                        
                 }
                 
-                delete dbRedis[params.connectionId];
+                delete documentDBCluster[params.connectionId];
                 res.status(200).send( {"result":"disconnected"});
+                
+                
         }
         catch(err){
                 console.log(err);
@@ -2209,9 +3014,6 @@ app.get("/api/aws/docdb/cluster/region/list/", (req,res)=>{
     if (cognitoToken.isValid === false)
         return res.status(511).send({ data: [], message : "Token is invalid"});
 
-    // API Call
-    var docDB = new AWS.DocDB({region: configData.aws_region});
-    
     var paramsQuery = req.query;
     
     var params = {

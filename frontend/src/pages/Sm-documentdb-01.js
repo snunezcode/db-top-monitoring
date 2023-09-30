@@ -1,7 +1,6 @@
 import { useState,useEffect,useRef } from 'react';
 import Axios from 'axios';
 import { configuration } from './Configs';
-import {classMetric} from '../components/Functions';
 import { useSearchParams } from 'react-router-dom';
 import CustomHeader from "../components/Header";
 import CustomLayout from "../components/Layout";
@@ -10,6 +9,8 @@ import Tabs from "@cloudscape-design/components/tabs";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import { SplitPanel } from '@cloudscape-design/components';
 
+import SpaceBetween from "@cloudscape-design/components/space-between";
+import Pagination from "@cloudscape-design/components/pagination";
 import Link from "@cloudscape-design/components/link";
 import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
@@ -18,7 +19,7 @@ import CompSparkline01  from '../components/ChartSparkline01';
 import CompMetric01  from '../components/Metric01';
 import CompMetric04  from '../components/Metric04';
 import ChartLine02  from '../components/ChartLine02';
-import CLWChart  from '../components/ChartCLW02';
+import CLWChart  from '../components/ChartCLW03';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
 import ChartBar01 from '../components/ChartBar01';
 import ChartColumn01 from '../components/ChartColumn01';
@@ -41,11 +42,14 @@ var CryptoJS = require("crypto-js");
 
 function App() {
     
-
     //-- Gather Parameters
     const [params]=useSearchParams();
     
     //--######## Global Settings
+    
+    const [splitPanelShow,setsplitPanelShow] = useState(false);
+    const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
+    
     
     //-- Variable for Active Tabs
     const [activeTabId, setActiveTabId] = useState("tab01");
@@ -82,435 +86,171 @@ function App() {
 
     //--######## RealTime Metric Features
     
-    //-- Variable for Split Panels
-    const historyChartDetails = 20;
-    const [splitPanelShow,setsplitPanelShow] = useState(false);
     
       
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
     
-    const metricObjectGlobal = useRef(new classMetric([
-                                                        { name: "cpu", history: historyChartDetails },
-                                                        { name: "memory", history: historyChartDetails },
-                                                        { name: "ioreads", history: historyChartDetails },
-                                                        { name: "iowrites", history: historyChartDetails },
-                                                        { name: "netin", history: historyChartDetails },
-                                                        { name: "netout", history: historyChartDetails },
-                                                        { name: "connectionsCurrent", history: historyChartDetails },
-                                                        { name: "connectionsAvailable", history: historyChartDetails },
-                                                        { name: "connectionsCreated", history: historyChartDetails },
-                                                        { name: "opsInsert", history: historyChartDetails },
-                                                        { name: "opsQuery", history: historyChartDetails },
-                                                        { name: "opsUpdate", history: historyChartDetails },
-                                                        { name: "opsDelete", history: historyChartDetails },
-                                                        { name: "opsGetmore", history: historyChartDetails },
-                                                        { name: "opsCommand", history: historyChartDetails },
-                                                        { name: "docsDeleted", history: historyChartDetails },
-                                                        { name: "docsInserted", history: historyChartDetails },
-                                                        { name: "docsReturned", history: historyChartDetails },
-                                                        { name: "docsUpdated", history: historyChartDetails },
-                                                        { name: "transactionsActive", history: historyChartDetails },
-                                                        { name: "transactionsCommited", history: historyChartDetails },
-                                                        { name: "transactionsAborted", history: historyChartDetails },
-                                                        { name: "transactionsStarted", history: historyChartDetails },
-                                                        
-    ]));
     
-   
-    var timestampClwLastValue = useRef("");
-    var nodeMetrics = useRef([]);
-    var nodeMembers = useRef([]);
-    const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
-    const [dataMetrics,setDataMetrics] = useState({ 
-                                                cpu: 0,
-                                                memory: 0,
-                                                ioreads: 0,
-                                                iowrites: 0,
-                                                netin: 0,
-                                                netout: 0,
-                                                connectionsCurrent : 0,
-                                                connectionsAvailable : 0,
-                                                connectionsCreated : 0,
-                                                opsInsert : 0,
-                                                opsQuery : 0,
-                                                opsUpdate : 0,
-                                                opsDelete : 0,
-                                                opsGetmore : 0,
-                                                opsCommand : 0,
-                                                docsDeleted : 0,
-                                                docsInserted : 0,
-                                                docsReturned : 0,
-                                                docsUpdated : 0,
-                                                transactionsActive : 0,
-                                                transactionsCommited : 0,
-                                                transactionsAborted : 0,
-                                                transactionsStarted : 0,
-                                                timestamp : 0,
-                                                refObject : new classMetric([
-                                                                                { name: "cpu", history: historyChartDetails },
-                                                                                { name: "memory", history: historyChartDetails },
-                                                                                { name: "ioreads", history: historyChartDetails },
-                                                                                { name: "iowrites", history: historyChartDetails },
-                                                                                { name: "netin", history: historyChartDetails },
-                                                                                { name: "netout", history: historyChartDetails },
-                                                                                { name: "connectionsCurrent", history: historyChartDetails },
-                                                                                { name: "connectionsAvailable", history: historyChartDetails },
-                                                                                { name: "connectionsCreated", history: historyChartDetails },
-                                                                                { name: "opsInsert", history: historyChartDetails },
-                                                                                { name: "opsQuery", history: historyChartDetails },
-                                                                                { name: "opsUpdate", history: historyChartDetails },
-                                                                                { name: "opsDelete", history: historyChartDetails },
-                                                                                { name: "opsGetmore", history: historyChartDetails },
-                                                                                { name: "opsCommand", history: historyChartDetails },
-                                                                                { name: "docsDeleted", history: historyChartDetails },
-                                                                                { name: "docsInserted", history: historyChartDetails },
-                                                                                { name: "docsReturned", history: historyChartDetails },
-                                                                                { name: "docsUpdated", history: historyChartDetails },
-                                                                                { name: "transactionsActive", history: historyChartDetails },
-                                                                                { name: "transactionsCommited", history: historyChartDetails },
-                                                                                { name: "transactionsAborted", history: historyChartDetails },
-                                                                                { name: "transactionsStarted", history: historyChartDetails },
-                                                                                ]),
-                                                metricDetails : []
-                                                
-    });
-    const [dataNodes,setDataNodes] = useState({ 
-                                                    MemberClusters : [],
-                                                    ConfigurationEndpoint : "",
-                                                    Port : "",
-                                                    CacheNodeType : "",
-                                                    ReplicationGroupId : "",
-                                                    Status : "",
-                                                    Version : "",
-                                                    Shards : "",
-                                                    ConfigurationUid : "",
-                                                    ClusterEnabled : "",
-                                                    MultiAZ : "",
-                                                    DataTiering : "",
-                                                    clwDimensions : "",
-                                    });
+    //-- Variable for Paging
+    const [currentPageIndex,setCurrentPageIndex] = useState(1);
+    var pageId = useRef(1);
+    var itemsPerPage = configuration["apps-settings"]["items-per-page-documentdb"];
+    var totalPages = Math.trunc( parameter_object_values['rds_nodes'] / itemsPerPage) + (  parameter_object_values['rds_nodes'] % itemsPerPage != 0 ? 1 : 0 ) 
+    
+    //-- Variable for Cluster Stats
+    var timeNow = new Date();
+    const nodeList = useRef("");
+    const [clusterStats,setClusterStats] = useState({ 
+                                cluster : {
+                                            cpu: 0,
+                                            memory: 0,
+                                            ioreads: 0,
+                                            iowrites: 0,
+                                            netin: 0,
+                                            netout: 0,
+                                            connectionsCurrent : 0,
+                                            connectionsAvailable : 0,
+                                            connectionsCreated : 0,
+                                            opsInsert : 0,
+                                            opsQuery : 0,
+                                            opsUpdate : 0,
+                                            opsDelete : 0,
+                                            opsGetmore : 0,
+                                            opsCommand : 0,
+                                            docsDeleted : 0,
+                                            docsInserted : 0,
+                                            docsReturned : 0,
+                                            docsUpdated : 0,
+                                            transactionsActive : 0,
+                                            transactionsCommited : 0,
+                                            transactionsAborted : 0,
+                                            transactionsStarted : 0,
+                                            history : {
+                                                        cpu: [],
+                                                        memory: [],
+                                                        ioreads: [],
+                                                        iowrites: [],
+                                                        netin: [],
+                                                        netout: [],
+                                                        connectionsCurrent : [],
+                                                        connectionsAvailable : [],
+                                                        connectionsCreated : [],
+                                                        opsInsert : [],
+                                                        opsQuery : [],
+                                                        opsUpdate : [],
+                                                        opsDelete : [],
+                                                        opsGetmore : [],
+                                                        opsCommand : [],
+                                                        docsDeleted : [],
+                                                        docsInserted : [],
+                                                        docsReturned : [],
+                                                        docsUpdated : [],
+                                                        transactionsActive : [],
+                                                        transactionsCommited : [],
+                                                        transactionsAborted : [],
+                                                        transactionsStarted : []
+                                            }
+                                },
+                                nodes : [],
+                });
                 
 
+     
+    
     //-- Function Gather Metrics
-    async function fetchDataCluster() {
+    async function openClusterConnection() {
         
         var api_url = configuration["apps-settings"]["api_url"];
-        
-        await Axios.get(`${api_url}/api/aws/aurora/cluster/region/endpoints/`,{
-                      params: { cluster : cnf_identifier }
-                  }).then((data)=>{
-                    
-                    if (data.data.data.DBInstances.length > 0) {
-                        
-                            var clusterNodes = data.data.data.DBInstances;
-                            
-                            var nodeList = [];
-                            var clwDimensions = "";
-                       
-                            clusterNodes.forEach(function(node) {
-                                
-                                nodeList.push({
-                                                instance : node['DBInstanceIdentifier'],
-                                                host : node['Endpoint']['Address'],
-                                                port : node['Endpoint']['Port'],
-                                                status : node['DBInstanceStatus'],
-                                                size : node['DBInstanceClass'],
-                                                az : node['AvailabilityZone'],
-                                                monitoring :  ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
-                                                resourceId : node['DbiResourceId'],
-                                                });
-                                
-                                nodeMembers.current[node['DBInstanceIdentifier']] = { 
-                                                                                        cpu: Array(historyChartDetails).fill(null), 
-                                                                                        memory: Array(historyChartDetails).fill(null), 
-                                                                                        ioreads: Array(historyChartDetails).fill(null), 
-                                                                                        iowrites: Array(historyChartDetails).fill(null),
-                                                                                        iops: Array(historyChartDetails).fill(null), 
-                                                                                        netin: Array(historyChartDetails).fill(null), 
-                                                                                        netout: Array(historyChartDetails).fill(null), 
-                                                                                        network : Array(historyChartDetails).fill(null), 
-                                                                                        operations : Array(historyChartDetails).fill(null), 
-                                                                                        docops : Array(historyChartDetails).fill(null), 
-                                                                                        connections : Array(historyChartDetails).fill(null), 
-                                                                                        connectionsSec : Array(historyChartDetails).fill(null), 
-                                                                                        
-                                                
-                                                                };
-                                                                
-                                clwDimensions = clwDimensions +  node['DBInstanceIdentifier']  + "," 
-                        
-                            });
-                            
-                            setDataNodes({
-                                    MemberClusters : nodeList,
-                                    clwDimensions : clwDimensions.slice(0, -1)
-                                    }
-                            );  
-                    }
-                    
-                    
+        Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
+        await Axios.post(`${api_url}/api/documentdb/cluster/connection/open/`,{
+                      params: { 
+                                connectionId : cnf_connection_id,
+                                clusterId : cnf_identifier,
+                                username : cnf_username,
+                                password : cnf_password
+                             }
+              }).then((data)=>{
+                
+                nodeList.current = data.data.nodes;
+                  
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/aws/aurora/cluster/region/endpoints/' );
+                  console.log('Timeout API Call : /api/documentdb/cluster/connection/open/' );
                   console.log(err);
                   
               });
               
     }
     
-    
-    
-    function syncData(childNode) {
-    
-        nodeMetrics.current[childNode.name] = { 
-                                        name: childNode.name,
-                                        cpu: childNode.cpu,
-                                        memory: childNode.memory,
-                                        ioreads: childNode.ioreads,
-                                        iowrites: childNode.iowrites,
-                                        netin: childNode.netin,
-                                        netout: childNode.netout,
-                                        connectionsCurrent : childNode.connectionsCurrent,
-                                        connectionsAvailable : childNode.connectionsAvailable,
-                                        connectionsCreated : childNode.connectionsCreated,
-                                        opsInsert : childNode.opsInsert,
-                                        opsQuery : childNode.opsQuery,
-                                        opsUpdate : childNode.opsUpdate,
-                                        opsDelete : childNode.opsDelete,
-                                        opsGetmore : childNode.opsGetmore,
-                                        opsCommand : childNode.opsCommand,
-                                        docsDeleted : childNode.docsDeleted,
-                                        docsInserted : childNode.docsInserted,
-                                        docsReturned : childNode.docsReturned,
-                                        docsUpdated : childNode.docsUpdated,
-                                        transactionsActive : childNode.transactionsActive,
-                                        transactionsCommited : childNode.transactionsCommited,
-                                        transactionsAborted : childNode.transactionsAborted,
-                                        transactionsStarted : childNode.transactionsStarted,
-                                        timestampClw : childNode.timestampClw,
-                                        cpuHistory : childNode.cpuHistory,
-                                        ioreadsHistory: childNode.ioreadsHistory,
-                                        iowritesHistory: childNode.iowritesHistory,
-                                        netinHistory: childNode.netinHistory,
-                                        netoutHistory: childNode.netoutHistory,
+    //-- Function Cluster Update Stats
+    async function updateClusterStats() {
         
-        };
+        var api_url = configuration["apps-settings"]["api_url"];
         
-    
-        
+        Axios.get(`${api_url}/api/documentdb/cluster/stats/update`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier }
+                  }).then((data)=>{
+                   
+                   //console.log(data);         
+                     
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/documentdb/cluster/stats/update');
+                  console.log(err);
+                  
+              });
+              
     }
     
-    function updateClusterMetrics() {
-    
+
+
+    //-- Function Cluster Gather Stats
+    async function gatherClusterStats() {
+        
         if (currentTabId.current != "tab01") {
             return;
         }
         
-        var timeNow = new Date();
-        var metrics = { 
-                        cpu: 0,
-                        memory: 0,
-                        ioreads: 0,
-                        iowrites: 0,
-                        netin: 0,
-                        netout: 0,
-                        connectionsCurrent : 0,
-                        connectionsAvailable : 0,
-                        connectionsCreated : 0,
-                        opsInsert : 0,
-                        opsQuery : 0,
-                        opsUpdate : 0,
-                        opsDelete : 0,
-                        opsGetmore : 0,
-                        opsCommand : 0,
-                        docsDeleted : 0,
-                        docsInserted : 0,
-                        docsReturned : 0,
-                        docsUpdated : 0,
-                        transactionsActive : 0,
-                        transactionsCommited : 0,
-                        transactionsAborted : 0,
-                        transactionsStarted : 0,
-        };
+        var api_url = configuration["apps-settings"]["api_url"];
         
-        var timestampValues = [];
-        var nodes = 0;
-       
-        var nodeList = nodeMetrics.current;
-        var index;
-        var metricDetails = [];
-        
-        metricDetails['cpu'] = [];
-        metricDetails['memory'] = [];
-        metricDetails['iops'] = [];
-        metricDetails['network'] = [];
-        metricDetails['operations'] = [];
-        metricDetails['docops'] = [];
-        metricDetails['connections'] = [];
-        metricDetails['connectionsSec'] = [];
-        
-        for (index of Object.keys(nodeList)) {
-            
-            
-            metrics.cpu = metrics.cpu + parseFloat(nodeList[index].cpu) ;
-            metrics.memory = metrics.memory + parseFloat(nodeList[index].memory) ;
-            metrics.ioreads = metrics.ioreads + parseFloat(nodeList[index].ioreads) ;
-            metrics.iowrites = metrics.iowrites + parseFloat(nodeList[index].iowrites) ;
-            metrics.iops = metrics.iops + ( parseFloat(nodeList[index].iowrites) + parseFloat(nodeList[index].ioreads) );
-            metrics.netin = metrics.netin + parseFloat(nodeList[index].netin) ;
-            metrics.netout = metrics.netout + parseFloat(nodeList[index].netout) ;
-            metrics.connectionsCurrent = metrics.connectionsCurrent + parseFloat(nodeList[index].connectionsCurrent) ;
-            metrics.connectionsAvailable = metrics.connectionsAvailable + parseFloat(nodeList[index].connectionsAvailable) ;
-            metrics.connectionsCreated = metrics.connectionsCreated + parseFloat(nodeList[index].connectionsCreated) ;
-            metrics.opsInsert = metrics.opsInsert + parseFloat(nodeList[index].opsInsert) ;
-            metrics.opsQuery = metrics.opsQuery + parseFloat(nodeList[index].opsQuery) ;
-            metrics.opsUpdate = metrics.opsUpdate + parseFloat(nodeList[index].opsUpdate) ;
-            metrics.opsDelete = metrics.opsDelete + parseFloat(nodeList[index].opsDelete) ;
-            metrics.opsGetmore = metrics.opsGetmore + parseFloat(nodeList[index].opsGetmore) ;
-            metrics.opsCommand = metrics.opsCommand + parseFloat(nodeList[index].opsCommand) ;
-            metrics.docsDeleted = metrics.docsDeleted + parseFloat(nodeList[index].docsDeleted) ;
-            metrics.docsInserted = metrics.docsInserted + parseFloat(nodeList[index].docsInserted) ;
-            metrics.docsReturned = metrics.docsReturned + parseFloat(nodeList[index].docsReturned) ;
-            metrics.docsUpdated = metrics.docsUpdated + parseFloat(nodeList[index].docsUpdated) ;
-            metrics.transactionsActive = metrics.transactionsActive + parseFloat(nodeList[index].transactionsActive) ;
-            metrics.transactionsCommited = metrics.transactionsCommited + parseFloat(nodeList[index].transactionsCommited) ;
-            metrics.transactionsAborted = metrics.transactionsAborted + parseFloat(nodeList[index].transactionsAborted) ;
-            metrics.transactionsStarted = metrics.transactionsStarted + parseFloat(nodeList[index].transactionsStarted) ;
-            
-            
-             
-            
-            
-            
-            
-            // cpu
-            nodeMembers.current[nodeList[index].name]['cpu'].push(parseFloat(nodeList[index].cpu));
-            nodeMembers.current[nodeList[index].name]['cpu'] = nodeMembers.current[nodeList[index].name]['cpu'].slice(nodeMembers.current[nodeList[index].name]['cpu'].length-historyChartDetails);
-            metricDetails['cpu'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cpu'] });
-            
-            
-            
-            // memory
-            nodeMembers.current[nodeList[index].name]['memory'].push(parseFloat(nodeList[index].memory));
-            nodeMembers.current[nodeList[index].name]['memory'] = nodeMembers.current[nodeList[index].name]['memory'].slice(nodeMembers.current[nodeList[index].name]['memory'].length-historyChartDetails);
-            metricDetails['memory'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['memory'] });
-            
-            // iops
-            nodeMembers.current[nodeList[index].name]['iops'].push(parseFloat(nodeList[index].ioreads)+parseFloat(nodeList[index].iowrites));
-            nodeMembers.current[nodeList[index].name]['iops'] = nodeMembers.current[nodeList[index].name]['iops'].slice(nodeMembers.current[nodeList[index].name]['iops'].length-historyChartDetails);
-            metricDetails['iops'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['iops'] });
-            
-            
-            // network
-            nodeMembers.current[nodeList[index].name]['network'].push(parseFloat(nodeList[index].netin)+parseFloat(nodeList[index].netout));
-            nodeMembers.current[nodeList[index].name]['network'] = nodeMembers.current[nodeList[index].name]['network'].slice(nodeMembers.current[nodeList[index].name]['network'].length-historyChartDetails);
-            metricDetails['network'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['network'] });
-            
-            // operations
-            nodeMembers.current[nodeList[index].name]['operations'].push( parseFloat(nodeList[index].opsInsert) + parseFloat(nodeList[index].opsQuery)  + parseFloat(nodeList[index].opsUpdate) + parseFloat(nodeList[index].opsDelete) + parseFloat(nodeList[index].opsGetmore)  + parseFloat(nodeList[index].opsCommand)  );
-            nodeMembers.current[nodeList[index].name]['operations'] = nodeMembers.current[nodeList[index].name]['operations'].slice(nodeMembers.current[nodeList[index].name]['operations'].length-historyChartDetails);
-            metricDetails['operations'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['operations'] });
-            
-            // docops
-            nodeMembers.current[nodeList[index].name]['docops'].push( parseFloat(nodeList[index].docsDeleted) + parseFloat(nodeList[index].docsInserted)  + parseFloat(nodeList[index].docsReturned)  + parseFloat(nodeList[index].docsUpdated) );
-            nodeMembers.current[nodeList[index].name]['docops'] = nodeMembers.current[nodeList[index].name]['docops'].slice(nodeMembers.current[nodeList[index].name]['docops'].length-historyChartDetails);
-            metricDetails['docops'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['docops'] });
-            
-            
-            // connections
-            nodeMembers.current[nodeList[index].name]['connections'].push(parseFloat(nodeList[index].connectionsCurrent));
-            nodeMembers.current[nodeList[index].name]['connections'] = nodeMembers.current[nodeList[index].name]['connections'].slice(nodeMembers.current[nodeList[index].name]['connections'].length-historyChartDetails);
-            metricDetails['connections'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['connections'] });
-            
-            
-            // connectionsSec
-            nodeMembers.current[nodeList[index].name]['connectionsSec'].push(parseFloat(nodeList[index].connectionsCreated));
-            nodeMembers.current[nodeList[index].name]['connectionsSec'] = nodeMembers.current[nodeList[index].name]['connectionsSec'].slice(nodeMembers.current[nodeList[index].name]['connectionsSec'].length-historyChartDetails);
-            metricDetails['connectionsSec'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['connectionsSec'] });
-            
-            timestampValues.push(nodeList[index].timestampClw);
-            
-            nodes++;
-           
-
-        }
+        Axios.get(`${api_url}/api/documentdb/cluster/stats/gather`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier, beginItem : ( (pageId.current-1) * itemsPerPage), endItem : (( (pageId.current-1) * itemsPerPage) + itemsPerPage) }
+                  }).then((data)=>{
+                   
+                   //console.log(data);
+                   
+                   setClusterStats({
+                         cluster : data.data.cluster,
+                         nodes : data.data.nodes,
+                    });
+                    
+                     
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/documentdb/cluster/stats/gather' );
+                  console.log(err);
+                  
+              });
               
-        if ( timestampEqual(timestampValues) && (timestampClwLastValue.current != timestampValues[0] ) ){
-            
-            timestampClwLastValue.current = timestampValues[0];
-            metricObjectGlobal.current.addPropertyValue('cpu', (metrics.cpu / nodes) || 0 );
-            metricObjectGlobal.current.addPropertyValue('memory', (metrics.memory / nodes) || 0);
-            metricObjectGlobal.current.addPropertyValue('ioreads', metrics.ioreads);
-            metricObjectGlobal.current.addPropertyValue('iowrites', metrics.iowrites);
-            metricObjectGlobal.current.addPropertyValue('netin', metrics.netin);
-            metricObjectGlobal.current.addPropertyValue('netout', metrics.netout );
-
-        }   
-
-        metricObjectGlobal.current.addPropertyValue('connectionsCurrent', metrics.connectionsCurrent ); 
-        metricObjectGlobal.current.addPropertyValue('connectionsAvailable', metrics.connectionsAvailable );
-        metricObjectGlobal.current.addPropertyValue('connectionsCreated', metrics.connectionsCreated );
-        metricObjectGlobal.current.addPropertyValue('opsInsert', metrics.opsInsert );
-        metricObjectGlobal.current.addPropertyValue('opsQuery', metrics.opsQuery );
-        metricObjectGlobal.current.addPropertyValue('opsUpdate', metrics.opsUpdate );
-        metricObjectGlobal.current.addPropertyValue('opsDelete', metrics.opsDelete );
-        metricObjectGlobal.current.addPropertyValue('opsGetmore', metrics.opsGetmore );
-        metricObjectGlobal.current.addPropertyValue('opsCommand', metrics.opsCommand );
-        metricObjectGlobal.current.addPropertyValue('docsDeleted', metrics.docsDeleted );
-        metricObjectGlobal.current.addPropertyValue('docsInserted', metrics.docsInserted );
-        metricObjectGlobal.current.addPropertyValue('docsReturned', metrics.docsReturned );
-        metricObjectGlobal.current.addPropertyValue('docsUpdated', metrics.docsUpdated );
-        metricObjectGlobal.current.addPropertyValue('transactionsActive', metrics.transactionsActive );
-        metricObjectGlobal.current.addPropertyValue('transactionsCommited', metrics.transactionsCommited );
-        metricObjectGlobal.current.addPropertyValue('transactionsAborted', metrics.transactionsAborted );
-        metricObjectGlobal.current.addPropertyValue('transactionsStarted', metrics.transactionsStarted );
         
-        
-       
-        setDataMetrics({
-            cpu: metrics.cpu / nodes ,
-            memory: metrics.memory / nodes ,
-            ioreads: metrics.ioreads,
-            iowrites: metrics.iowrites,
-            netin: metrics.netin,
-            netout: metrics.netout,
-            connectionsCurrent : metrics.connectionsCurrent,
-            connectionsAvailable : metrics.connectionsAvailable,
-            connectionsCreated : metrics.connectionsCreated,
-            opsInsert : metrics.opsInsert,
-            opsQuery : metrics.opsQuery,
-            opsUpdate : metrics.opsUpdate,
-            opsDelete : metrics.opsDelete,
-            opsGetmore : metrics.opsGetmore,
-            opsCommand : metrics.opsCommand,
-            docsDeleted : metrics.docsDeleted,
-            docsInserted : metrics.docsInserted,
-            docsReturned : metrics.docsReturned,
-            docsUpdated : metrics.docsUpdated,
-            transactionsActive : metrics.transactionsActive,
-            transactionsCommited : metrics.transactionsCommited,
-            transactionsAborted : metrics.transactionsAborted,
-            transactionsStarted : metrics.transactionsStarted,
-            refObject : metricObjectGlobal.current,
-            timestamp : timeNow.getTime(),
-            metricDetails : metricDetails,
-        });
-        
-       
         
     }
-    
-    
-    const timestampEqual =
-    arr => arr.every(v => v === arr[0]);
-    
-    
+
+
+
     useEffect(() => {
-        fetchDataCluster();
+        openClusterConnection();
     }, []);
     
     useEffect(() => {
-        const id = setInterval(updateClusterMetrics, configuration["apps-settings"]["refresh-interval-elastic"]);
+        const id = setInterval(updateClusterStats, configuration["apps-settings"]["refresh-interval-documentdb-metrics"]);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
+    
+    useEffect(() => {
+        const id = setInterval(gatherClusterStats, configuration["apps-settings"]["refresh-interval-documentdb-metrics"]);
         return () => clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -544,8 +284,8 @@ function App() {
     
     const closeDatabaseConnection = () => {
         
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/documentdb/connection/close/`,{
-                      params: { connectionId : cnf_connection_id }
+        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/documentdb/cluster/connection/close/`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier }
                   }).then((data)=>{
                       closeTabWindow();
                       sessionStorage.removeItem(parameter_code_id);
@@ -571,19 +311,20 @@ function App() {
     function onClickMetric(metricId,metricTitle) {
         
         var timeNow = new Date();
+        
         setMetricDetailsIndex ({ index : metricId, title : metricTitle, timestamp : timeNow.getTime() });
         setsplitPanelShow(true);
                                                       
     }
     
-    function metricDetailsToColumns(series){
+    function metricDetailsToColumnsBar(nodes,columnName){
         
         var seriesRaw = [];  
         var seriesData = { categories : [], data : [] };  
         try {  
-                if (series.length > 0){
-                    series.forEach(function(item, index) {
-                        seriesRaw.push({ name : item.name, value : item.data[item.data.length-1]  }  );
+                if (nodes.length > 0){
+                    nodes.forEach(function(node) {
+                        seriesRaw.push({ name : node.name, value :  node.history[columnName].data[node.history[columnName].data.length-1]  }  );
                     });
                 
                     var itemLimit = 0;
@@ -609,6 +350,21 @@ function App() {
         
         return seriesData;
     }
+    
+    
+    function metricDetailsToColumnsLine(nodes,columnName){
+        
+        var data = [];
+        nodes.forEach(function(node) {
+                
+                data.push({ name : node.name, data : node.history[columnName].data });
+        });
+        
+        return data;
+        
+        
+    }
+ 
  
 
   return (
@@ -618,6 +374,7 @@ function App() {
             onClickMenu={handleClickMenu}
             onClickDisconnect={handleClickDisconnect}
             sessionInformation={parameter_object_values}
+            titleItem={parameter_object_values['rds_host']}
         />
         
         <CustomLayout
@@ -638,14 +395,16 @@ function App() {
                     <table style={{"width":"100%", "padding": "1em"}}>
                         <tr>  
                             <td style={{"width":"30%", "padding-left": "1em"}}>  
+                                
                                 <ChartColumn01 
-                                    series={metricDetailsToColumns(dataMetrics.metricDetails[metricDetailsIndex.index])} 
+                                    series={metricDetailsToColumnsBar(clusterStats['nodes'],metricDetailsIndex.index)} 
                                     height="200px" 
                                 />
+                                
                             </td>
                             <td style={{"width":"70%", "padding-left": "1em"}}>  
                                  <ChartLine02 
-                                    series={dataMetrics.metricDetails[metricDetailsIndex.index]} 
+                                    series={metricDetailsToColumnsLine(clusterStats['nodes'],metricDetailsIndex.index)} 
                                     timestamp={metricDetailsIndex.timestamp} 
                                     height="200px" 
                                   />
@@ -685,7 +444,7 @@ function App() {
                                                                     <tr>  
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={ (dataMetrics.opsInsert + dataMetrics.opsQuery + dataMetrics.opsUpdate + dataMetrics.opsDelete + dataMetrics.opsCommand ) || 0}
+                                                                                    value={ (clusterStats.cluster.opsInsert + clusterStats.cluster.opsQuery + clusterStats.cluster.opsUpdate + clusterStats.cluster.opsDelete + clusterStats.cluster.opsCommand ) || 0}
                                                                                     title={"Operations/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -695,7 +454,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={ (dataMetrics.opsInsert + dataMetrics.opsUpdate + dataMetrics.opsDelete  ) || 0}
+                                                                                    value={ (clusterStats.cluster.opsInsert + clusterStats.cluster.opsUpdate + clusterStats.cluster.opsDelete  ) || 0}
                                                                                     title={"WriteOps/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -705,7 +464,7 @@ function App() {
                                                                                 <br/>        
                                                                                 <br/> 
                                                                                 <CompMetric01 
-                                                                                    value={ ( dataMetrics.opsQuery  ) || 0 }
+                                                                                    value={ ( clusterStats.cluster.opsQuery  ) || 0 }
                                                                                     title={"ReadOps/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -714,7 +473,7 @@ function App() {
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(dataMetrics.cpu || 0)]} 
+                                                                                <ChartRadialBar01 series={[Math.round(clusterStats.cluster.cpu || 0)]} 
                                                                                          height="180px" 
                                                                                          title={"CPU (%)"}
                                                                                 />
@@ -722,29 +481,29 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('cpu')
-                                                                                                    
+                                                                                                    clusterStats.cluster.history.cpu
                                                                                                 ]} 
-                                                                                            timestamp={dataMetrics.timestamp} title={"CPU Usage(%)"} height="180px" 
+                                                                                            timestamp={timeNow.getTime()} title={"CPU Usage(%)"} height="180px" 
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('ioreads'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('iowrites')
+                                                                                                    clusterStats.cluster.history.ioreads,
+                                                                                                    clusterStats.cluster.history.iowrites
                                                                                                     
                                                                                                 ]} 
-                                                                                            timestamp={dataMetrics.timestamp} title={"IOPS"} height="180px" 
+                                                                                            timestamp={timeNow.getTime()} title={"IOPS"} height="180px" 
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('netin'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('netout'),
+                                                                                                    clusterStats.cluster.history.netin,
+                                                                                                    clusterStats.cluster.history.netout
                                                                                                 ]} 
-                                                                                            timestamp={dataMetrics.timestamp} title={"NetworkTraffic"} height="180px" 
+                                                                                            timestamp={timeNow.getTime()} title={"NetworkTraffic"} height="180px" 
                                                                             />  
                                                                         </td>
+                                                                  
                                                                     </tr>
                                                                     
                                                                 </table>  
@@ -754,7 +513,7 @@ function App() {
                                                                     <tr> 
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={ (dataMetrics.opsInsert ) || 0}
+                                                                                value={ (clusterStats.cluster.opsInsert ) || 0}
                                                                                 title={"opsInsert/sec"}
                                                                                 precision={0}
                                                                                 format={3}
@@ -764,7 +523,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.opsQuery}
+                                                                                value={clusterStats.cluster.opsQuery || 0}
                                                                                 title={"opsSelect/sec"}
                                                                                 precision={0}
                                                                                 format={3}
@@ -774,7 +533,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.opsDelete  || 0}
+                                                                                value={clusterStats.cluster.opsDelete  || 0}
                                                                                 title={"opsDelete/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -784,7 +543,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.opsUpdate || 0}
+                                                                                value={clusterStats.cluster.opsUpdate || 0}
                                                                                 title={"opsUpdate/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -794,27 +553,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.opsGetmore || 0}
-                                                                                title={"opsGetmore/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.opsCommand || 0}
-                                                                                title={"opsCommand/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.docsInserted}
+                                                                                value={clusterStats.cluster.docsInserted || 0}
                                                                                 title={"docsInserted/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -824,7 +563,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.docsDeleted}
+                                                                                value={clusterStats.cluster.docsDeleted || 0}
                                                                                 title={"docsDeleted/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -834,7 +573,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.docsUpdated}
+                                                                                value={clusterStats.cluster.docsUpdated || 0}
                                                                                 title={"docsUpdated/sec"}
                                                                                 precision={0}
                                                                                 format={2}
@@ -844,7 +583,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.docsReturned}
+                                                                                value={clusterStats.cluster.docsReturned || 0}
                                                                                 title={"docsReturned/sec"}
                                                                                 precision={0}
                                                                                 format={2}
@@ -852,16 +591,9 @@ function App() {
                                                                                 fontSizeValue={"16px"}
                                                                             />
                                                                         </td>
-                                                                    </tr>
-                                                                    
-                                                            </table>  
-                                                            <br />
-                                                            <br />
-                                                            <table style={{"width":"100%"}}>
-                                                                    <tr> 
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={ (dataMetrics.connectionsCurrent ) || 0}
+                                                                                value={ (clusterStats.cluster.connectionsCurrent ) || 0}
                                                                                 title={"Connections"}
                                                                                 precision={0}
                                                                                 format={3}
@@ -871,17 +603,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.connectionsAvailable}
-                                                                                title={"ConnectionsAvailable"}
-                                                                                precision={0}
-                                                                                format={3}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.connectionsCreated  || 0}
+                                                                                value={clusterStats.cluster.connectionsCreated  || 0}
                                                                                 title={"Connections/sec"}
                                                                                 precision={0}
                                                                                 format={1}
@@ -889,110 +611,42 @@ function App() {
                                                                                 fontSizeValue={"16px"}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.transactionsActive || 0}
-                                                                                title={"transActive"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.transactionsCommited || 0}
-                                                                                title={"transCommited/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.transactionsAborted || 0}
-                                                                                title={"transAborted/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.ioreads}
-                                                                                title={"IO Reads/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.iowrites}
-                                                                                title={"IO Writes/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.netin}
-                                                                                title={"Network-In"}
-                                                                                precision={0}
-                                                                                format={2}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={dataMetrics.netout}
-                                                                                title={"Network-Out"}
-                                                                                precision={0}
-                                                                                format={2}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
                                                                     </tr>
+                                                                    
                                                             </table>  
+                                                            <br />
                                                             <br />
                                                             <br />
                                                             <table style={{"width":"100%"}}>
                                                                   <tr>  
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
                                                                          <ChartLine02 series={[
-                                                                                                dataMetrics.refObject.getPropertyValues('connectionsCurrent')
+                                                                                                clusterStats.cluster.history.connectionsCurrent
                                                                                             ]} 
-                                                                                        timestamp={dataMetrics.timestamp} title={"Sessions"} height="180px" 
+                                                                                        timestamp={timeNow.getTime()} title={"Sessions"} height="180px" 
                                                                         />  
                                                                     </td>
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
                                                                          <ChartLine02 series={[
-                                                                                                dataMetrics.refObject.getPropertyValues('opsInsert'),
-                                                                                                dataMetrics.refObject.getPropertyValues('opsQuery'),
-                                                                                                dataMetrics.refObject.getPropertyValues('opsUpdate'),
-                                                                                                dataMetrics.refObject.getPropertyValues('opsDelete'),
-                                                                                                dataMetrics.refObject.getPropertyValues('opsGetmore'),
-                                                                                                dataMetrics.refObject.getPropertyValues('opsCommand')
+                                                                                                clusterStats.cluster.history.opsInsert,
+                                                                                                clusterStats.cluster.history.opsQuery,
+                                                                                                clusterStats.cluster.history.opsUpdate,
+                                                                                                clusterStats.cluster.history.opsDelete,
+                                                                                                clusterStats.cluster.history.opsGetmore,
+                                                                                                clusterStats.cluster.history.opsCommand
                                                                                             ]} 
-                                                                                        timestamp={dataMetrics.timestamp} title={"Operations/sec"} height="180px" 
+                                                                                        timestamp={timeNow.getTime()} title={"Operations/sec"} height="180px" 
                                                                         />  
                                                                     </td>
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
                                                                          <ChartLine02 series={[
-                                                                                                dataMetrics.refObject.getPropertyValues('docsDeleted'),
-                                                                                                dataMetrics.refObject.getPropertyValues('docsInserted'),
-                                                                                                dataMetrics.refObject.getPropertyValues('docsReturned'),
-                                                                                                dataMetrics.refObject.getPropertyValues('docsUpdated'),
+                                                                                                clusterStats.cluster.history.docsDeleted,
+                                                                                                clusterStats.cluster.history.docsInserted,
+                                                                                                clusterStats.cluster.history.docsReturned,
+                                                                                                clusterStats.cluster.history.docsUpdated,
                                                                                                 
                                                                                             ]} 
-                                                                                        timestamp={dataMetrics.timestamp} title={"DocumentOps/sec"} height="180px" 
+                                                                                        timestamp={timeNow.getTime()} title={"DocumentOps/sec"} height="180px" 
                                                                         />
                                                                     </td>
                                                                     
@@ -1005,7 +659,26 @@ function App() {
                                                         
                                                         <Container>
                                                                 
-                                                                  
+                                                            <table style={{"width":"100%" }}>
+                                                                        <tr>
+                                                                            <td style={{ "width":"100%", "align": "right"}}>
+                                                                                     <div style= {{ "float":"right"}}>
+                                                                                        <Pagination
+                                                                                              currentPageIndex={currentPageIndex}
+                                                                                              onChange={({ detail }) => {
+                                                                                                        setCurrentPageIndex(detail.currentPageIndex);
+                                                                                                        pageId.current = detail.currentPageIndex;
+                                                                                                        gatherClusterStats();
+                                                                                                }
+                                                                                              }
+                                                                                              pagesCount={ totalPages } 
+                                                                                        />
+                                                                                        <br/>
+                                                                                    </div>
+                                                                            </td>
+                                                                        </tr>
+                                                            </table>
+                                                            
                                                             <table style={{"width":"100%" }}>
                                                                         <tr>
                                                                             <td style={{ "width":"9%", "text-align":"left","padding-left":"1em", "font-size": "12px", "font-weight": "600"}}>
@@ -1027,10 +700,10 @@ function App() {
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('docops','DocumentOps/sec')}>DocumentOps/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connections','Connections')}>Connections</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connectionsCurrent','Connections')}>Connections</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connectionsSec','Connections/sec')}>Connections/sec</Link>
+                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connectionsCreated','Connections/sec')}>Connections/sec</Link>
                                                                             </td>
                                                                             <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('cpu','CPU(%)')}>CPU(%)</Link>
@@ -1046,22 +719,15 @@ function App() {
                                                                             </td>
                                                                         </tr>
                                                                                 
-                                                                        {dataNodes.MemberClusters.map((item,key) => (
+                                                                        {clusterStats.nodes.map((item,key) => (
+                                                                                           
                                                                                                  <DocumentDBNode
                                                                                                     sessionId = {cnf_connection_id}
-                                                                                                    instance = {item.instance}
-                                                                                                    host = {item.host}
-                                                                                                    port={item.port}
-                                                                                                    syncClusterEvent={syncData}
-                                                                                                    username = {cnf_username}
-                                                                                                    password = {cnf_password}
-                                                                                                    status={item.status}
-                                                                                                    size={item.size}
-                                                                                                    az={item.az}
-                                                                                                    monitoring={item.monitoring}
-                                                                                                    resourceId={item.resourceId}
+                                                                                                    clusterId = {cnf_identifier}
+                                                                                                    nodeStats={item}
                                                                                                 />
-                                                                           
+                                                                                           
+                                                                                            
                                                                            
                                                                             ))}
                                                             </table>
@@ -1081,10 +747,34 @@ function App() {
                                         content: 
                                           
                                           <>    
+                                                <table style={{"width":"100%" }}>
+                                                    <tr>
+                                                        <td style={{ "width":"100%", "align": "right"}}>
+                                                                 <div style= {{ "float":"right"}}>
+                                                                    <Pagination
+                                                                          currentPageIndex={currentPageIndex}
+                                                                          onChange={({ detail }) => {
+                                                                                    pageId.current = detail.currentPageIndex;
+                                                                                    setCurrentPageIndex(detail.currentPageIndex);
+                                                                            }
+                                                                          }
+                                                                          pagesCount={ totalPages } 
+                                                                    />
+                                                                </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td style={{ "width":"100%", "align": "right", "padding-right": "1em"}}>
+                                                                 <div style= {{ "float":"right"}}>
+                                                                    <Box variant="small">Last 30 Minutes</Box>
+                                                                </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
                                                 <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                 <tr>  
                                                    <td> 
-                                                   
+                                                        {console.log(pageId.current)}
                                                         <Container>
                                                             <CLWChart
                                                                   title="CPU Utilization % " 
@@ -1093,15 +783,17 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CPUUtilization"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"average"}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1115,16 +807,18 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="FreeableMemory"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"average"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1138,16 +832,18 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="NetworkReceiveThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1161,85 +857,18 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="NetworkTransmitThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="VolumeBytesUsed" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBClusterIdentifier"}
-                                                                  dimension_value={cnf_identifier}
-                                                                  metric_name="VolumeBytesUsed"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="VolumeWriteIOPs" 
-                                                                  subtitle="Total Count" 
-                                                                  height="180px"
-                                                                  color="orange" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBClusterIdentifier"}
-                                                                  dimension_value={cnf_identifier}
-                                                                  metric_name="VolumeWriteIOPs"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="VolumeReadIOPs" 
-                                                                  subtitle="Total Count" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBClusterIdentifier"}
-                                                                  dimension_value={cnf_identifier}
-                                                                  metric_name="VolumeReadIOPs"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1253,39 +882,18 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="ReadIOPS"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="ReadThroughput" 
-                                                                  subtitle="Total Count/sec" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="ReadThroughput"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1299,39 +907,18 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="WriteIOPS"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="WriteThroughput" 
-                                                                  subtitle="Total Count/sec" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="WriteThroughput"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1345,16 +932,18 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DatabaseConnections"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1368,16 +957,18 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="OpcountersQuery"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1391,16 +982,18 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="OpcountersDelete"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1414,16 +1007,18 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="OpcountersInsert"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1437,157 +1032,20 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/DocDB"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="OpcountersUpdate"
                                                                   stat_type="Average"
                                                                   period={60} 
-                                                                  interval={(60*1) * 60000}
+                                                                  interval={(30*1) * 60000}
                                                                   current_metric_mode={"total"}
                                                                   metric_per_second={0}
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="DocumentsReturned" 
-                                                                  subtitle="Total" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DocumentsReturned"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="DocumentsDeleted" 
-                                                                  subtitle="Total" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DocumentsDeleted"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="DocumentsInserted" 
-                                                                  subtitle="Total" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DocumentsInserted"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="DocumentsUpdated" 
-                                                                  subtitle="Total" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DocumentsUpdated"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart 
-                                                                  title="DBLoadNonCPU" 
-                                                                  subtitle="Average" 
-                                                                  height="180px"
-                                                                  color="orange" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DBLoadNonCPU"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={2}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>              
-                                                            <CLWChart 
-                                                                  title="DBLoad" 
-                                                                  subtitle="Average" 
-                                                                  height="180px"
-                                                                  color="purple" 
-                                                                  namespace="AWS/DocDB"
-                                                                  dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
-                                                                  metric_name="DBLoad"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_per_second={0}
-                                                                  metric_precision={2}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                            />
-                                                                          
-                                                                          
+                                                           
                                                         </Container>
                                                 
                                                     </td>

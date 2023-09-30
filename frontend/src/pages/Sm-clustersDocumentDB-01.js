@@ -88,6 +88,7 @@ function Login() {
             // Get Authentication
             Axios.post(`${configuration["apps-settings"]["api_url"]}/api/documentdb/connection/auth/`,{
                 params: { 
+                          clusterId : selectedItems[0]['identifier'],
                           host: selectedItems[0]['endpoint'], 
                           port: selectedItems[0]['port'], 
                           username: txtUser, 

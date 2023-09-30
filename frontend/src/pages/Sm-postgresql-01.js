@@ -596,6 +596,7 @@ export default function App() {
         onClickMenu={handleClickMenu}
         onClickDisconnect={handleClickDisconnect}
         sessionInformation={parameter_object_values}
+        titleItem={parameter_object_values['rds_host']}
       />
       <CustomLayout
         contentType="table"
@@ -683,7 +684,7 @@ export default function App() {
                                                     <tr>  
                                                       <td style={{"width":"12.5%","padding-left": "1em"}}>  
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['cpu'][0]['value']}
+                                                            value={dataEnhancedMonitor['counters']['cpu'][0]['value'] || 0}
                                                             title={"CPU Usage (%)"}
                                                             precision={0}
                                                             format={3}
@@ -694,7 +695,7 @@ export default function App() {
                                                       </td>
                                                       <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['memory'][0]['value']}
+                                                            value={dataEnhancedMonitor['counters']['memory'][0]['value'] || 0}
                                                             title={"Memory Usage(%)"}
                                                             precision={0}
                                                             format={3}
@@ -705,7 +706,7 @@ export default function App() {
                                                       </td>
                                                       <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['tps'][0]['value']}
+                                                            value={dataEnhancedMonitor['counters']['tps'][0]['value'] || 0}
                                                             title={"I/O TPS"}
                                                             precision={0}
                                                             format={3}
@@ -714,7 +715,7 @@ export default function App() {
                                                       </td>
                                                       <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['io_queue'][0]['value']}
+                                                            value={dataEnhancedMonitor['counters']['io_queue'][0]['value'] || 0}
                                                             title={"DiskQueue"}
                                                             precision={2}
                                                             format={2}
@@ -723,7 +724,7 @@ export default function App() {
                                                       </td>
                                                       <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['io_reads'][0]['value'] + dataEnhancedMonitor['counters']['io_reads'][1]['value']}
+                                                            value={ (dataEnhancedMonitor['counters']['io_reads'][0]['value'] + dataEnhancedMonitor['counters']['io_reads'][1]['value']) || 0}
                                                             title={"Reads (IOPS)"}
                                                             precision={0}
                                                             fontColorValue={configuration.colors.fonts.metric100}
@@ -731,7 +732,7 @@ export default function App() {
                                                       </td>
                                                       <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['io_writes'][0]['value'] + dataEnhancedMonitor['counters']['io_writes'][1]['value']}
+                                                            value={ (dataEnhancedMonitor['counters']['io_writes'][0]['value'] + dataEnhancedMonitor['counters']['io_writes'][1]['value']) || 0}
                                                             title={"Write (IOPS)"}
                                                             precision={0}
                                                             fontColorValue={configuration.colors.fonts.metric100}
@@ -739,7 +740,7 @@ export default function App() {
                                                       </td>
                                                       <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['network'][0]['value']}
+                                                            value={dataEnhancedMonitor['counters']['network'][0]['value'] || 0}
                                                             title={"Network TX(Bytes/sec)"}
                                                             precision={0}
                                                             format={2}
@@ -748,7 +749,7 @@ export default function App() {
                                                       </td>
                                                       <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                           <CompMetric02
-                                                            value={dataEnhancedMonitor['counters']['network'][1]['value']}
+                                                            value={dataEnhancedMonitor['counters']['network'][1]['value'] || 0}
                                                             title={"Network RX(Bytes/sec)"}
                                                             precision={0}
                                                             format={2}
@@ -765,7 +766,7 @@ export default function App() {
                                                   <tr>  
                                                     <td style={{"width":"12.5%",  "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('xact_commit')}
+                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('xact_commit') || 0}
                                                           title={"Commit/sec"}
                                                           type={1}
                                                           precision={0}
@@ -775,12 +776,12 @@ export default function App() {
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}> 
                                                         <CompMetric02
                                                           value={ 
-                                                                  dataMetricRealTime.refObject.getDeltaByIndex('tup_fetched') +
+                                                                  (dataMetricRealTime.refObject.getDeltaByIndex('tup_fetched') +
                                                                   dataMetricRealTime.refObject.getDeltaByIndex('tup_returned') +
                                                                   dataMetricRealTime.refObject.getDeltaByIndex('tup_updated') +
                                                                   dataMetricRealTime.refObject.getDeltaByIndex('tup_inserted') +
                                                                   dataMetricRealTime.refObject.getDeltaByIndex('tup_deleted') 
-                                                            
+                                                                  ) || 0
                                                           }
                                                           title={"Tuples/sec"}
                                                           precision={0}
@@ -790,7 +791,7 @@ export default function App() {
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_fetched')}
+                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_fetched') || 0}
                                                           title={"Tuples Fetched/sec"}
                                                           precision={0}
                                                           fontColorValue={configuration.colors.fonts.metric100}
@@ -800,7 +801,7 @@ export default function App() {
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_returned')}
+                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_returned') || 0}
                                                           title={"Tuples Returned/sec"}
                                                           type={1}
                                                           precision={0}
@@ -810,7 +811,7 @@ export default function App() {
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_updated')}
+                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_updated') || 0}
                                                           title={"Tuples Updated/sec"}
                                                           type={1}
                                                           precision={0}
@@ -819,7 +820,7 @@ export default function App() {
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid #e3e5e7", "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_inserted')}
+                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_inserted') || 0}
                                                           title={"Tuples Inserted/sec"}
                                                           type={1}
                                                           precision={0}
@@ -828,7 +829,7 @@ export default function App() {
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_deleted')}
+                                                          value={dataMetricRealTime.refObject.getDeltaByIndex('tup_deleted') || 0}
                                                           title={"Tuples Deleted/sec"}
                                                           type={1}
                                                           precision={0}
@@ -837,7 +838,7 @@ export default function App() {
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={dataMetricRealTime.refObject.getValueByIndex('numbackends')}
+                                                          value={dataMetricRealTime.refObject.getValueByIndex('numbackends') || 0}
                                                           title={"Backends"}
                                                           type={2}
                                                           precision={0}
@@ -1258,7 +1259,7 @@ export default function App() {
                                          <td style={{"width":"15%", "text-align":"center"}}>        
                                                 
                                                 <CompMetric02
-                                                  value={dataEnhancedMonitor['counters']['cpu'][0]['value']}
+                                                  value={dataEnhancedMonitor['counters']['cpu'][0]['value'] || 0}
                                                   title={"Usage %"}
                                                   precision={0}
                                                   format={3}
@@ -1270,7 +1271,7 @@ export default function App() {
                                                 
                                                 <ColumnLayout columns={4} variant="text-grid">
                                                     <CompMetric03
-                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][0]['value']}
+                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][0]['value'] || 0}
                                                       title={"User"}
                                                       precision={1}
                                                       format={1}
@@ -1278,7 +1279,7 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][1]['value']}
+                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][1]['value'] || 0}
                                                       title={"System"}
                                                       precision={1}
                                                       format={1}
@@ -1286,7 +1287,7 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][2]['value']}
+                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][2]['value'] || 0}
                                                       title={"Wait"}
                                                       precision={1}
                                                       format={1}
@@ -1294,7 +1295,7 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][5]['value']}
+                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][5]['value'] || 0}
                                                       title={"Steal"}
                                                       precision={1}
                                                       format={1}
@@ -1302,7 +1303,7 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][6]['value']}
+                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][6]['value'] || 0}
                                                       title={"Nice"}
                                                       precision={1}
                                                       format={1}
@@ -1310,7 +1311,7 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][4]['value']}
+                                                      value={dataEnhancedMonitor['counters']['cpu_detail'][4]['value'] || 0}
                                                       title={"Guest"}
                                                       precision={1}
                                                       format={1}
@@ -1337,7 +1338,7 @@ export default function App() {
                                       <tr>  
                                          <td style={{"width":"15%", "text-align":"center"}}>        
                                                  <CompMetric02
-                                                  value={dataEnhancedMonitor['counters']['memory'][0]['value']}
+                                                  value={dataEnhancedMonitor['counters']['memory'][0]['value'] || 0}
                                                   title={"Usage % "}
                                                   precision={0}
                                                   format={3}
@@ -1349,7 +1350,7 @@ export default function App() {
                                                 
                                                 <ColumnLayout columns={4} variant="text-grid">
                                                     <CompMetric03
-                                                      value={dataEnhancedMonitor['counters']['memory_detail'][0]['value']*1024}
+                                                      value={ (dataEnhancedMonitor['counters']['memory_detail'][0]['value']*1024) || 0}
                                                       title={"Total"}
                                                       precision={0}
                                                       format={2}
@@ -1357,7 +1358,7 @@ export default function App() {
                                                     />
                                                   
                                                     <CompMetric03
-                                                        value={dataEnhancedMonitor['counters']['memory_detail'][1]['value']*1024}
+                                                        value={ (dataEnhancedMonitor['counters']['memory_detail'][1]['value']*1024) || 0}
                                                         title={"Active"}
                                                         precision={0}
                                                         format={2}
@@ -1365,7 +1366,7 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                        value={dataEnhancedMonitor['counters']['memory_detail'][2]['value']*1024}
+                                                        value={ (dataEnhancedMonitor['counters']['memory_detail'][2]['value']*1024) || 0}
                                                         title={"Inactive"}
                                                         precision={0}
                                                         format={2}
@@ -1373,7 +1374,7 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                        value={dataEnhancedMonitor['counters']['memory_detail'][3]['value']*1024}
+                                                        value={ (dataEnhancedMonitor['counters']['memory_detail'][3]['value']*1024) || 0}
                                                         title={"Free"}
                                                         precision={0}
                                                         format={2}
@@ -1400,7 +1401,7 @@ export default function App() {
                                       
                                           <td style={{"width":"15%", "text-align":"center"}}>      
                                               <CompMetric02
-                                                value={dataEnhancedMonitor['counters']['io_reads'][0]['value'] + dataEnhancedMonitor['counters']['io_reads'][1]['value']}
+                                                value={ (dataEnhancedMonitor['counters']['io_reads'][0]['value'] + dataEnhancedMonitor['counters']['io_reads'][1]['value']) || 0}
                                                 title={"IOPS"}
                                                 precision={0}
                                                 fontColorValue={configuration.colors.fonts.metric100}
@@ -1410,7 +1411,7 @@ export default function App() {
                                          
                                           <td style={{"width":"15%", "text-align":"center", "border-left": "2px solid red"}}>  
                                               <CompMetric02
-                                                value={dataEnhancedMonitor['counters']['io_writes'][0]['value'] + dataEnhancedMonitor['counters']['io_writes'][1]['value']}
+                                                value={ (dataEnhancedMonitor['counters']['io_writes'][0]['value'] + dataEnhancedMonitor['counters']['io_writes'][1]['value']) || 0}
                                                 title={"IOPS"}
                                                 precision={0}
                                                 fontColorValue={configuration.colors.fonts.metric100}
@@ -1444,7 +1445,7 @@ export default function App() {
                                       
                                           <td style={{"width":"15%", "text-align":"center"}}>        
                                               <CompMetric02
-                                                value={dataEnhancedMonitor['counters']['network'][0]['value']}
+                                                value={dataEnhancedMonitor['counters']['network'][0]['value'] || 0}
                                                 title={"Bytes/sec"}
                                                 precision={0}
                                                 format={2}
@@ -1455,7 +1456,7 @@ export default function App() {
                                          
                                           <td style={{"width":"15%", "text-align":"center", "border-left": "2px solid red"}}>  
                                               <CompMetric02
-                                                value={ dataEnhancedMonitor['counters']['network'][1]['value'] }
+                                                value={ dataEnhancedMonitor['counters']['network'][1]['value'] || 0}
                                                 title={"Bytes/sec"}
                                                 precision={0}
                                                 format={2}

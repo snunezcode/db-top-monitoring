@@ -3,8 +3,11 @@ export const configuration =
 {
     "apps-settings": {
         "refresh-interval": 10*1000,
-        "refresh-interval-clw": 10*1000,
+        "refresh-interval-clw": 20*1000,
         "refresh-interval-elastic": 5*1000,
+        "refresh-interval-documentdb-metrics": 10*1000,
+        "refresh-interval-documentdb-sessions": 10*1000,
+        "items-per-page-documentdb": 10,
         "api_url": "",
         "release" : "0.1.0",
         "application-title": "DBTop Monitoring",
@@ -35,7 +38,7 @@ export const SideMainLayoutMenu = [
       items: [
         { type: 'link', text: 'RDS Instances', href: '/rds/instances/' },
         { type: 'link', text: 'Aurora Clusters', href: '/clusters/aurora/'},
-        { type: 'link', text: 'ElastiCache Clusters', href: '/clusters/elasticache/' },
+        { type: 'link', text: 'ElastiCache Clusters for Redis', href: '/clusters/elasticache/' },
         { type: 'link', text: 'Memory Clusters', href: '/clusters/memorydb/'},
         { type: 'link', text: 'DocumentDB Clusters', href: '/clusters/documentdb'}
       ],

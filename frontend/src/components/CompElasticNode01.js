@@ -35,7 +35,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric04
-                        value={node.operations}
+                        value={node.operations || 0}
                         precision={2}
                         format={1}
                         height={"30px"}
@@ -49,7 +49,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric04
-                        value={node.getCalls}
+                        value={node.getCalls || 0}
                         precision={2}
                         format={1}
                         height={"30px"}
@@ -63,7 +63,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric04
-                        value={node.setCalls}
+                        value={node.setCalls || 0}
                         precision={2}
                         format={1}
                         height={"30px"}
@@ -77,7 +77,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={node.cacheHitRate}
+                        value={node.cacheHitRate || 0}
                         title={""}
                         precision={2}
                         format={1}
@@ -87,17 +87,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={node.keyspaceHits}
-                        title={""}
-                        precision={0}
-                        format={3}
-                        fontSizeValue={"14px"}
-                        fontColorValue={configuration.colors.fonts.metric100}
-                    />
-                </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
-                    <CompMetric01 
-                        value={node.getLatency}
+                        value={node.getLatency || 0}
                         title={""}
                         precision={0}
                         format={1}
@@ -107,7 +97,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                       value={node.setLatency}
+                       value={node.setLatency || 0}
                         title={""}
                         precision={0}
                         format={1}
@@ -117,10 +107,10 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={node.connectedClients}
+                        value={node.connectedClients || 0}
                         title={""}
                         precision={0}
-                        format={1}
+                        format={2}
                         fontSizeValue={"14px"}
                         fontColorValue={configuration.colors.fonts.metric100}
                     />
@@ -128,7 +118,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                      <CompMetric01 
-                        value={node.cpu}
+                        value={node.cpu || 0}
                         title={""}
                         precision={0}
                         format={1}
@@ -138,7 +128,17 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                 </td>
                 <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
                     <CompMetric01 
-                        value={node.memory}
+                        value={node.memory || 0}
+                        title={""}
+                        precision={0}
+                        format={1}
+                        fontSizeValue={"14px"}
+                        fontColorValue={configuration.colors.fonts.metric100}
+                    />
+                </td>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                    <CompMetric01 
+                        value={node.network || 0}
                         title={""}
                         precision={0}
                         format={1}
@@ -167,12 +167,18 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                                     />
                                 </td>
                                 <td style={{"width":"13%","padding-left": "1em"}}> 
+                                    <ChartRadialBar01 series={[Math.round(node.network)]} 
+                                         height="180px" 
+                                         title={"Network (%)"}
+                                    />
+                                </td>
+                                <td style={{"width":"13%","padding-left": "1em"}}> 
                                     <ChartRadialBar01 series={[Math.round(node.cacheHitRate)]} 
                                          height="180px" 
                                          title={"CacheHit (%)"}
                                     />
                                 </td>
-                                <td style={{"width":"50%","padding-left": "1em"}}> 
+                                <td style={{"width":"37%","padding-left": "1em"}}> 
                                         <ChartLine02 series={[
                                                                 node.history.operations
                                                             ]} 
@@ -186,26 +192,39 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         <table style={{"width":"100%"}}>
                             <tr>
                                 
-                                <td style={{"width":"33%","padding-left": "1em"}}> 
+                                <td style={{"width":"50%","padding-left": "1em"}}> 
                                         <ChartLine02 series={[
                                                                 node.history.cpu,
                                                             ]} 
                                          timestamp={timeNow.getTime()} title={"CPU Usage(%)"} height="200px" 
                                          />
                                 </td>
-                                <td style={{"width":"33%","padding-left": "1em"}}> 
+                                <td style={{"width":"50%","padding-left": "1em"}}> 
                                         <ChartLine02 series={[
                                                                 node.history.memory,
                                                             ]} 
                                          timestamp={timeNow.getTime()} title={"Memory Usage(%)"} height="200px" 
                                          />
                                 </td>
-                                <td style={{"width":"33%","padding-left": "1em"}}> 
+                            </tr>
+                        </table>
+                        <br/>
+                        <br/>
+                        <table style={{"width":"100%"}}>
+                            <tr>
+                                <td style={{"width":"50%","padding-left": "1em"}}> 
+                                        <ChartLine02 series={[
+                                                                node.history.network,
+                                                            ]} 
+                                         timestamp={timeNow.getTime()} title={"Network Baseline Usage (%)"} height="200px" 
+                                         />
+                                </td>
+                                <td style={{"width":"50%","padding-left": "1em"}}> 
                                         <ChartLine02 series={[
                                                                 node.history.netin,
                                                                 node.history.netout,
                                                             ]} 
-                                         timestamp={timeNow.getTime()} title={"Network Usage(%)"} height="200px" 
+                                         timestamp={timeNow.getTime()} title={"Network Traffic (Bytes/sec)"} height="200px" 
                                          />
                                 </td>
                                
