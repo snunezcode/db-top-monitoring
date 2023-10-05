@@ -1,6 +1,7 @@
+import {memo} from 'react';
 import Chart from 'react-apexcharts';
 
-function ChartLine({ series, height, width, title, fontSizeTitle = "11px", fontSizeValue = "22px", fontColorTitle = "#C6C2C1", fontColorValue = "orange" }) {
+const ChartRadial = memo(({  series, height, width, title, fontSizeTitle = "11px", fontSizeValue = "22px", fontColorTitle = "#C6C2C1", fontColorValue = "orange" }) => {
     
     var options = {
           chart: {
@@ -20,11 +21,11 @@ function ChartLine({ series, height, width, title, fontSizeTitle = "11px", fontS
     return (
             <div>
                 <div style={{height:height, width:width}}>
-                    <Chart options={options} series={series} type={"radialBar"} width={width} height={height} />
+                    <Chart options={options} series={JSON.parse(series)} type={"radialBar"} width={width} height={height} />
                 </div>
             </div>
           
            );
-}
+});
 
-export default ChartLine;
+export default ChartRadial;

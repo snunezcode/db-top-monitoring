@@ -1656,6 +1656,7 @@ async function gatherStatsRedisCluster(req, res) {
                                 cacheHitRate : 0,
                                 netIn: 0,
                                 netOut: 0,
+                                network : 0,
                                 connectionsTotal: 0,
                                 commands: 0,
                 };

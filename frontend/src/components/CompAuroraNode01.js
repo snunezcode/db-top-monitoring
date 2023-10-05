@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, memo } from 'react'
 import Axios from 'axios';
 import ChartLine02 from './ChartLine02';
-import ChartBar01 from './ChartBar01';
 import ChartRadialBar01 from './ChartRadialBar01';
 
 import CompMetric01 from './Metric01';
@@ -603,35 +602,35 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                                         />
                                 </td>
                                 <td style={{"width":"14%", "padding-left": "1em"}}>  
-                                        <ChartRadialBar01 series={[Math.round(nodeStats.cpu || 0)]} 
+                                        <ChartRadialBar01 series={JSON.stringify([Math.round(nodeStats.cpu || 0)])} 
                                                  height="180px" 
                                                  title={"CPU (%)"}
                                         />
                                      
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.objMetric.getPropertyValues('cpu')
                                                             
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"CPU Usage (%)"} height="180px" 
+                                                        ])} 
+                                                        title={"CPU Usage (%)"} height="180px" 
                                     />
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.objMetric.getPropertyValues('ioreads'),
                                                             nodeStats.objMetric.getPropertyValues('iowrites')
                                                             
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"IOPS"} height="180px" 
+                                                        ])} 
+                                                        title={"IOPS"} height="180px" 
                                     />
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.objMetric.getPropertyValues('netin'),
                                                             nodeStats.objMetric.getPropertyValues('netout'),
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"NetworkTraffic"} height="180px" 
+                                                        ])} 
+                                                        title={"NetworkTraffic"} height="180px" 
                                     />  
                                 </td>
                             </tr>
@@ -750,29 +749,29 @@ const ComponentObject = memo(({  sessionId, instance, host, port, username, pass
                         <table style={{"width":"100%"}}>
                               <tr>  
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.objMetric.getPropertyValues('threadsRunning'),
                                                             nodeStats.objMetric.getPropertyValues('threads')
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Threads"} height="180px" 
+                                                        ])} 
+                                                        title={"Threads"} height="180px" 
                                     />  
                                 </td>
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.objMetric.getPropertyValues('questions')
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Questions/sec"} height="180px" 
+                                                        ])} 
+                                                        title={"Questions/sec"} height="180px" 
                                     />  
                                 </td>
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.objMetric.getPropertyValues('comSelect'),
                                                             nodeStats.objMetric.getPropertyValues('comDelete'),
                                                             nodeStats.objMetric.getPropertyValues('comInsert'),
                                                             nodeStats.objMetric.getPropertyValues('comUpdate'),
                                                             
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Operations/sec"} height="180px" 
+                                                        ])} 
+                                                        title={"Operations/sec"} height="180px" 
                                     />
                                 </td>
                                 

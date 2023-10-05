@@ -12,7 +12,6 @@ import Link from "@cloudscape-design/components/link";
 const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port, syncClusterEvent, username, password, auth, ssl, node }) => {
 
     const [detailsVisible, setDetailsVisible] = useState(false);
-    var timeNow = new Date();
     
     function onClickNode() {
         setDetailsVisible(!(detailsVisible));
@@ -155,34 +154,34 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         <table style={{"width":"100%"}}>
                             <tr>
                                 <td style={{"width":"13%","padding-left": "1em"}}> 
-                                    <ChartRadialBar01 series={[Math.round(node.cpu)]} 
+                                    <ChartRadialBar01 series={JSON.stringify([Math.round(node.cpu)])} 
                                          height="180px" 
                                          title={"CPU (%)"}
                                     />
                                 </td>
                                 <td style={{"width":"13%","padding-left": "1em"}}> 
-                                    <ChartRadialBar01 series={[Math.round(node.memory)]} 
+                                    <ChartRadialBar01 series={JSON.stringify([Math.round(node.memory)])} 
                                          height="180px" 
                                          title={"Memory (%)"}
                                     />
                                 </td>
                                 <td style={{"width":"13%","padding-left": "1em"}}> 
-                                    <ChartRadialBar01 series={[Math.round(node.network)]} 
+                                    <ChartRadialBar01 series={JSON.stringify([Math.round(node.network)])} 
                                          height="180px" 
                                          title={"Network (%)"}
                                     />
                                 </td>
                                 <td style={{"width":"13%","padding-left": "1em"}}> 
-                                    <ChartRadialBar01 series={[Math.round(node.cacheHitRate)]} 
+                                    <ChartRadialBar01 series={JSON.stringify([Math.round(node.cacheHitRate)])} 
                                          height="180px" 
                                          title={"CacheHit (%)"}
                                     />
                                 </td>
                                 <td style={{"width":"37%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.operations
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"Operations/sec"} height="180px" 
+                                                            ])} 
+                                                            title={"Operations/sec"} height="180px" 
                                          />
                                 </td>
                             </tr>
@@ -193,17 +192,17 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                             <tr>
                                 
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.cpu,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"CPU Usage(%)"} height="200px" 
+                                                            ])} 
+                                                            title={"CPU Usage(%)"} height="200px" 
                                          />
                                 </td>
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.memory,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"Memory Usage(%)"} height="200px" 
+                                                            ])} 
+                                                            title={"Memory Usage(%)"} height="200px" 
                                          />
                                 </td>
                             </tr>
@@ -213,18 +212,18 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         <table style={{"width":"100%"}}>
                             <tr>
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.network,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"Network Baseline Usage (%)"} height="200px" 
+                                                            ])} 
+                                                            title={"Network Baseline Usage (%)"} height="200px" 
                                          />
                                 </td>
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.netin,
                                                                 node.history.netout,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"Network Traffic (Bytes/sec)"} height="200px" 
+                                                            ])} 
+                                                            title={"Network Traffic (Bytes/sec)"} height="200px" 
                                          />
                                 </td>
                                
@@ -236,19 +235,19 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                             <tr>
                                 
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.getCalls,
                                                                 node.history.setCalls,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"Calls/sec"} height="200px" 
+                                                            ])} 
+                                                            title={"Calls/sec"} height="200px" 
                                          />
                                 </td>
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.getLatency,
                                                                 node.history.setLatency,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"LatencyCalls(us)"} height="200px"
+                                                            ])} 
+                                                            title={"LatencyCalls(us)"} height="200px"
                                          />
                                 </td>
                             </tr>
@@ -258,18 +257,18 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         <table style={{"width":"100%"}}>
                             <tr>
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.keyspaceHits,
                                                                 node.history.keyspaceMisses,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"Cache Efficiency"} height="200px" 
+                                                            ])} 
+                                                            title={"Cache Efficiency"} height="200px" 
                                          />
                                 </td>
                                 <td style={{"width":"50%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={[
+                                        <ChartLine02 series={JSON.stringify([
                                                                 node.history.connectedClients,
-                                                            ]} 
-                                         timestamp={timeNow.getTime()} title={"Connections"} height="200px"
+                                                            ])} 
+                                                            title={"Connections"} height="200px"
                                          />
                                 </td>
                             </tr>

@@ -596,7 +596,6 @@ export default function App() {
         onClickMenu={handleClickMenu}
         onClickDisconnect={handleClickDisconnect}
         sessionInformation={parameter_object_values}
-        titleItem={parameter_object_values['rds_host']}
       />
       <CustomLayout
         contentType="table"
@@ -660,6 +659,14 @@ export default function App() {
         }
         pageContent={
             <>
+                  <table style={{"width":"100%"}}>
+                      <tr>  
+                          <td style={{"width":"50%","padding-left": "1em", "border-left": "10px solid " + configuration.colors.lines.separator100,}}>  
+                              <Box variant="h2" color="text-status-inactive" >{parameter_object_values['rds_host']}</Box>
+                          </td>
+                      </tr>
+                  </table>
+                  
                   <Tabs
                     onChange={({ detail }) => {
                           setActiveTabId(detail.activeTabId);
@@ -854,13 +861,13 @@ export default function App() {
                                                   <tr>  
                                                     
                                                     <td style={{"width":"25%","padding-left": "1em"}}> 
-                                                        <ChartLine02 series={dataMetricRealTimeSession['SessionsTotal']} timestamp={dataMetricRealTime['timestamp']} title={"Active Sessions"} height="200px" />
+                                                        <ChartLine02 series={JSON.stringify(dataMetricRealTimeSession['SessionsTotal'])} title={"Active Sessions"} height="200px" />
                                                     </td>
                                                     <td style={{"width":"25%","padding-left": "1em"}}> 
-                                                        <ChartLine02 series={dataMetricRealTime['Transactions']} timestamp={dataMetricRealTime['timestamp']} title={"Transactions/sec"} height="200px" />
+                                                        <ChartLine02 series={JSON.stringify(dataMetricRealTime['Transactions'])}  title={"Transactions/sec"} height="200px" />
                                                     </td>
                                                     <td style={{"width":"25%","padding-left": "1em"}}> 
-                                                        <ChartLine02 series={dataMetricRealTime['Operations']} timestamp={dataMetricRealTime['timestamp']} title={"Operations/sec"} height="200px" />
+                                                        <ChartLine02 series={JSON.stringify(dataMetricRealTime['Operations'])} title={"Operations/sec"} height="200px" />
                                                     </td>
                                                   </tr>
                                               </table>
@@ -1324,8 +1331,7 @@ export default function App() {
                                           
                                           <td style={{"width":"60%"}}>        
                                                 <ChartLine02 
-                                                    series={dataEnhancedMonitor['charts']['cpu']} 
-                                                    timestamp={dataEnhancedMonitor['charts']['timestamp']} 
+                                                    series={JSON.stringify(dataEnhancedMonitor['charts']['cpu'])} 
                                                     title={"CPU Usage (%)"} height="200px" 
                                                 />
                                           </td>
@@ -1386,8 +1392,7 @@ export default function App() {
                                           </td>
                                           <td style={{"width":"60%"}}>        
                                               <ChartLine02 
-                                                    series={dataEnhancedMonitor['charts']['memory']} 
-                                                    timestamp={dataEnhancedMonitor['charts']['timestamp']} 
+                                                    series={JSON.stringify(dataEnhancedMonitor['charts']['memory'])} 
                                                     title={"Memory Usage (GB)"} height="200px" 
                                                 />
                                           </td>
@@ -1421,16 +1426,14 @@ export default function App() {
                           
                                           <td style={{"width":"35%"}}>    
                                               <ChartLine02 
-                                                    series={dataEnhancedMonitor['charts']['reads']} 
-                                                    timestamp={dataEnhancedMonitor['charts']['timestamp']} 
+                                                    series={JSON.stringify(dataEnhancedMonitor['charts']['reads'])} 
                                                     title={"I/O Reads"} height="200px" 
                                                 />
                                           </td>
                                           
                                           <td style={{"width":"35%", "padding-left": "1em"}}>        
                                               <ChartLine02 
-                                                    series={dataEnhancedMonitor['charts']['writes']} 
-                                                    timestamp={dataEnhancedMonitor['charts']['timestamp']} 
+                                                    series={JSON.stringify(dataEnhancedMonitor['charts']['writes'])} 
                                                     title={"I/O Writes"} height="200px" 
                                                 />
                                           </td>
@@ -1467,16 +1470,14 @@ export default function App() {
                           
                                           <td style={{"width":"35%"}}>        
                                               <ChartLine02 
-                                                    series={dataEnhancedMonitor['charts']['network_tx']} 
-                                                    timestamp={dataEnhancedMonitor['charts']['timestamp']} 
+                                                    series={JSON.stringify(dataEnhancedMonitor['charts']['network_tx'])} 
                                                     title={"Network(TX)"} height="200px" 
                                                 />
                                           </td>
                                           
                                           <td style={{"width":"35%", "padding-left": "1em"}}>        
                                               <ChartLine02 
-                                                    series={dataEnhancedMonitor['charts']['network_rx']} 
-                                                    timestamp={dataEnhancedMonitor['charts']['timestamp']} 
+                                                    series={JSON.stringify(dataEnhancedMonitor['charts']['network_rx'])} 
                                                     title={"Network(RX)"} height="200px" 
                                                 />
                                           </td>

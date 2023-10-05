@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, memo } from 'react'
 import Axios from 'axios';
 import ChartLine02 from './ChartLine02';
-import ChartBar01 from './ChartBar01';
 import ChartRadialBar01 from './ChartRadialBar01';
 
 import CompMetric01 from './Metric01';
@@ -231,35 +230,35 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                                         />
                                 </td>
                                 <td style={{"width":"14%", "padding-left": "1em"}}>  
-                                        <ChartRadialBar01 series={[Math.round(nodeStats.cpu || 0)]} 
+                                        <ChartRadialBar01 series={JSON.stringify([Math.round(nodeStats.cpu || 0)])} 
                                                  height="180px" 
                                                  title={"CPU (%)"}
                                         />
                                      
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.history.cpu
                                                             
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"CPU Usage (%)"} height="180px" 
+                                                        ])} 
+                                                        title={"CPU Usage (%)"} height="180px" 
                                     />
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.history.ioreads,
                                                             nodeStats.history.iowrites
                                                             
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"IOPS"} height="180px" 
+                                                        ])} 
+                                                        title={"IOPS"} height="180px" 
                                     />
                                 </td>
                                 <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.history.netin,
                                                             nodeStats.history.netout
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"NetworkTraffic"} height="180px" 
+                                                        ])} 
+                                                        title={"NetworkTraffic"} height="180px" 
                                     />  
                                 </td>
                             </tr>
@@ -485,14 +484,14 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                         <table style={{"width":"100%"}}>
                               <tr>  
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.history.connectionsCurrent
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Connections"} height="180px" 
+                                                        ])} 
+                                                        title={"Connections"} height="180px" 
                                     />  
                                 </td>
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.history.opsInsert,
                                                             nodeStats.history.opsQuery,
                                                             nodeStats.history.opsUpdate,
@@ -500,19 +499,19 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                                                             nodeStats.history.opsGetmore,
                                                             nodeStats.history.opsCommand
                                                             
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"Operations/sec"} height="180px" 
+                                                        ])} 
+                                                        title={"Operations/sec"} height="180px" 
                                     />  
                                 </td>
                                 <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                     <ChartLine02 series={[
+                                     <ChartLine02 series={JSON.stringify([
                                                             nodeStats.history.docsDeleted,
                                                             nodeStats.history.docsInserted,
                                                             nodeStats.history.docsReturned,
                                                             nodeStats.history.docsUpdated,
                                                             
-                                                        ]} 
-                                                    timestamp={nodeStats.timestamp} title={"DocumentOps/sec"} height="180px" 
+                                                        ])} 
+                                                        title={"DocumentOps/sec"} height="180px" 
                                     />
                                 </td>
                                 

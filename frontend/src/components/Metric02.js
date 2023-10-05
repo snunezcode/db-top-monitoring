@@ -1,22 +1,21 @@
-import {useState,useEffect} from 'react'
+import {useState,useEffect,memo} from 'react';
 
-function Metric({value,title,precision,format=1,fontSizeTitle = "11px", fontSizeValue = "22px", fontColorTitle = "#C6C2C1", fontColorValue = "orange"}) {
+const Metric = memo(({ value, title, precision, format=1, fontSizeTitle = "11px", fontSizeValue = "22px", fontColorTitle = "#C6C2C1", fontColorValue = "orange"}) => {
 
-    const [counterValue,setCountervalue] = useState(0);
+    var counterValue = 0;
     
-    function updateMetrics(){
-      try {
+    try {
             switch (format) {
               case 1:
-                setCountervalue(CustomFormatNumberRaw(value,precision));
+                counterValue = CustomFormatNumberRaw(value,precision);
                 break;
                 
               case 2:
-                setCountervalue(CustomFormatNumberData(value,precision));
+                counterValue = CustomFormatNumberData(value,precision);
                 break;
               
               case 3:
-                setCountervalue(CustomFormatNumberRawInteger(value,0));
+                counterValue = CustomFormatNumberRawInteger(value,0);
                 break;
               
             }
@@ -24,17 +23,11 @@ function Metric({value,title,precision,format=1,fontSizeTitle = "11px", fontSize
       }
       catch{
         console.log('error');
-      }
+    }
       
        
-    }
     
-    // eslint-disable-next-line
-    useEffect(() => {
-      updateMetrics();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value]);
-    
+  
     
     
     function CustomFormatNumberData(value,decimalLength) {
@@ -75,6 +68,6 @@ function Metric({value,title,precision,format=1,fontSizeTitle = "11px", fontSize
           
             </div>
            )
-}
+});
 
 export default Metric

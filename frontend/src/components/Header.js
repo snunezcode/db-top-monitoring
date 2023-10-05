@@ -72,12 +72,6 @@ export default function App({sessionInformation,onClickMenu, onClickDisconnect, 
           
           utilities={[
             {
-              type: "button",
-              text: titleItem,
-              href: "#",
-              external: false
-            },
-            {
               type: 'button',
               iconName: 'notification',
               ariaLabel: 'Notifications',

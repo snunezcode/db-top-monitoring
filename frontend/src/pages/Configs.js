@@ -21,8 +21,8 @@ export const configuration =
             "metric100" : "#e59400",
         },
         "lines" : {
-            "separator100" : "#737c85"
-            
+            "separator100" : "#737c85",
+            "separator101" : "red"
         }
     }
 };

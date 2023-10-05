@@ -544,7 +544,6 @@ function App() {
             onClickMenu={handleClickMenu}
             onClickDisconnect={handleClickDisconnect}
             sessionInformation={parameter_object_values}
-            titleItem={parameter_object_values['rds_host']}
         />
         
         <CustomLayout
@@ -572,7 +571,7 @@ function App() {
                             </td>
                             <td style={{"width":"70%", "padding-left": "1em"}}>  
                                  <ChartLine02 
-                                    series={dataMetrics.metricDetails[metricDetailsIndex.index]} 
+                                    series={JSON.stringify(dataMetrics.metricDetails[metricDetailsIndex.index])} 
                                     timestamp={metricDetailsIndex.timestamp} 
                                     height="200px" 
                                   />
@@ -587,6 +586,14 @@ function App() {
         }
         pageContent={
             <>
+                            <table style={{"width":"100%"}}>
+                                <tr>  
+                                    <td style={{"width":"50%","padding-left": "1em", "border-left": "10px solid " + configuration.colors.lines.separator100,}}>  
+                                        <Box variant="h2" color="text-status-inactive" >{parameter_object_values['rds_host']}</Box>
+                                    </td>
+                                </tr>
+                            </table>
+                            
                             <Tabs
                                     onChange={({ detail }) => {
                                           setActiveTabId(detail.activeTabId);
@@ -639,35 +646,35 @@ function App() {
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(dataMetrics.cpu || 0)]} 
+                                                                                <ChartRadialBar01 series={JSON.stringify([Math.round(dataMetrics.cpu || 0)])} 
                                                                                          height="180px" 
                                                                                          title={"CPU (%)"}
                                                                                 />
                                                                              
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                                                             <ChartLine02 series={[
+                                                                             <ChartLine02 series={JSON.stringify([
                                                                                                     dataMetrics.refObject.getPropertyValues('cpu')
                                                                                                     
-                                                                                                ]} 
-                                                                                            timestamp={dataMetrics.timestamp} title={"CPU Usage(%)"} height="180px" 
+                                                                                                ])} 
+                                                                                                title={"CPU Usage(%)"} height="180px" 
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                                                             <ChartLine02 series={[
+                                                                             <ChartLine02 series={JSON.stringify([
                                                                                                     dataMetrics.refObject.getPropertyValues('ioreads'),
                                                                                                     dataMetrics.refObject.getPropertyValues('iowrites')
                                                                                                     
-                                                                                                ]} 
-                                                                                            timestamp={dataMetrics.timestamp} title={"IOPS"} height="180px" 
+                                                                                                ])} 
+                                                                                                title={"IOPS"} height="180px" 
                                                                             />
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
-                                                                             <ChartLine02 series={[
+                                                                             <ChartLine02 series={JSON.stringify([
                                                                                                     dataMetrics.refObject.getPropertyValues('netin'),
                                                                                                     dataMetrics.refObject.getPropertyValues('netout'),
-                                                                                                ]} 
-                                                                                            timestamp={dataMetrics.timestamp} title={"NetworkTraffic"} height="180px" 
+                                                                                                ])} 
+                                                                                                title={"NetworkTraffic"} height="180px" 
                                                                             />  
                                                                         </td>
                                                                     </tr>
@@ -779,29 +786,29 @@ function App() {
                                                             <table style={{"width":"100%"}}>
                                                                   <tr>  
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                                                         <ChartLine02 series={[
+                                                                         <ChartLine02 series={JSON.stringify([
                                                                                                 dataMetrics.refObject.getPropertyValues('threads'),
                                                                                                 dataMetrics.refObject.getPropertyValues('threadsRunning')
-                                                                                            ]} 
-                                                                                        timestamp={dataMetrics.timestamp} title={"Threads"} height="180px" 
+                                                                                            ])} 
+                                                                                            title={"Threads"} height="180px" 
                                                                         />  
                                                                     </td>
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                                                         <ChartLine02 series={[
+                                                                         <ChartLine02 series={JSON.stringify([
                                                                                                 dataMetrics.refObject.getPropertyValues('questions')
-                                                                                            ]} 
-                                                                                        timestamp={dataMetrics.timestamp} title={"Questions/sec"} height="180px" 
+                                                                                            ])} 
+                                                                                            title={"Questions/sec"} height="180px" 
                                                                         />  
                                                                     </td>
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
-                                                                         <ChartLine02 series={[
+                                                                         <ChartLine02 series={JSON.stringify([
                                                                                                 dataMetrics.refObject.getPropertyValues('comSelect'),
                                                                                                 dataMetrics.refObject.getPropertyValues('comDelete'),
                                                                                                 dataMetrics.refObject.getPropertyValues('comInsert'),
                                                                                                 dataMetrics.refObject.getPropertyValues('comUpdate'),
                                                                                                 
-                                                                                            ]} 
-                                                                                        timestamp={dataMetrics.timestamp} title={"Operations/sec"} height="180px" 
+                                                                                            ])} 
+                                                                                            title={"Operations/sec"} height="180px" 
                                                                         />
                                                                     </td>
                                                                     

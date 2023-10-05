@@ -336,7 +336,6 @@ function App() {
             onClickMenu={handleClickMenu}
             onClickDisconnect={handleClickDisconnect}
             sessionInformation={parameter_object_values}
-            titleItem={parameter_object_values['rds_host']}
         />
         
         <CustomLayout
@@ -366,7 +365,7 @@ function App() {
                             </td>
                             <td style={{"width":"70%", "padding-left": "1em"}}>  
                                  <ChartLine02 
-                                    series={metricDetailsToColumnsLine(clusterStats['nodes'],metricDetailsIndex.index)} 
+                                    series={JSON.stringify(metricDetailsToColumnsLine(clusterStats['nodes'],metricDetailsIndex.index))} 
                                     timestamp={metricDetailsIndex.timestamp} 
                                     height="200px" 
                                   />
@@ -381,6 +380,14 @@ function App() {
         }
         pageContent={
             <>
+                            <table style={{"width":"100%"}}>
+                                <tr>  
+                                    <td style={{"width":"50%","padding-left": "1em", "border-left": "10px solid " + configuration.colors.lines.separator100,}}>  
+                                        <Box variant="h2" color="text-status-inactive" >{parameter_object_values['rds_host']}</Box>
+                                    </td>
+                                </tr>
+                            </table>
+                            
                             <Tabs
                                     onChange={({ detail }) => {
                                           setActiveTabId(detail.activeTabId);
@@ -432,35 +439,35 @@ function App() {
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(clusterStats['cluster']['cpu'] || 0)]} 
+                                                                                <ChartRadialBar01 series={JSON.stringify([Math.round(clusterStats['cluster']['cpu'] || 0)])} 
                                                                                          height="180px" 
                                                                                          title={"CPU (%)"}
                                                                                 />
                                                                              
                                                                         </td>
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(clusterStats['cluster']['memory'] || 0)]} 
+                                                                                <ChartRadialBar01 series={JSON.stringify([Math.round(clusterStats['cluster']['memory'] || 0)])} 
                                                                                          height="180px" 
                                                                                          title={"Memory (%)"}
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[Math.round(clusterStats['cluster']['network'] || 0)]} 
+                                                                                <ChartRadialBar01 series={JSON.stringify([Math.round(clusterStats['cluster']['network'] || 0)])} 
                                                                                          height="180px" 
                                                                                          title={"Network (%)"}
                                                                                 />
                                                                         </td>  
                                                                         <td style={{"width":"12%", "padding-right": "1em"}}>  
-                                                                                <ChartRadialBar01 series={[ Math.round( clusterStats['cluster']['cacheHitRate'] || 0 ) ]} 
+                                                                                <ChartRadialBar01 series={JSON.stringify([ Math.round( clusterStats['cluster']['cacheHitRate'] || 0 ) ])} 
                                                                                          height="180px" 
                                                                                          title={"HitRatio (%)"}
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"30%", "border-left": "1px solid red", "padding-left": "1em"}}>  
-                                                                             <ChartLine02 series={[
+                                                                             <ChartLine02 series={JSON.stringify([
                                                                                                     clusterStats['cluster']['history']['operations']
-                                                                                                ]} 
-                                                                            timestamp={timeNow.getTime()} title={"Operations/sec"} height="180px" />
+                                                                                                ])} 
+                                                                                                title={"Operations/sec"} height="180px" />
                                                                             {/*
                                                                             <ChartBar01 series={[
                                                                                                     dataMetrics.refObject.getPropertyValues('Operations')
@@ -562,26 +569,26 @@ function App() {
                                                               <table style={{"width":"100%"}}>
                                                                   <tr>  
                                                                     <td style={{"width":"33%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={[
+                                                                            <ChartLine02 series={JSON.stringify([
                                                                                                     clusterStats['cluster']['history']['getCalls'],
                                                                                                     clusterStats['cluster']['history']['setCalls']
-                                                                                                ]} 
-                                                                            timestamp={timeNow.getTime()} title={"Calls/sec"} height="230px" />
+                                                                                                ])} 
+                                                                                                title={"Calls/sec"} height="230px" />
                                                                     </td>
                                                                     
                                                                     <td style={{"width":"33%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={[
+                                                                            <ChartLine02 series={JSON.stringify([
                                                                                                     clusterStats['cluster']['history']['getLatency'],
                                                                                                     clusterStats['cluster']['history']['setLatency']
-                                                                                                ]} 
-                                                                             timestamp={timeNow.getTime()} title={"CallsLatency(us)"} height="230px" />
+                                                                                                ])} 
+                                                                                                title={"CallsLatency(us)"} height="230px" />
                                                                     </td>
                                                                     <td style={{"width":"33%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={[
+                                                                            <ChartLine02 series={JSON.stringify([
                                                                                                     clusterStats['cluster']['history']['keyspaceHits'],
                                                                                                     clusterStats['cluster']['history']['keyspaceMisses'],
-                                                                                                ]} 
-                                                                             timestamp={timeNow.getTime()} title={"Cache Efficiency/sec"} height="230px" />
+                                                                                                ])} 
+                                                                                                title={"Cache Efficiency/sec"} height="230px" />
                                                                     </td>
                                                                     
                                                                   </tr>
