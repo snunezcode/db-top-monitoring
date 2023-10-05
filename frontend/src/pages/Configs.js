@@ -38,9 +38,9 @@ export const SideMainLayoutMenu = [
       items: [
         { type: 'link', text: 'RDS Instances', href: '/rds/instances/' },
         { type: 'link', text: 'Aurora Clusters', href: '/clusters/aurora/'},
+        { type: 'link', text: 'MemoryDB Clusters', href: '/clusters/memorydb/'},
         { type: 'link', text: 'ElastiCache Clusters for Redis', href: '/clusters/elasticache/' },
-        { type: 'link', text: 'Memory Clusters', href: '/clusters/memorydb/'},
-        { type: 'link', text: 'DocumentDB Clusters', href: '/clusters/documentdb'}
+        { type: 'link', text: 'DocumentDB Clusters', href: '/clusters/documentdb'},
       ],
     },
     { type: "divider" },
