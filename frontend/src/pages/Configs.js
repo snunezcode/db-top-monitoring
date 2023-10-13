@@ -8,8 +8,11 @@ export const configuration =
         "refresh-interval-documentdb-metrics": 10*1000,
         "refresh-interval-documentdb-sessions": 10*1000,
         "items-per-page-documentdb": 10,
+        "refresh-interval-aurora-pgs-sessions": 10*1000,
+        "items-per-page-aurora-pgs": 2,
         "api_url": "",
         "release" : "0.1.0",
+        "release-enforcement" : false,
         "application-title": "DBTop Monitoring",
         "version-code-url" : "https://version.code.ds.wwcs.aws.dev/",
         "items-per-page": 10
@@ -47,7 +50,7 @@ export const SideMainLayoutMenu = [
     {
           type: "link",
           text: "Documentation",
-          href: "https://github.com/aws-samples/rds-top-monitoring",
+          href: "https://github.com/aws-samples/db-top-monitoring",
           external: true,
           externalIconAriaLabel: "Opens in a new tab"
     }

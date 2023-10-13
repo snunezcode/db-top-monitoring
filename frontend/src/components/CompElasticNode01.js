@@ -2,11 +2,13 @@ import { useState, memo } from 'react'
 import ChartLine02 from './ChartLine02';
 import ChartRadialBar01 from './ChartRadialBar01';
 
+import Container from "@awsui/components-react/container";
 import CompMetric01 from './Metric01';
 import CompMetric04 from './Metric04';
 import { configuration } from '../pages/Configs';
-import Badge from "@cloudscape-design/components/badge";
-import Link from "@cloudscape-design/components/link";
+import Badge from "@awsui/components-react/badge";
+import Link from "@awsui/components-react/link";
+import Header from "@awsui/components-react/header";
 
 
 const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port, syncClusterEvent, username, password, auth, ssl, node }) => {
@@ -21,7 +23,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
     return (
         <>
             <tr>
-                <td style={{"width":"9%", "text-align":"left", "border-top": "1pt solid #595f69"}} >  
+                <td style={{"width":"9%", "text-align":"left", "border-top": "1pt solid " + configuration.colors.lines.separator100}} >  
                     N{node.nodeId+1} &nbsp;
                     { node.role === "master" &&
                         <Badge color="blue"> P </Badge>
@@ -32,7 +34,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                     &nbsp;
                     <Link  fontSize="body-s" onFollow={() => onClickNode()}>{node.name}</Link>
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric04
                         value={node.operations || 0}
                         precision={2}
@@ -46,7 +48,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         chartColorLine={"#D69855"}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric04
                         value={node.getCalls || 0}
                         precision={2}
@@ -60,7 +62,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         chartColorLine={"#D69855"}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric04
                         value={node.setCalls || 0}
                         precision={2}
@@ -74,7 +76,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         chartColorLine={"#D69855"}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric01 
                         value={node.cacheHitRate || 0}
                         title={""}
@@ -84,7 +86,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric01 
                         value={node.getLatency || 0}
                         title={""}
@@ -94,7 +96,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric01 
                        value={node.setLatency || 0}
                         title={""}
@@ -104,7 +106,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric01 
                         value={node.connectedClients || 0}
                         title={""}
@@ -115,7 +117,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                     />
                     
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                      <CompMetric01 
                         value={node.cpu || 0}
                         title={""}
@@ -125,7 +127,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric01 
                         value={node.memory || 0}
                         title={""}
@@ -135,7 +137,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                         fontColorValue={configuration.colors.fonts.metric100}
                     />
                 </td>
-                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid #595f69"}}>
+                <td style={{"width":"9%", "text-align":"center", "border-top": "1pt solid " + configuration.colors.lines.separator100}}>
                     <CompMetric01 
                         value={node.network || 0}
                         title={""}
@@ -151,9 +153,17 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
             <tr>
                 <td></td>
                 <td colspan="10">
+                        <Container
+                                      header={
+                                              <Header
+                                                variant="h2"
+                                              >
+                                              </Header>
+                                          }
+                        >
                         <table style={{"width":"100%"}}>
                             <tr>
-                                <td style={{"width":"13%","padding-left": "1em"}}> 
+                                <td style={{"width":"13%","padding-left": "0em"}}> 
                                     <ChartRadialBar01 series={JSON.stringify([Math.round(node.cpu)])} 
                                          height="180px" 
                                          title={"CPU (%)"}
@@ -273,9 +283,7 @@ const ComponentObject = memo(({ connectionId, clusterId, nodeId, instance, port,
                                 </td>
                             </tr>
                         </table>
-                        <br/>
-                        <br/>
-                        <br/>
+                        </Container>
                 </td>
             </tr>
             

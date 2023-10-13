@@ -1,5 +1,9 @@
 import { configuration } from '../pages/Configs';
 import { createSearchParams } from "react-router-dom";
+import Box from "@awsui/components-react/box";
+
+
+//--++ Version Functions
 
 export async function applicationVersionUpdate(params) {
         var version = await gatherVersionJsonFile(params);
@@ -24,6 +28,8 @@ const gatherVersionJsonFile = async (params) => {
     return(json);
 }
 
+
+//--++ Custom Format Functions
 
 export function customFormatNumber(value,decimalLength) {
         if(value == 0) return '0';
@@ -166,4 +172,65 @@ export class classMetric {
                   
           }
 
+}
+
+
+
+//--## Table Functions and Variable
+
+
+export function getMatchesCountText(count) {
+  return count === 1 ? `1 match` : `${count} matches`;
+}
+
+
+
+export function formatDate(date) {
+  const dateFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'long' });
+  const timeFormatter = new Intl.DateTimeFormat('en-US', { timeStyle: 'short', hour12: false });
+  return `${dateFormatter.format(date)}, ${timeFormatter.format(date)}`;
+}
+
+
+
+export function createLabelFunction(columnName) {
+  return ({ sorted, descending }) => {
+    const sortState = sorted ? `sorted ${descending ? 'descending' : 'ascending'}` : 'not sorted';
+    return `${columnName}, ${sortState}.`;
+  };
+}
+
+
+
+export const paginationLabels = {
+  nextPageLabel: 'Next page',
+  pageLabel: pageNumber => `Go to page ${pageNumber}`,
+  previousPageLabel: 'Previous page',
+};
+
+
+
+
+export const pageSizePreference = {
+  title: 'Select page size',
+  options: [
+    { value: 10, label: '10 resources' },
+    { value: 20, label: '20 resources' },
+  ],
+};
+
+
+
+export function EmptyState({ title, subtitle, action }) {
+  return (
+    <Box textAlign="center" color="inherit">
+      <Box variant="strong" textAlign="center" color="inherit">
+        {title}
+      </Box>
+      <Box variant="p" padding={{ bottom: 's' }} color="inherit">
+        {subtitle}
+      </Box>
+      {action}
+    </Box>
+  );
 }

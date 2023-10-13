@@ -2,20 +2,23 @@ import {useState,useEffect} from 'react'
 
 import { SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } from './Configs';
 
+
+//import ContentLayout from '@cloudscape-design/components/content-layout';
+
 import CustomHeader from "../components/HeaderApp";
-import AppLayout from "@cloudscape-design/components/app-layout";
-import SideNavigation from '@cloudscape-design/components/side-navigation';
-import ContentLayout from '@cloudscape-design/components/content-layout';
+import AppLayout from "@awsui/components-react/app-layout";
+import SideNavigation from '@awsui/components-react/side-navigation';
+import ContentLayout from '@awsui/components-react/content-layout';
 import { configuration } from './Configs';
 import { applicationVersionUpdate } from '../components/Functions';
 
-import Flashbar from "@cloudscape-design/components/flashbar";
-import Button from "@cloudscape-design/components/button";
-import Container from "@cloudscape-design/components/container";
-import Header from "@cloudscape-design/components/header";
-import Box from "@cloudscape-design/components/box";
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-import Badge from "@cloudscape-design/components/badge";
+import Flashbar from "@awsui/components-react/flashbar";
+import Button from "@awsui/components-react/button";
+import Container from "@awsui/components-react/container";
+import Header from "@awsui/components-react/header";
+import Box from "@awsui/components-react/box";
+import ColumnLayout from "@awsui/components-react/column-layout";
+import Badge from "@awsui/components-react/badge";
 
 import '@aws-amplify/ui-react/styles.css';
 
@@ -73,33 +76,35 @@ function Home() {
     <div style={{"background-color": "#f2f3f3"}}>
       <CustomHeader/>
       <AppLayout
-          navigationOpen={false}
+          headerSelector="#h" 
+          navigationOpen={true}
           breadCrumbs={breadCrumbs}
           navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/"} />}
-          contentType="table"
+          contentType="default"
+          toolsHide={true}
           content={
+              <>
+              <Flashbar items={versionMessage} />
+              
               <ContentLayout 
                     header = {
                             <Header variant="h2"
                                     description={
                                       <>
-                                      <Flashbar items={versionMessage} />
+                                      <Header variant="h1">
+                                              Welcome to {configuration["apps-settings"]["application-title"]} Solution
+                                      </Header>
                                       <br/>
-                                      <div style={{"color": "white", "font-family": "arial,sans-serif", "font-size": "20px"}}>          
-                                        Welcome to {configuration["apps-settings"]["application-title"]}
-                                      </div>
+                                      <Box fontSize="heading-s">
+                                          Gain Monitoring Insight and Take Action on AWS Database Resources.
+                                      </Box>
                                       <br/>
-                                      <div style={{"color": "white", "font-family": "arial,sans-serif", "font-size": "35px"}}>          
-                                        Gain Monitoring Insight and Take Action on AWS Database Resources.
-                                      </div>
+                                      <Box fontSize="heading-s">
+                                          View performance data for AWS Database instances and clusters, so you can quickly identify and act on any issues that might impact database resources.
+                                      </Box>
                                       <br/>
-                                      <Button variant="primary" href="/rds/instances/" >Get Started</Button>
-                                      <br/>
-                                      <br/>
-                                      <div style={{"color": "white"}}>          
-                                        View performance data for AWS Database instances and clusters, so you can quickly identify and act on any issues that might impact database resources.
-                                      </div>
-                                      </>
+                                      
+                                       </>
                                       
                                     }
                               
@@ -204,6 +209,8 @@ function Home() {
                     
                 </div>
                 </ContentLayout>
+                
+                </>
               
           }
         />

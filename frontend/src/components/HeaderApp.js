@@ -1,4 +1,4 @@
-import TopNavigation from '@cloudscape-design/components/top-navigation';
+import TopNavigation from '@awsui/components-react/top-navigation';
 import { Authenticator } from "@aws-amplify/ui-react";
 import { configuration } from '../pages/Configs';
 import { applyMode,  Mode } from '@cloudscape-design/global-styles';
@@ -64,39 +64,40 @@ export default function App() {
     
     <Authenticator >
           {({ signOut, user }) => (
+            <div id="h" style={{ position: 'sticky', top: 0, zIndex: 1002 }}>
+                <TopNavigation
+                  i18nStrings={i18nStrings}
+                  identity={{
+                    href: '#',
+                    title:  configuration['apps-settings']['application-title'] + " Solution"
+                  }}
+                  
+                  utilities={[
+                    {
+                      type: 'button',
+                      iconName: 'notification',
+                      ariaLabel: 'Notifications',
+                      badge: true,
+                      disableUtilityCollapse: true,
+                    },
+                    { type: 'button', iconName: 'settings', title: 'Settings', ariaLabel: 'Settings' },
+                    {
+                      type: 'menu-dropdown',
+                      text:  user.signInUserSession.idToken.payload.email /*"myuser@example.com"*/,
+                      iconName: 'user-profile',
+                      items: profileActions,
+                      onItemClick : handleClickMenu
+                    },
+                    {
+                      type: 'button',
+                      text: 'Sign out',
+                      onClick : signOut,
+                      variant : "primary-button"
+                    },
+                  ]}
+                />
             
-            <TopNavigation
-              i18nStrings={i18nStrings}
-              identity={{
-                href: '#',
-                title:  configuration['apps-settings']['application-title'] + " Solution"
-              }}
-              
-              utilities={[
-                {
-                  type: 'button',
-                  iconName: 'notification',
-                  ariaLabel: 'Notifications',
-                  badge: true,
-                  disableUtilityCollapse: true,
-                },
-                { type: 'button', iconName: 'settings', title: 'Settings', ariaLabel: 'Settings' },
-                {
-                  type: 'menu-dropdown',
-                  text:  user.signInUserSession.idToken.payload.email /*"myuser@example.com"*/,
-                  iconName: 'user-profile',
-                  items: profileActions,
-                  onItemClick : handleClickMenu
-                },
-                {
-                  type: 'button',
-                  text: 'Sign out',
-                  onClick : signOut,
-                  variant : "primary-button"
-                },
-              ]}
-            />
-        
+            </div>        
         
           )}
           

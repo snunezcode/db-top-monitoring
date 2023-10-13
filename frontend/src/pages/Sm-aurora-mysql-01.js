@@ -4,21 +4,23 @@ import { configuration } from './Configs';
 import {classMetric} from '../components/Functions';
 import { useSearchParams } from 'react-router-dom';
 import CustomHeader from "../components/Header";
-import CustomLayout from "../components/Layout";
-import Box from "@cloudscape-design/components/box";
-import Tabs from "@cloudscape-design/components/tabs";
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-import { SplitPanel } from '@cloudscape-design/components';
+import AppLayout from "@awsui/components-react/app-layout";
+import Box from "@awsui/components-react/box";
+import Tabs from "@awsui/components-react/tabs";
+import ColumnLayout from "@awsui/components-react/column-layout";
+import { SplitPanel } from '@awsui/components-react';
 
-import Link from "@cloudscape-design/components/link";
-import Header from "@cloudscape-design/components/header";
-import Container from "@cloudscape-design/components/container";
+import Pagination from "@awsui/components-react/pagination";
+
+import Link from "@awsui/components-react/link";
+import Header from "@awsui/components-react/header";
+import Container from "@awsui/components-react/container";
 import AuroraNode  from '../components/CompAuroraNode01';
 import CompSparkline01  from '../components/ChartSparkline01';
 import CompMetric01  from '../components/Metric01';
 import CompMetric04  from '../components/Metric04';
 import ChartLine02  from '../components/ChartLine02';
-import CLWChart  from '../components/ChartCLW02';
+import CLWChart  from '../components/ChartCLW03';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
 import ChartBar01 from '../components/ChartBar01';
 import ChartColumn01 from '../components/ChartColumn01';
@@ -170,279 +172,149 @@ function App() {
                                                     clwDimensions : "",
                                     });
                 
+    ////-----
+    
+    //-- Variable for Paging
+    const [currentPageIndex,setCurrentPageIndex] = useState(1);
+    var pageId = useRef(1);
+    var itemsPerPage = configuration["apps-settings"]["items-per-page-aurora-pgs"];
+    var totalPages = Math.trunc( parameter_object_values['rds_nodes'] / itemsPerPage) + (  parameter_object_values['rds_nodes'] % itemsPerPage != 0 ? 1 : 0 ) 
+    
+    //-- Variable for Cluster Stats
+    const nodeList = useRef("");
+    const [clusterStats,setClusterStats] = useState({ 
+                                cluster : {
+                                            cpu: 0,
+                                            memory: 0,
+                                            ioreads: 0,
+                                            iowrites: 0,
+                                            iops : 0,
+                                            netin: 0,
+                                            netout: 0,
+                                            network : 0,
+                                            queries: 0,
+                                            questions: 0,
+                                            comSelect: 0,
+                                            comInsert: 0,
+                                            comDelete: 0,
+                                            comUpdate: 0,
+                                            comCommit: 0,
+                                            comRollback : 0,
+                                            threads : 0,
+                                            threadsRunning : 0,
+                                            history : {
+                                                        cpu: [],
+                                                        memory: [],
+                                                        ioreads: [],
+                                                        iowrites: [],
+                                                        iops : [],
+                                                        netin: [],
+                                                        netout: [],
+                                                        network : [],
+                                                        queries: [],
+                                                        questions: [],
+                                                        comSelect: [],
+                                                        comInsert: [],
+                                                        comDelete: [],
+                                                        comUpdate: [],
+                                                        comCommit: [],
+                                                        comRollback : [],
+                                                        threads : [],
+                                                        threadsRunning : [],
+                                            }
+                                },
+                                nodes : [],
+                });
+                
 
+    
+    
+    ////-----
+
+
+
+    
     //-- Function Gather Metrics
-    async function fetchDataCluster() {
+    async function openClusterConnection() {
         
         var api_url = configuration["apps-settings"]["api_url"];
-        
-        await Axios.get(`${api_url}/api/aws/aurora/cluster/region/endpoints/`,{
-                      params: { cluster : cnf_identifier }
-                  }).then((data)=>{
-                    
-                    if (data.data.data.DBInstances.length > 0) {
-                        
-                            var clusterNodes = data.data.data.DBInstances;
-                            
-                            var nodeList = [];
-                            var clwDimensions = "";
-                       
-                            clusterNodes.forEach(function(node) {
-                                
-                                nodeList.push({
-                                                instance : node['DBInstanceIdentifier'],
-                                                host : node['Endpoint']['Address'],
-                                                port : node['Endpoint']['Port'],
-                                                status : node['DBInstanceStatus'],
-                                                size : node['DBInstanceClass'],
-                                                az : node['AvailabilityZone'],
-                                                monitoring :  ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
-                                                resourceId : node['DbiResourceId'],
-                                                });
-                                
-                                nodeMembers.current[node['DBInstanceIdentifier']] = { 
-                                                                                        cpu: Array(historyChartDetails).fill(null), 
-                                                                                        memory: Array(historyChartDetails).fill(null), 
-                                                                                        ioreads: Array(historyChartDetails).fill(null), 
-                                                                                        iowrites: Array(historyChartDetails).fill(null), 
-                                                                                        iops : Array(historyChartDetails).fill(null), 
-                                                                                        netin: Array(historyChartDetails).fill(null), 
-                                                                                        netout: Array(historyChartDetails).fill(null), 
-                                                                                        network : Array(historyChartDetails).fill(null), 
-                                                                                        queries: Array(historyChartDetails).fill(null), 
-                                                                                        questions: Array(historyChartDetails).fill(null), 
-                                                                                        comSelect: Array(historyChartDetails).fill(null), 
-                                                                                        comInsert: Array(historyChartDetails).fill(null), 
-                                                                                        comDelete: Array(historyChartDetails).fill(null), 
-                                                                                        comUpdate: Array(historyChartDetails).fill(null), 
-                                                                                        comCommit: Array(historyChartDetails).fill(null), 
-                                                                                        comRollback: Array(historyChartDetails).fill(null), 
-                                                                                        threads : Array(historyChartDetails).fill(null),
-                                                                                        threadsRunning : Array(historyChartDetails).fill(null), 
-                                                                };
-                                                                
-                                clwDimensions = clwDimensions +  node['DBInstanceIdentifier']  + "," 
-                        
-                            });
-                            
-                            setDataNodes({
-                                    MemberClusters : nodeList,
-                                    clwDimensions : clwDimensions.slice(0, -1)
-                                    }
-                            );  
-                    }
-                    
-                    
+        Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
+        await Axios.post(`${api_url}/api/aurora/mysql/cluster/connection/open/`,{
+                      params: { 
+                                connectionId : cnf_connection_id,
+                                clusterId : cnf_identifier,
+                                username : cnf_username,
+                                password : cnf_password
+                             }
+              }).then((data)=>{
+                
+                console.log(data);
+                nodeList.current = data.data.nodes;
+                  
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/aws/aurora/cluster/region/endpoints/' );
+                  console.log('Timeout API Call : /api/aurora/mysql/cluster/connection/open/' );
                   console.log(err);
                   
               });
               
     }
     
-    
-    
-    function syncData(childNode) {
-    
-        nodeMetrics.current[childNode.name] = { 
-                                        name: childNode.name,
-                                        cpu: childNode.cpu,
-                                        memory: childNode.memory,
-                                        ioreads: childNode.ioreads,
-                                        iowrites: childNode.iowrites,
-                                        netin: childNode.netin,
-                                        netout: childNode.netout,
-                                        queries: childNode.queries,
-                                        questions: childNode.questions,
-                                        comSelect: childNode.comSelect,
-                                        comUpdate: childNode.comUpdate,
-                                        comDelete: childNode.comDelete,
-                                        comInsert: childNode.comInsert,
-                                        comCommit: childNode.comCommit,
-                                        comRollback: childNode.comRollback,
-                                        threads: childNode.threads,
-                                        threadsRunning: childNode.threadsRunning,
+    //-- Function Cluster Update Stats
+    async function updateClusterStats() {
         
-        };
+        var api_url = configuration["apps-settings"]["api_url"];
         
-    
-        
+        Axios.get(`${api_url}/api/aurora/mysql/cluster/stats/update`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier }
+                  }).then((data)=>{
+                   
+                   //console.log(data);         
+                     
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/aurora/mysql/cluster/stats/update');
+                  console.log(err);
+                  
+              });
+              
     }
     
-    function updateClusterMetrics() {
-    
+
+
+    //-- Function Cluster Gather Stats
+    async function gatherClusterStats() {
+        
         if (currentTabId.current != "tab01") {
             return;
         }
         
-        var timeNow = new Date();
-        var metrics = { 
-                        cpu: 0,
-                        memory: 0,
-                        ioreads: 0,
-                        iowrites: 0,
-                        iops : 0,
-                        netin: 0,
-                        netout: 0,
-                        network : 0,
-                        queries: 0,
-                        questions: 0,
-                        comSelect: 0,
-                        comInsert: 0,
-                        comDelete: 0,
-                        comUpdate: 0,
-                        comCommit: 0,
-                        comRollback: 0,
-                        threads : 0,
-                        threadsRunning : 0,
-        };
-        var nodes = 0;
+        var api_url = configuration["apps-settings"]["api_url"];
         
-        var nodeList = nodeMetrics.current;
-        var index;
-        var metricDetails = [];
+        Axios.get(`${api_url}/api/aurora/mysql/cluster/stats/gather`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier, beginItem : ( (pageId.current-1) * itemsPerPage), endItem : (( (pageId.current-1) * itemsPerPage) + itemsPerPage) }
+                  }).then((data)=>{
+                   
+                   console.log(data);
+                   
+                   setClusterStats({
+                         cluster : data.data.cluster,
+                         nodes : data.data.nodes,
+                    });
+                    
+                     
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/aurora/mysql/cluster/stats/gather' );
+                  console.log(err);
+                  
+              });
+              
         
-        metricDetails['cpu'] = [];
-        metricDetails['memory'] = [];
-        metricDetails['iops'] = [];
-        metricDetails['network'] = [];
-        metricDetails['threads'] = [];
-        metricDetails['threadsRunning'] = [];
-        metricDetails['queries'] = [];
-        metricDetails['questions'] = [];
-        
-        for (index of Object.keys(nodeList)) {
-            
-            metrics.cpu = metrics.cpu + parseFloat(nodeList[index].cpu) ;
-            metrics.memory = metrics.memory + parseFloat(nodeList[index].memory) ;
-            metrics.ioreads = metrics.ioreads + parseFloat(nodeList[index].ioreads) ;
-            metrics.iowrites = metrics.iowrites + parseFloat(nodeList[index].iowrites) ;
-            metrics.iops = metrics.iops + ( parseFloat(nodeList[index].iowrites) + parseFloat(nodeList[index].ioreads) );
-            metrics.netin = metrics.netin + parseFloat(nodeList[index].netin) ;
-            metrics.netout = metrics.netout + parseFloat(nodeList[index].netout) ;
-            metrics.network = metrics.network + ( parseFloat(nodeList[index].netout)  + parseFloat(nodeList[index].netin) );
-            metrics.queries = metrics.queries + parseFloat(nodeList[index].queries) ;
-            metrics.questions = metrics.questions + parseFloat(nodeList[index].questions) ;
-            metrics.comSelect = metrics.comSelect + parseFloat(nodeList[index].comSelect) ;
-            metrics.comInsert = metrics.comInsert + parseFloat(nodeList[index].comInsert) ;
-            metrics.comDelete = metrics.comDelete + parseFloat(nodeList[index].comDelete) ;
-            metrics.comUpdate = metrics.comUpdate + parseFloat(nodeList[index].comUpdate) ;
-            metrics.comCommit = metrics.comCommit + parseFloat(nodeList[index].comCommit) ;
-            metrics.comRollback = metrics.comRollback + parseFloat(nodeList[index].comRollback) ;
-            metrics.threads = metrics.threads + parseFloat(nodeList[index].threads) ;
-            metrics.threadsRunning = metrics.threadsRunning + parseFloat(nodeList[index].threadsRunning) ;
-                        
-            
-            // cpu
-            nodeMembers.current[nodeList[index].name]['cpu'].push(parseFloat(nodeList[index].cpu));
-            nodeMembers.current[nodeList[index].name]['cpu'] = nodeMembers.current[nodeList[index].name]['cpu'].slice(nodeMembers.current[nodeList[index].name]['cpu'].length-historyChartDetails);
-            metricDetails['cpu'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['cpu'] });
-            
-            // memory
-            nodeMembers.current[nodeList[index].name]['memory'].push(parseFloat(nodeList[index].memory));
-            nodeMembers.current[nodeList[index].name]['memory'] = nodeMembers.current[nodeList[index].name]['memory'].slice(nodeMembers.current[nodeList[index].name]['memory'].length-historyChartDetails);
-            metricDetails['memory'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['memory'] });
-            
-            // iops
-            nodeMembers.current[nodeList[index].name]['iops'].push(parseFloat(nodeList[index].ioreads)+parseFloat(nodeList[index].iowrites));
-            nodeMembers.current[nodeList[index].name]['iops'] = nodeMembers.current[nodeList[index].name]['iops'].slice(nodeMembers.current[nodeList[index].name]['iops'].length-historyChartDetails);
-            metricDetails['iops'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['iops'] });
-            
-            
-            // network
-            nodeMembers.current[nodeList[index].name]['network'].push(parseFloat(nodeList[index].netin)+parseFloat(nodeList[index].netout));
-            nodeMembers.current[nodeList[index].name]['network'] = nodeMembers.current[nodeList[index].name]['network'].slice(nodeMembers.current[nodeList[index].name]['network'].length-historyChartDetails);
-            metricDetails['network'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['network'] });
-            
-            
-            // threads
-            nodeMembers.current[nodeList[index].name]['threads'].push(parseFloat(nodeList[index].threads));
-            nodeMembers.current[nodeList[index].name]['threads'] = nodeMembers.current[nodeList[index].name]['threads'].slice(nodeMembers.current[nodeList[index].name]['threads'].length-historyChartDetails);
-            metricDetails['threads'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['threads'] });
-            
-            // threadsRunning
-            nodeMembers.current[nodeList[index].name]['threadsRunning'].push(parseFloat(nodeList[index].threadsRunning));
-            nodeMembers.current[nodeList[index].name]['threadsRunning'] = nodeMembers.current[nodeList[index].name]['threadsRunning'].slice(nodeMembers.current[nodeList[index].name]['threadsRunning'].length-historyChartDetails);
-            metricDetails['threadsRunning'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['threadsRunning'] });
-            
-            
-            // queries
-            nodeMembers.current[nodeList[index].name]['queries'].push(parseFloat(nodeList[index].queries));
-            nodeMembers.current[nodeList[index].name]['queries'] = nodeMembers.current[nodeList[index].name]['queries'].slice(nodeMembers.current[nodeList[index].name]['queries'].length-historyChartDetails);
-            metricDetails['queries'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['queries'] });
-            
-            
-            // questions
-            nodeMembers.current[nodeList[index].name]['questions'].push(parseFloat(nodeList[index].questions));
-            nodeMembers.current[nodeList[index].name]['questions'] = nodeMembers.current[nodeList[index].name]['questions'].slice(nodeMembers.current[nodeList[index].name]['questions'].length-historyChartDetails);
-            metricDetails['questions'].push({ name : nodeList[index].name , data : nodeMembers.current[nodeList[index].name]['questions'] });
-            
-            
-            nodes++;
-           
-
-        }
-      
-        metricObjectGlobal.current.addPropertyValue('cpu', (metrics.cpu / nodes) || 0 );
-        metricObjectGlobal.current.addPropertyValue('memory', (metrics.memory / nodes) || 0);
-        metricObjectGlobal.current.addPropertyValue('ioreads', metrics.ioreads);
-        metricObjectGlobal.current.addPropertyValue('iowrites', metrics.iowrites);
-        metricObjectGlobal.current.addPropertyValue('netin', metrics.netin);
-        metricObjectGlobal.current.addPropertyValue('netout', metrics.netout );
-        metricObjectGlobal.current.addPropertyValue('queries', metrics.queries );
-        metricObjectGlobal.current.addPropertyValue('questions', metrics.questions );
-        metricObjectGlobal.current.addPropertyValue('comSelect', metrics.comSelect );
-        metricObjectGlobal.current.addPropertyValue('comInsert', metrics.comInsert );
-        metricObjectGlobal.current.addPropertyValue('comDelete', metrics.comDelete );
-        metricObjectGlobal.current.addPropertyValue('comUpdate', metrics.comUpdate );
-        metricObjectGlobal.current.addPropertyValue('comCommit', metrics.comUpdate );
-        metricObjectGlobal.current.addPropertyValue('comRollback', metrics.comUpdate );
-        metricObjectGlobal.current.addPropertyValue('threads', metrics.threads );
-        metricObjectGlobal.current.addPropertyValue('threadsRunning', metrics.threadsRunning );
-        
-       
-        setDataMetrics({
-            cpu: metrics.cpu / nodes ,
-            memory: metrics.memory / nodes ,
-            ioreads: metrics.ioreads,
-            iowrites: metrics.iowrites,
-            netin: metrics.netin,
-            netout: metrics.netout,
-            queries: metrics.queries,
-            questions: metrics.questions,
-            comSelect: metrics.comSelect,
-            comInsert: metrics.comInsert,
-            comDelete: metrics.comDelete,
-            comUpdate: metrics.comUpdate,
-            comCommit: metrics.comCommit,
-            comRollback: metrics.comRollback,
-            threads : metrics.threads,
-            threadsRunning : metrics.threadsRunning,
-            refObject : metricObjectGlobal.current,
-            timestamp : timeNow.getTime(),
-            metricDetails : metricDetails,
-        });
-        
-       
         
     }
-    
-    
-    
-    useEffect(() => {
-        fetchDataCluster();
-    }, []);
-    
-    useEffect(() => {
-        const id = setInterval(updateClusterMetrics, configuration["apps-settings"]["refresh-interval-elastic"]);
-        return () => clearInterval(id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    
-    
-    
+
+
     
     //-- Function Handle Logout
    const handleClickMenu = ({detail}) => {
@@ -470,14 +342,14 @@ function App() {
     
     const closeDatabaseConnection = () => {
         
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/mysql/cluster/connection/close`,{
-                      params: { connectionId : cnf_connection_id }
+        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aurora/mysql/cluster/connection/close/`,{
+                      params: { connectionId : cnf_connection_id, clusterId : cnf_identifier }
                   }).then((data)=>{
                       closeTabWindow();
                       sessionStorage.removeItem(parameter_code_id);
                   })
                   .catch((err) => {
-                      console.log('Timeout API Call : /api/mysql/cluster/connection/close');
+                      console.log('Timeout API Call : /api/aurora/mysql/cluster/connection/close/');
                       console.log(err)
                   });
                   
@@ -502,14 +374,15 @@ function App() {
                                                       
     }
     
-    function metricDetailsToColumns(series){
+    
+    function metricDetailsToColumnsBar(nodes,columnName){
         
         var seriesRaw = [];  
         var seriesData = { categories : [], data : [] };  
         try {  
-                if (series.length > 0){
-                    series.forEach(function(item, index) {
-                        seriesRaw.push({ name : item.name, value : item.data[item.data.length-1]  }  );
+                if (nodes.length > 0){
+                    nodes.forEach(function(node) {
+                        seriesRaw.push({ name : node.name, value :  node.history[columnName].data[node.history[columnName].data.length-1]  }  );
                     });
                 
                     var itemLimit = 0;
@@ -535,7 +408,40 @@ function App() {
         
         return seriesData;
     }
+    
+    
+    function metricDetailsToColumnsLine(nodes,columnName){
+        
+        var data = [];
+        nodes.forEach(function(node) {
+                
+                data.push({ name : node.name, data : node.history[columnName].data });
+        });
+        
+        return data;
+        
+        
+    }
  
+
+    useEffect(() => {
+        openClusterConnection();
+    }, []);
+    
+    useEffect(() => {
+        const id = setInterval(updateClusterStats, configuration["apps-settings"]["refresh-interval-documentdb-metrics"]);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
+    
+    useEffect(() => {
+        const id = setInterval(gatherClusterStats, configuration["apps-settings"]["refresh-interval-documentdb-metrics"]);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    
+    
 
   return (
     <div style={{"background-color": "#121b29"}}>
@@ -546,8 +452,12 @@ function App() {
             sessionInformation={parameter_object_values}
         />
         
-        <CustomLayout
+        <AppLayout
+        headerSelector="#h"
         contentType="table"
+        disableContentPaddings={true}
+        toolsHide={true}
+        navigationHide={true}
         splitPanelOpen={splitPanelShow}
         onSplitPanelToggle={() => setsplitPanelShow(false)}
         splitPanelSize={300}
@@ -561,30 +471,30 @@ function App() {
                     
                     { splitPanelShow === true &&
                     
-                    <table style={{"width":"100%", "padding": "1em"}}>
-                        <tr>  
-                            <td style={{"width":"30%", "padding-left": "1em"}}>  
-                                <ChartColumn01 
-                                    series={metricDetailsToColumns(dataMetrics.metricDetails[metricDetailsIndex.index])} 
-                                    height="200px" 
-                                />
-                            </td>
-                            <td style={{"width":"70%", "padding-left": "1em"}}>  
-                                 <ChartLine02 
-                                    series={JSON.stringify(dataMetrics.metricDetails[metricDetailsIndex.index])} 
-                                    timestamp={metricDetailsIndex.timestamp} 
-                                    height="200px" 
-                                  />
-                            </td>
-                        </tr>
-                    </table>
-                     
-                    }
-                        
+                        <table style={{"width":"100%", "padding": "1em"}}>
+                            <tr>  
+                                <td style={{"width":"30%", "padding-left": "1em"}}>  
+                                    
+                                    <ChartColumn01 
+                                        series={metricDetailsToColumnsBar(clusterStats['nodes'],metricDetailsIndex.index)} 
+                                        height="200px" 
+                                    />
+                                    
+                                </td>
+                                <td style={{"width":"70%", "padding-left": "1em"}}>  
+                                     <ChartLine02 
+                                        series={JSON.stringify(metricDetailsToColumnsLine(clusterStats['nodes'],metricDetailsIndex.index))} 
+                                        height="200px" 
+                                      />
+                                </td>
+                            </tr>
+                        </table>
+                    
+                    } 
                         
                   </SplitPanel>
         }
-        pageContent={
+        content={
             <>
                             <table style={{"width":"100%"}}>
                                 <tr>  
@@ -613,13 +523,22 @@ function App() {
                                                 <tr>  
                                                    <td> 
                                                          
-                                                        <Container>
+                                                        <Container
+                                                          header={
+                                                              <Header
+                                                                variant="h2"
+                                                              >
+                                                                Performance Metrics
+                                                              </Header>
+                                                          }
+                                                          
+                                                        >
                                 
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>  
                                                                         <td style={{"width":"12%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.questions || 0}
+                                                                                    value={clusterStats.cluster.questions || 0}
                                                                                     title={"Questions/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -629,7 +548,7 @@ function App() {
                                                                         </td>
                                                                          <td style={{"width":"8%", "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={(dataMetrics.comInsert + dataMetrics.comUpdate + dataMetrics.comDelete)   || 0}
+                                                                                    value={(clusterStats.cluster.comInsert + clusterStats.cluster.comUpdate + clusterStats.cluster.comDelete)   || 0}
                                                                                     title={"WriteOps/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -638,7 +557,7 @@ function App() {
                                                                                 <br/>        
                                                                                 <br/> 
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.comSelect || 0}
+                                                                                    value={clusterStats.cluster.comSelect || 0}
                                                                                     title={"ReadOps/sec"}
                                                                                     precision={0}
                                                                                     format={1}
@@ -646,7 +565,7 @@ function App() {
                                                                                 />
                                                                         </td>
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
-                                                                                <ChartRadialBar01 series={JSON.stringify([Math.round(dataMetrics.cpu || 0)])} 
+                                                                                <ChartRadialBar01 series={JSON.stringify([Math.round(clusterStats.cluster.cpu || 0)])} 
                                                                                          height="180px" 
                                                                                          title={"CPU (%)"}
                                                                                 />
@@ -654,7 +573,7 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={JSON.stringify([
-                                                                                                    dataMetrics.refObject.getPropertyValues('cpu')
+                                                                                                    clusterStats.cluster.history.cpu
                                                                                                     
                                                                                                 ])} 
                                                                                                 title={"CPU Usage(%)"} height="180px" 
@@ -662,8 +581,8 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={JSON.stringify([
-                                                                                                    dataMetrics.refObject.getPropertyValues('ioreads'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('iowrites')
+                                                                                                    clusterStats.cluster.history.ioreads,
+                                                                                                    clusterStats.cluster.history.iowrites
                                                                                                     
                                                                                                 ])} 
                                                                                                 title={"IOPS"} height="180px" 
@@ -671,8 +590,8 @@ function App() {
                                                                         </td>
                                                                         <td style={{"width":"22%", "padding-left": "1em"}}>  
                                                                              <ChartLine02 series={JSON.stringify([
-                                                                                                    dataMetrics.refObject.getPropertyValues('netin'),
-                                                                                                    dataMetrics.refObject.getPropertyValues('netout'),
+                                                                                                    clusterStats.cluster.history.netin,
+                                                                                                    clusterStats.cluster.history.netout,
                                                                                                 ])} 
                                                                                                 title={"NetworkTraffic"} height="180px" 
                                                                             />  
@@ -687,88 +606,88 @@ function App() {
                                                                     <tr> 
                                                                         <td style={{"width":"10%", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={ ( dataMetrics.comCommit + dataMetrics.comRollback) || 0 }
+                                                                                value={ ( clusterStats.cluster.comCommit + clusterStats.cluster.comRollback) || 0 }
                                                                                 title={"Transactions/sec"}
                                                                                 precision={0}
                                                                                 format={3}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.threadsRunning || 0}
+                                                                                value={clusterStats.cluster.threadsRunning || 0}
                                                                                 title={"ThreadsRunning"}
                                                                                 precision={0}
                                                                                 format={3}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.comSelect  || 0}
+                                                                                value={clusterStats.cluster.comSelect  || 0}
                                                                                 title={"ComSelect/sec"}
                                                                                 precision={0}
                                                                                 format={1}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.comInsert || 0}
+                                                                                    value={clusterStats.cluster.comInsert || 0}
                                                                                     title={"ComInsert/sec"}
                                                                                     precision={0}
                                                                                     format={1}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.comUpdate || 0}
+                                                                                    value={clusterStats.cluster.comUpdate || 0}
                                                                                     title={"ComUpdate/sec"}
                                                                                     precision={0}
                                                                                     format={1}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
-                                                                                    value={dataMetrics.comDelete || 0}
+                                                                                    value={clusterStats.cluster.comDelete || 0}
                                                                                     title={"ComDelete/sec"}
                                                                                     precision={0}
                                                                                     format={1}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.ioreads || 0}
+                                                                                value={clusterStats.cluster.ioreads || 0}
                                                                                 title={"IO Reads/sec"}
                                                                                 precision={0}
                                                                                 format={1}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.iowrites || 0}
+                                                                                value={clusterStats.cluster.iowrites || 0}
                                                                                 title={"IO Writes/sec"}
                                                                                 precision={0}
                                                                                 format={1}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.netin || 0}
+                                                                                value={clusterStats.cluster.netin || 0}
                                                                                 title={"Network-In"}
                                                                                 precision={0}
                                                                                 format={2}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"10%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"10%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
-                                                                                value={dataMetrics.netout || 0}
+                                                                                value={clusterStats.cluster.netout || 0}
                                                                                 title={"Network-Out"}
                                                                                 precision={0}
                                                                                 format={2}
@@ -787,25 +706,25 @@ function App() {
                                                                   <tr>  
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
                                                                          <ChartLine02 series={JSON.stringify([
-                                                                                                dataMetrics.refObject.getPropertyValues('threads'),
-                                                                                                dataMetrics.refObject.getPropertyValues('threadsRunning')
+                                                                                                clusterStats.cluster.history.threads,
+                                                                                                clusterStats.cluster.history.threadsRunning
                                                                                             ])} 
                                                                                             title={"Threads"} height="180px" 
                                                                         />  
                                                                     </td>
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
                                                                          <ChartLine02 series={JSON.stringify([
-                                                                                                dataMetrics.refObject.getPropertyValues('questions')
+                                                                                                clusterStats.cluster.history.questions
                                                                                             ])} 
                                                                                             title={"Questions/sec"} height="180px" 
                                                                         />  
                                                                     </td>
                                                                     <td style={{"width":"33%", "padding-left": "1em"}}>  
                                                                          <ChartLine02 series={JSON.stringify([
-                                                                                                dataMetrics.refObject.getPropertyValues('comSelect'),
-                                                                                                dataMetrics.refObject.getPropertyValues('comDelete'),
-                                                                                                dataMetrics.refObject.getPropertyValues('comInsert'),
-                                                                                                dataMetrics.refObject.getPropertyValues('comUpdate'),
+                                                                                                clusterStats.cluster.history.comSelect,
+                                                                                                clusterStats.cluster.history.comDelete,
+                                                                                                clusterStats.cluster.history.comInsert,
+                                                                                                clusterStats.cluster.history.comUpdate
                                                                                                 
                                                                                             ])} 
                                                                                             title={"Operations/sec"} height="180px" 
@@ -819,7 +738,31 @@ function App() {
                                                         </Container>
                                                         <br/>
                                                         
-                                                        <Container>
+                                                        <Container
+                                                        
+                                                            header={
+                                                              <Header
+                                                                variant="h2"
+                                                                actions={
+                                                                                <Pagination
+                                                                                      currentPageIndex={currentPageIndex}
+                                                                                      onChange={({ detail }) => {
+                                                                                                setCurrentPageIndex(detail.currentPageIndex);
+                                                                                                pageId.current = detail.currentPageIndex;
+                                                                                                gatherClusterStats();
+                                                                                        }
+                                                                                      }
+                                                                                      pagesCount={ totalPages } 
+                                                                                />
+                                                                              
+                                                                          }
+                                                                
+                                                              >
+                                                                Instances
+                                                              </Header>
+                                                          }
+                                                        
+                                                        >
                                                                 
                                                                   
                                                             <table style={{"width":"100%" }}>
@@ -827,57 +770,50 @@ function App() {
                                                                             <td style={{ "width":"9%", "text-align":"left","padding-left":"1em", "font-size": "12px", "font-weight": "600"}}>
                                                                                 Instance
                                                                             </td>
-                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 Status
                                                                             </td>
-                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 InstanceType
                                                                             </td>
-                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 AvailabilityZone
                                                                             </td>
-                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"6%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 Monitoring
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() =>  onClickMetric('questions','Questions/sec')}>Questions/sec</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('threads','Threads')}>Threads</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('threadsRunning','ThreadsRunning')}>ThreadsRunning</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('cpu','CPU(%)')}>CPU(%)</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                     <Link fontSize="body-s" onFollow={() => onClickMetric('memory','MemoryFree')}>MemoryFree</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('iops','IOPS')}>IOPS</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('network','Network')}>Network</Link>
                                                                             </td>
                                                                         </tr>
-                                                                                
-                                                                        {dataNodes.MemberClusters.map((item,key) => (
+                                                                            
+                                                                            {clusterStats.nodes.map((item,key) => (
+                                                                                           
                                                                                                  <AuroraNode
                                                                                                     sessionId = {cnf_connection_id}
-                                                                                                    instance = {item.instance}
-                                                                                                    host = {item.host}
-                                                                                                    port={item.port}
-                                                                                                    syncClusterEvent={syncData}
-                                                                                                    username = {cnf_username}
-                                                                                                    password = {cnf_password}
-                                                                                                    status={item.status}
-                                                                                                    size={item.size}
-                                                                                                    az={item.az}
-                                                                                                    monitoring={item.monitoring}
-                                                                                                    resourceId={item.resourceId}
+                                                                                                    clusterId = {cnf_identifier}
+                                                                                                    nodeStats={item}
                                                                                                 />
-                                                                           
+                                                                                           
+                                                                                            
                                                                            
                                                                             ))}
                                                             </table>
@@ -892,7 +828,7 @@ function App() {
                                           
                                       },
                                       {
-                                        label: "Cloudwatch Metrics",
+                                        label: "CloudWatch Metrics",
                                         id: "tab02",
                                         content: 
                                           
@@ -901,7 +837,27 @@ function App() {
                                                 <tr>  
                                                    <td> 
                                                    
-                                                        <Container>
+                                                        <Container
+                                                            header={
+                                                              <Header
+                                                                variant="h2"
+                                                                description={"AWS CloudWatch metrics from last 60 minutes."}
+                                                                actions={
+                                                                        <Pagination
+                                                                                  currentPageIndex={currentPageIndex}
+                                                                                  onChange={({ detail }) => {
+                                                                                            setCurrentPageIndex(detail.currentPageIndex);
+                                                                                            pageId.current = detail.currentPageIndex;
+                                                                                    }
+                                                                                  }
+                                                                                  pagesCount={ totalPages } 
+                                                                        />
+                                                                  }
+                                                              >
+                                                                Performance Metrics
+                                                              </Header>
+                                                          }
+                                                        >
                                                             <CLWChart
                                                                   title="CPU Utilization % " 
                                                                   subtitle="Average" 
@@ -909,7 +865,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS"
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CPUUtilization"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -918,6 +874,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -931,7 +889,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="FreeableMemory"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -941,6 +899,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -954,7 +914,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="NetworkReceiveThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -964,6 +924,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -977,7 +939,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="NetworkTransmitThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -987,6 +949,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1000,7 +964,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="StorageNetworkReceiveThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1010,6 +974,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1023,7 +989,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="StorageNetworkTransmitThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1033,6 +999,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1046,7 +1014,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DatabaseConnections"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1056,6 +1024,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1069,7 +1039,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="CommitLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1079,6 +1049,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1092,7 +1064,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="SelectThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1102,6 +1074,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1115,7 +1089,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="SelectLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1125,6 +1099,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1138,7 +1114,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="UpdateThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1148,6 +1124,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1161,7 +1139,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="UpdateLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1171,6 +1149,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1184,7 +1164,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="InsertThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1194,6 +1174,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1207,7 +1189,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="InsertLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1217,6 +1199,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1230,7 +1214,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DeleteThroughput"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1240,6 +1224,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1253,7 +1239,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DeleteLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1263,6 +1249,8 @@ function App() {
                                                                   metric_precision={0}
                                                                   format={2}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1276,7 +1264,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="ReadLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1286,6 +1274,8 @@ function App() {
                                                                   metric_precision={2}
                                                                   format={3}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1299,7 +1289,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="WriteLatency"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1308,6 +1298,8 @@ function App() {
                                                                   metric_precision={2}
                                                                   format={3}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1321,7 +1313,7 @@ function App() {
                                                                   color="orange" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DBLoadNonCPU"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1331,6 +1323,8 @@ function App() {
                                                                   metric_precision={2}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                             <br/>
                                                             <br/>
@@ -1344,7 +1338,7 @@ function App() {
                                                                   color="purple" 
                                                                   namespace="AWS/RDS" 
                                                                   dimension_name={"DBInstanceIdentifier"}
-                                                                  dimension_value={dataNodes.clwDimensions}
+                                                                  dimension_value={nodeList.current}
                                                                   metric_name="DBLoad"
                                                                   stat_type="Average"
                                                                   period={60} 
@@ -1354,6 +1348,8 @@ function App() {
                                                                   metric_precision={2}
                                                                   format={1}
                                                                   font_color_value={configuration.colors.fonts.metric100}
+                                                                  pageId={pageId.current}
+                                                                  itemsPerPage={itemsPerPage}
                                                             />
                                                                           
                                                                           
@@ -1375,7 +1371,7 @@ function App() {
                                               <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                     <tr>  
                                                         <td>
-                                                                <Container header={<Header variant="h3">General Information</Header>}>
+                                                                <Container header={<Header variant="h2">Configuration</Header>}>
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Cluster name</Box>

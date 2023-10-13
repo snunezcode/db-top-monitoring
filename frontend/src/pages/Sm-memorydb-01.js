@@ -3,16 +3,16 @@ import Axios from 'axios';
 import { configuration } from './Configs';
 import { useSearchParams } from 'react-router-dom';
 import CustomHeader from "../components/Header";
-import CustomLayout from "../components/Layout";
-import Box from "@cloudscape-design/components/box";
-import Tabs from "@cloudscape-design/components/tabs";
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-import { SplitPanel } from '@cloudscape-design/components';
+import Box from "@awsui/components-react/box";
+import Tabs from "@awsui/components-react/tabs";
+import ColumnLayout from "@awsui/components-react/column-layout";
+import { SplitPanel } from '@awsui/components-react';
+import AppLayout from "@awsui/components-react/app-layout";
 
-import Pagination from "@cloudscape-design/components/pagination";
-import Link from "@cloudscape-design/components/link";
-import Header from "@cloudscape-design/components/header";
-import Container from "@cloudscape-design/components/container";
+import Pagination from "@awsui/components-react/pagination";
+import Link from "@awsui/components-react/link";
+import Header from "@awsui/components-react/header";
+import Container from "@awsui/components-react/container";
 import ElasticNode  from '../components/CompElasticNode01';
 import CompMetric01  from '../components/Metric01';
 import ChartLine02  from '../components/ChartLine02';
@@ -338,8 +338,12 @@ function App() {
             sessionInformation={parameter_object_values}
         />
         
-        <CustomLayout
+        <AppLayout
+        headerSelector="#h"
         contentType="table"
+        disableContentPaddings={true}
+        toolsHide={true}
+        navigationHide={true}
         splitPanelOpen={splitPanelShow}
         onSplitPanelToggle={() => setsplitPanelShow(false)}
         splitPanelSize={300}
@@ -378,7 +382,7 @@ function App() {
                         
                   </SplitPanel>
         }
-        pageContent={
+        content={
             <>
                             <table style={{"width":"100%"}}>
                                 <tr>  
@@ -406,7 +410,16 @@ function App() {
                                             <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                 <tr>  
                                                    <td> 
-                                                        <Container>
+                                                        <Container
+                                                        
+                                                                    header={
+                                                                                <Header
+                                                                                  variant="h2"
+                                                                                >
+                                                                                  Performance Metrics
+                                                                                </Header>
+                                                                            }
+                                                        >
                                 
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>  
@@ -486,7 +499,7 @@ function App() {
                                                                 <br />
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr> 
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={clusterStats['cluster']['getCalls'] || 0}
                                                                                 title={"getCalls/sec"}
@@ -495,7 +508,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={clusterStats['cluster']['setCalls'] || 0}
                                                                                 title={"setCalls/sec"}
@@ -504,7 +517,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
                                                                                     value={clusterStats['cluster']['memoryTotal'] || 0}
                                                                                     title={"MemoryTotal"}
@@ -513,7 +526,7 @@ function App() {
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={clusterStats['cluster']['keyspaceHits'] || 0}
                                                                                 title={"Cache Hits/sec"}
@@ -522,7 +535,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={clusterStats['cluster']['netIn'] || 0}
                                                                                 title={"NetworkIn"}
@@ -531,7 +544,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={clusterStats['cluster']['netOut'] || 0}
                                                                                 title={"NetworkOut"}
@@ -540,7 +553,7 @@ function App() {
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                             />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                                 <CompMetric01 
                                                                                     value={clusterStats['cluster']['connectionsTotal'] || 0}
                                                                                     title={"Connections/sec"}
@@ -549,7 +562,7 @@ function App() {
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid red", "padding-left": "1em"}}>  
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                             <CompMetric01 
                                                                                 value={clusterStats['cluster']['connectedClients'] || 0}
                                                                                 title={"CurConnections"}
@@ -597,12 +610,11 @@ function App() {
                                                             
                                                         </Container>
                                                         <br/>
-                                                        <Container>
-                                                            
-                                                            <table style={{"width":"100%" }}>
-                                                                        <tr>
-                                                                            <td style={{ "width":"100%", "align": "right"}}>
-                                                                                     <div style= {{ "float":"right"}}>
+                                                        <Container
+                                                                 header={
+                                                                                <Header
+                                                                                  variant="h2"
+                                                                                  actions={
                                                                                         <Pagination
                                                                                               currentPageIndex={currentPageIndex}
                                                                                               onChange={({ detail }) => {
@@ -613,44 +625,48 @@ function App() {
                                                                                               }
                                                                                               pagesCount={ totalPages } 
                                                                                         />
-                                                                                        <br/>
-                                                                                    </div>
-                                                                            </td>
-                                                                        </tr>
-                                                            </table>
+                                                                                      
+                                                                                  }
+                                                                                >
+                                                                                  Instances
+                                                                                </Header>
+                                                                            }
+                                                        
+                                                        >
+                                                            
                                                             <table style={{"width":"100%" }}>
                                                                         <tr>
                                                                             <td style={{ "width":"9%", "text-align":"left","padding-left":"1em", "font-size": "12px", "font-weight": "600"}}>
                                                                                     NodeId
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('operations','Operations/sec')}>Operations/sec</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('getCalls','getCalls/sec')}>getCalls/sec</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('setCalls','setCalls/sec')}>setCalls/sec</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHitRate','CacheHitRate(%)')}>CacheHitRate(%)</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('getLatency','getLatency(us)')}> getLatency(us)</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('setLatency','setLatency(us)')}>setLatency(us)</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('connectedClients','Connections')}>Connections</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() =>  onClickMetric('cpu','CPU Usage(%)')}>CPU Usage(%)</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('memory','Memory Usage(%)')}>Memory Usage(%)</Link>
                                                                             </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid red", "padding-left": "1em"}}>
+                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                                                 <Link fontSize="body-s" onFollow={() => onClickMetric('network','Network Usage(%)')}>Network Usage(%)</Link>
                                                                             </td>
                                                                         </tr>
@@ -684,40 +700,37 @@ function App() {
                                           
                                       },
                                       {
-                                        label: "Cloudwatch Metrics",
+                                        label: "CloudWatch Metrics",
                                         id: "tab02",
                                         content: 
                                           
                                           <>    
-                                                <table style={{"width":"100%" }}>
-                                                    <tr>
-                                                        <td style={{ "width":"100%", "align": "right"}}>
-                                                                 <div style= {{ "float":"right"}}>
-                                                                    <Pagination
-                                                                          currentPageIndex={currentPageIndex}
-                                                                          onChange={({ detail }) => {
-                                                                                    setCurrentPageIndex(detail.currentPageIndex);
-                                                                                    pageId.current = detail.currentPageIndex;
-                                                                            }
-                                                                          }
-                                                                          pagesCount={ totalPages } 
-                                                                    />
-                                                                </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td style={{ "width":"100%", "align": "right", "padding-right": "1em"}}>
-                                                                 <div style= {{ "float":"right"}}>
-                                                                    <Box variant="small">Last 60 Minutes</Box>
-                                                                </div>
-                                                        </td>
-                                                    </tr>
-                                                </table>
                                                 <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                 <tr>  
                                                    <td> 
                                                    
-                                                        <Container>
+                                                        <Container
+                                                                    header={
+                                                                                <Header
+                                                                                  variant="h2"
+                                                                                  description={"AWS CloudWatch metrics from last 60 minutes."}
+                                                                                  actions={
+                                                                                        <Pagination
+                                                                                                  currentPageIndex={currentPageIndex}
+                                                                                                  onChange={({ detail }) => {
+                                                                                                            setCurrentPageIndex(detail.currentPageIndex);
+                                                                                                            pageId.current = detail.currentPageIndex;
+                                                                                                    }
+                                                                                                  }
+                                                                                                  pagesCount={ totalPages } 
+                                                                                        />
+                                                                                  }
+                                                                                >
+                                                                                  Performance Metrics
+                                                                                </Header>
+                                                                            }
+                                                        
+                                                        >
                                                             <CLWChart
                                                                   title="CPU Utilization % " 
                                                                   subtitle="Average" 
@@ -1106,7 +1119,19 @@ function App() {
                                                 <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                     <tr>  
                                                         <td>
-                                                                <Container header={<Header variant="h3">General Information</Header>}>
+                                                                <Container 
+                                                                        
+                                                                        header={
+                                                                                <Header
+                                                                                  variant="h2"
+                                                                                >
+                                                                                  Configuration
+                                                                                </Header>
+                                                                            }
+                                                                            
+                                                                        
+                                                                        
+                                                                >
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Cluster name</Box>

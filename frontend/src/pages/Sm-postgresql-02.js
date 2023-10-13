@@ -3,29 +3,29 @@ import Axios from 'axios'
 import { useSearchParams } from 'react-router-dom';
 
 import CustomHeader from "../components/Header";
-import CustomLayout from "../components/Layout";
+import AppLayout from "@awsui/components-react/app-layout";
 import { configuration } from './Configs';
 import { classMetric} from '../components/Functions';
 
-import Container from "@cloudscape-design/components/container";
-import Tabs from "@cloudscape-design/components/tabs";
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-import Badge from "@cloudscape-design/components/badge";
-import ProgressBar from "@cloudscape-design/components/progress-bar";
+import Container from "@awsui/components-react/container";
+import Tabs from "@awsui/components-react/tabs";
+import ColumnLayout from "@awsui/components-react/column-layout";
+import Badge from "@awsui/components-react/badge";
+import ProgressBar from "@awsui/components-react/progress-bar";
 
 import ChartLine02  from '../components/ChartLine02';
 import CLWChart  from '../components/ChartCLW01';
 import CompMetric02  from '../components/Metric02';
 import CompMetric03  from '../components/Metric03';
 
-import Table from "@cloudscape-design/components/table";
-import Header from "@cloudscape-design/components/header";
-import Button from "@cloudscape-design/components/button";
+import Table from "@awsui/components-react/table";
+import Header from "@awsui/components-react/header";
+import Button from "@awsui/components-react/button";
 
-import Box from "@cloudscape-design/components/box";
-import SpaceBetween from "@cloudscape-design/components/space-between";
-import Toggle from "@cloudscape-design/components/toggle";
-import { SplitPanel } from '@cloudscape-design/components';
+import Box from "@awsui/components-react/box";
+import SpaceBetween from "@awsui/components-react/space-between";
+import Toggle from "@awsui/components-react/toggle";
+import { SplitPanel } from '@awsui/components-react';
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -596,67 +596,76 @@ export default function App() {
         onClickDisconnect={handleClickDisconnect}
         sessionInformation={parameter_object_values}
       />
-      <CustomLayout
+      <AppLayout
+        headerSelector="#h"
         contentType="table"
+        disableContentPaddings={true}
+        toolsHide={true}
+        navigationHide={true}
         splitPanelOpen={splitPanelShow}
         onSplitPanelToggle={() => setsplitPanelShow(false)}
         splitPanelSize={250}
         splitPanel={
-                  <SplitPanel  header={"Session Details (" + selectedItems[0].ThreadID + ")"} i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
+                  <SplitPanel  header={"Session Details (" + selectedItems[0].PID + ")"} i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
                     onSplitPanelToggle={({ detail }) => {
                                     
                                     }
                                   }
                   >
-                      
-                    <ColumnLayout columns="4" variant="text-grid">
-                         <div>
-                              <Box variant="awsui-key-label">PID</Box>
-                              {selectedItems[0]['PID']}
-                          </div>
-                          <div>
-                              <Box variant="awsui-key-label">Username</Box>
-                              {selectedItems[0]['Username']}
-                          </div>
-                          <div>
-                              <Box variant="awsui-key-label">Host</Box>
-                              {selectedItems[0]['Host']}
-                          </div>
-                          <div>
-                              <Box variant="awsui-key-label">Database</Box>
-                              {selectedItems[0]['Database']}
-                          </div>
-                        </ColumnLayout>
-                
-                        <ColumnLayout columns="4" variant="text-grid">
-                         <div>
-                              <Box variant="awsui-key-label">ElapsedTime</Box>
-                              {selectedItems[0]['ElapsedTime']}
-                          </div>
-                          <div>
-                              <Box variant="awsui-key-label">State</Box>
-                              {selectedItems[0]['State']}
-                          </div>
-                          <div>
-                              <Box variant="awsui-key-label">WaitEvent</Box>
-                              {selectedItems[0]['WaitEvent']}
-                          </div>
-                          <div>
-                              <Box variant="awsui-key-label">AppName</Box>
-                              {selectedItems[0]['AppName']}
-                          </div>
-                        </ColumnLayout>
-                        <ColumnLayout columns="1" variant="text-grid">
-                         <div>
-                              <Box variant="awsui-key-label">SQLText</Box>
-                              {selectedItems[0]['SQLText']}
-                          </div>
-                        </ColumnLayout>
+                      <table style={{"width":"100%"}}>
+                            <tr>  
+                                <td style={{"width":"100%","padding-left": "1em"}}>
+                                    <ColumnLayout columns="4" variant="text-grid">
+                                         <div>
+                                              <Box variant="awsui-key-label">PID</Box>
+                                              {selectedItems[0]['PID']}
+                                          </div>
+                                          <div>
+                                              <Box variant="awsui-key-label">Username</Box>
+                                              {selectedItems[0]['Username']}
+                                          </div>
+                                          <div>
+                                              <Box variant="awsui-key-label">Host</Box>
+                                              {selectedItems[0]['Host']}
+                                          </div>
+                                          <div>
+                                              <Box variant="awsui-key-label">Database</Box>
+                                              {selectedItems[0]['Database']}
+                                          </div>
+                                        </ColumnLayout>
+                                
+                                        <ColumnLayout columns="4" variant="text-grid">
+                                         <div>
+                                              <Box variant="awsui-key-label">ElapsedTime</Box>
+                                              {selectedItems[0]['ElapsedTime']}
+                                          </div>
+                                          <div>
+                                              <Box variant="awsui-key-label">State</Box>
+                                              {selectedItems[0]['State']}
+                                          </div>
+                                          <div>
+                                              <Box variant="awsui-key-label">WaitEvent</Box>
+                                              {selectedItems[0]['WaitEvent']}
+                                          </div>
+                                          <div>
+                                              <Box variant="awsui-key-label">AppName</Box>
+                                              {selectedItems[0]['AppName']}
+                                          </div>
+                                        </ColumnLayout>
+                                        <ColumnLayout columns="1" variant="text-grid">
+                                         <div>
+                                              <Box variant="awsui-key-label">SQLText</Box>
+                                              {selectedItems[0]['SQLText']}
+                                          </div>
+                                        </ColumnLayout>
+                                      </td>
+                                  </tr>
+                            </table>
                         
                   
                   </SplitPanel>
         }
-        pageContent={
+        content={
             <>
                   <table style={{"width":"100%"}}>
                       <tr>  
@@ -684,7 +693,16 @@ export default function App() {
                           <table style={{"width":"100%", "padding": "1em"}}>
                                 <tr>  
                                    <td>        
-                                        <Container>
+                                        <Container
+                                                    header={
+                                                                    <Header
+                                                                      variant="h2"
+                                                                    >
+                                                                      Performance Metrics
+                                                                    </Header>
+                                                        }
+                                        
+                                        >
                                               
                                                 <table style={{"width":"100%"}}>
                                                     <tr>  
@@ -879,7 +897,6 @@ export default function App() {
                               
                                 <tr>  
                                    <td>
-                                        <Container>
                                             <Table
                                                     stickyHeader
                                                     columnDefinitions={dataSessionColumns}
@@ -907,7 +924,7 @@ export default function App() {
                                                       </Box>
                                                     }
                                                     filter={
-                                                     <Header variant="h3" counter={"(" +  dataMetricRealTimeSession['Sessions'].length + ")"}
+                                                     <Header variant="h2" counter={"(" +  dataMetricRealTimeSession['Sessions'].length + ")"}
                                                       >
                                                         Active sessions
                                                     </Header>
@@ -929,9 +946,6 @@ export default function App() {
                                                     }
                                                   resizableColumns
                                                   />
-                          
-                                          </Container>
-            
                                     </td>  
                                 </tr>
                             </table>       
@@ -1575,7 +1589,7 @@ export default function App() {
                                   </table>
                                   </Container>
                                   <br/>
-                                  <Container>
+                              
                                   <table style={{"width":"100%"}}>
                                       <tr>  
                                           <td style={{"width":"100%"}}>
@@ -1635,7 +1649,6 @@ export default function App() {
                                           </td>
                                       </tr>
                                   </table>
-                                  </Container>
                                   
                                   
                                   </td>
@@ -1729,7 +1742,7 @@ export default function App() {
                         
                       },
                       {
-                        label: "Instance Configuration",
+                        label: "Instance Information",
                         id: "tab05",
                         content: 
                         <>
@@ -1738,7 +1751,7 @@ export default function App() {
                             <tr>  
                                 <td> 
                     
-                                      <Container header={<Header variant="h3">General Information</Header>}>
+                                      <Container header={<Header variant="h2">Configuration</Header>}>
                                         <ColumnLayout columns={4} variant="text-grid">
                                           <div>
                                             <Box variant="awsui-key-label">Instance name</Box>

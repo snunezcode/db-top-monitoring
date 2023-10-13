@@ -2,28 +2,32 @@ import {useState,useEffect} from 'react'
 import { createSearchParams } from "react-router-dom";
 import Axios from 'axios'
 import { configuration, SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } from './Configs';
-import { applicationVersionUpdate } from '../components/Functions';
+import { applicationVersionUpdate, getMatchesCountText, formatDate, createLabelFunction, paginationLabels, pageSizePreference, collectionPreferencesProps, EmptyState } from '../components/Functions';
+
+import { useCollection } from '@cloudscape-design/collection-hooks';
+import {CollectionPreferences,Pagination } from '@awsui/components-react';
+import TextFilter from "@awsui/components-react/text-filter";
 
 import CustomHeader from "../components/HeaderApp";
-import AppLayout from "@cloudscape-design/components/app-layout";
-import SideNavigation from '@cloudscape-design/components/side-navigation';
+import AppLayout from "@awsui/components-react/app-layout";
+import SideNavigation from '@awsui/components-react/side-navigation';
 
-import Flashbar from "@cloudscape-design/components/flashbar";
-import { StatusIndicator } from '@cloudscape-design/components';
-import Modal from "@cloudscape-design/components/modal";
-import SpaceBetween from "@cloudscape-design/components/space-between";
-import Button from "@cloudscape-design/components/button";
-import FormField from "@cloudscape-design/components/form-field";
-import Input from "@cloudscape-design/components/input";
-import Table from "@cloudscape-design/components/table";
-import Header from "@cloudscape-design/components/header";
-import Box from "@cloudscape-design/components/box";
-import ColumnLayout from "@cloudscape-design/components/column-layout";
-
+import Flashbar from "@awsui/components-react/flashbar";
+import { StatusIndicator } from '@awsui/components-react';
+import Modal from "@awsui/components-react/modal";
+import SpaceBetween from "@awsui/components-react/space-between";
+import Button from "@awsui/components-react/button";
+import FormField from "@awsui/components-react/form-field";
+import Input from "@awsui/components-react/input";
+import Table from "@awsui/components-react/table";
+import Header from "@awsui/components-react/header";
+import Box from "@awsui/components-react/box";
+import ColumnLayout from "@awsui/components-react/column-layout";
+import Container from "@awsui/components-react/container";
 
 import '@aws-amplify/ui-react/styles.css';
 
-import { SplitPanel } from '@cloudscape-design/components';
+import { SplitPanel } from '@awsui/components-react';
 
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
@@ -54,19 +58,60 @@ function Login() {
     const [splitPanelShow,setsplitPanelShow] = useState(false);
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
     
-    //-- Variables RDS Table
-    const [dataRds,setDataRds] = useState([]);
-    const columnsRds=[
-                    { id: "identifier",header: "Cluster identifier",cell: item => item['identifier'] || "-",sortingField: "identifier",isRowHeader: true, width: 180, },
-                    { id: "status",header: "Status",cell: item => ( <> <StatusIndicator type={item.status === 'available' ? 'success' : 'error'}> {item.status} </StatusIndicator> </> ),sortingField: "status",isRowHeader: true },
-                    { id: "nodes",header: "Nodes",cell: item => item['nodes'] || "-",sortingField: "nodes",isRowHeader: true },
-                    { id: "engine",header: "Engine",cell: item => item['engine'] || "-",sortingField: "engine",isRowHeader: true },
-                    { id: "version",header: "Engine Version",cell: item => item['version'] || "-",sortingField: "version",isRowHeader: true },
-                    { id: "az",header: "Region & AZ",cell: item => item['az'] || "-",sortingField: "az",isRowHeader: true },
-                    { id: "multiaz",header: "MultiAZ",cell: item => item['multiaz'] || "-",sortingField: "multiaz",isRowHeader: true },
-                    { id: "engineMode",header: "EngineMode",cell: item => item['engineMode'] || "-",sortingField: "engineMode",isRowHeader: true },
-                    ];
     
+    //-- Variables Table
+    const columnsTable = [
+                  {id: 'identifier',header: 'Cluster identifier',cell: item => item.identifier,ariaLabel: createLabelFunction('Cluster identifier'),sortingField: 'identifier',},
+                  {id: 'status',header: 'Status',cell: item => ( <> <StatusIndicator type={item.status === 'available' ? 'success' : 'error'}> {item.status} </StatusIndicator> </> ),ariaLabel: createLabelFunction('Status'),sortingField: 'status',},
+                  {id: 'nodes',header: 'Nodes',cell: item => item.nodes,ariaLabel: createLabelFunction('Nodes'),sortingField: 'nodes',},
+                  {id: 'engine',header: 'Engine',cell: item => item.engine,ariaLabel: createLabelFunction('Engine'),sortingField: 'engine',},
+                  {id: 'version',header: 'Engine Version',cell: item => item.version,ariaLabel: createLabelFunction('Engine Version"'),sortingField: 'version',},
+                  {id: 'az',header: 'Region & AZ',cell: item => item.az,ariaLabel: createLabelFunction('Region & AZ'),sortingField: 'az',},
+                  {id: 'multiaz',header: 'MultiAZ',cell: item => item.multiaz,ariaLabel: createLabelFunction('MultiAZ'),sortingField: 'multiaz',},
+                  {id: 'engineMode',header: 'EngineMode',cell: item => item.engineMode,ariaLabel: createLabelFunction('EngineMode'),sortingField: 'engineMode',},
+    ];
+
+    const visibleContentPreference = {
+              title: 'Select visible content',
+              options: [
+                {
+                  label: 'Main properties',
+                  options: columnsTable.map(({ id, header }) => ({ id, label: header, editable: id !== 'id' })),
+                },
+              ],
+    };
+  
+  
+   const collectionPreferencesProps = {
+            pageSizePreference,
+            visibleContentPreference,
+            cancelLabel: 'Cancel',
+            confirmLabel: 'Confirm',
+            title: 'Preferences',
+    };
+    
+   
+    const [preferences, setPreferences] = useState({ pageSize: 10, visibleContent: ['identifier', 'status', 'nodes', 'engine', 'version', 'az', 'multiaz','engineMode' ] });
+    
+    const [itemsTable,setItemsTable] = useState([]);
+    const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
+                itemsTable,
+                {
+                  filtering: {
+                    empty: <EmptyState title="No instances" action={<Button>Create instance</Button>} />,
+                    noMatch: (
+                      <EmptyState
+                        title="No matches"
+                        action={<Button onClick={() => actions.setFiltering('')}>Clear filter</Button>}
+                      />
+                    ),
+                  },
+                  pagination: { pageSize: preferences.pageSize },
+                  sorting: {},
+                  selection: {},
+                }
+  );
+  
     
     
     //-- Variable for textbox components
@@ -94,7 +139,8 @@ function Login() {
                           password: txtPassword, 
                           engine: selectedItems[0]['engine'],
                           instance : selectedItems[0]['instance'],
-                          mode : "cluster"
+                          mode : "cluster",
+                          cluster : selectedItems[0]['identifier'],
                   
                 }
             }).then((data)=>{
@@ -168,7 +214,7 @@ function Login() {
         //-- Application Update
         var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "aurora"} );
         
-        if (appVersionObject.release > configuration["apps-settings"]["release"] ){
+        if (appVersionObject.release > configuration["apps-settings"]["release"] && configuration["apps-settings"]["release-enforcement"] ){
           setVersionMessage([
                               {
                                 type: "info",
@@ -236,7 +282,7 @@ function Login() {
           console.log('Timeout API error : /api/aws/aurora/cluster/region/list/');                  
         }
         
-        setDataRds(rdsItems);
+        setItemsTable(rdsItems);
         if (rdsItems.length > 0 ) {
           setSelectedItems([rdsItems[0]]);
           setsplitPanelShow(true);
@@ -274,11 +320,13 @@ function Login() {
     <div style={{"background-color": "#f2f3f3"}}>
         <CustomHeader/>
         <AppLayout
+            headerSelector="#h"
             breadCrumbs={breadCrumbs}
             navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/clusters/aurora/"} />}
             splitPanelOpen={splitPanelShow}
             onSplitPanelToggle={() => setsplitPanelShow(false)}
             splitPanelSize={350}
+            toolsHide={true}
             splitPanel={
                       <SplitPanel  
                           header={
@@ -368,37 +416,13 @@ function Login() {
                       <Flashbar items={versionMessage} />
                       <br/>
                       <Table
-                          stickyHeader
-                          columnDefinitions={columnsRds}
-                          items={dataRds}
-                          loadingText="Loading records"
-                          sortingDisabled
-                          variant="embedded"
-                          selectionType="single"
-                          onSelectionChange={({ detail }) => {
-                            setSelectedItems(detail.selectedItems);
-                            setsplitPanelShow(true);
-                            }
-                          }
-                          selectedItems={selectedItems}
-                          empty={
-                            <Box textAlign="center" color="inherit">
-                              <b>No records</b>
-                              <Box
-                                padding={{ bottom: "s" }}
-                                variant="p"
-                                color="inherit"
-                              >
-                                No records to display.
-                              </Box>
-                            </Box>
-                          }
-                        resizableColumns
+                        {...collectionProps}
+                        selectionType="single"
                         header={
-                                    <Header
-                                      variant="h3"
-                                      counter={"(" + dataRds.length + ")"}
-                                      actions={
+                          <Header
+                            variant="h2"
+                            counter= {"(" + itemsTable.length + ")"} 
+                            actions={
                                               <SpaceBetween
                                                 direction="horizontal"
                                                 size="xs"
@@ -407,15 +431,39 @@ function Login() {
                                                 <Button variant="primary" onClick={() => {gatherInstances();}}>Refresh</Button>
                                               </SpaceBetween>
                                       }
-                                      
-                                    >
-                                     Clusters
-                                    </Header>
-                                  }
-                                  
-          
-                        />
-                        
+                          >
+                            Aurora Clusters
+                          </Header>
+                        }
+                        columnDefinitions={columnsTable}
+                        visibleColumns={preferences.visibleContent}
+                        items={items}
+                        pagination={<Pagination {...paginationProps} ariaLabels={paginationLabels} />}
+                        filter={
+                          <TextFilter
+                            {...filterProps}
+                            countText={getMatchesCountText(filteredItemsCount)}
+                            filteringAriaLabel="Filter instances"
+                          />
+                        }
+                        preferences={
+                          <CollectionPreferences
+                            {...collectionPreferencesProps}
+                            preferences={preferences}
+                            onConfirm={({ detail }) => setPreferences(detail)}
+                          />
+                        }
+                        onSelectionChange={({ detail }) => {
+                            setSelectedItems(detail.selectedItems);
+                            setsplitPanelShow(true);
+                            }
+                          }
+                        selectedItems={selectedItems}
+                        resizableColumns
+                        stickyHeader
+                        loadingText="Loading records"
+                      />
+
                         
                         <Modal
                             onDismiss={() => setModalConnectVisible(false)}

@@ -52,13 +52,35 @@ var issCognitoIdp = "https://cognito-idp." + configData.aws_region + ".amazonaws
         
 
 // Mysql Variables
-const mysql = require('mysql')
+const mysql = require('mysql2')
 var db=[];
 var aurora=[];
+var auroraCluster=[];
 
 // Postgresql Variables
 const postgresql = require('pg').Pool
-
+var nodeTypeAuroraPostgreSQL = {
+        name : "",
+        cpu: 0,
+        memory: 0,
+        ioreads: 0,
+        iowrites: 0,
+        netin: 0,
+        netout: 0,
+        xactTotal: 0,
+        xactCommit: 0,
+        xactRollback: 0,
+        tupReturned: 0,
+        tupFetched: 0,
+        tupInserted: 0,
+        tupDeleted: 0,
+        tupInserted: 0,
+        tupUpdated: 0,
+        numbackends : 0,
+        numbackendsActive : 0,
+        timestamp : 0 
+    
+};
 
 // SQLServer Variables
 const mssql = require('mssql')
@@ -393,8 +415,40 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
                         dbconnection.end();
                         var session_id=uuid.v4();
                         
-                        if (params.mode == "cluster")
+                        if (params.mode == "cluster") {
+                            
                             aurora["$" + session_id] = {};
+                            
+                            auroraCluster["$" + session_id] = {}
+                            auroraCluster["$" + session_id][ "$" + params.cluster] = {};
+                            auroraCluster["$" + session_id][ "$" + params.cluster]["cluster"] = new classMetric(
+                                                                                                                    0,
+                                                                                                                    "cluster",[
+                                                                                                                            { name: "cpu", history: 20 },
+                                                                                                                            { name: "memory", history: 20 },
+                                                                                                                            { name: "ioreads", history: 20 },
+                                                                                                                            { name: "iowrites", history: 20 },
+                                                                                                                            { name: "netin", history: 20 },
+                                                                                                                            { name: "netout", history: 20 },
+                                                                                                                            { name: "queries", history: 20 },
+                                                                                                                            { name: "questions", history: 20 },
+                                                                                                                            { name: "comSelect", history: 20 },
+                                                                                                                            { name: "comInsert", history: 20 },
+                                                                                                                            { name: "comDelete", history: 20 },
+                                                                                                                            { name: "comUpdate", history: 20 },
+                                                                                                                            { name: "comCommit", history: 20 },
+                                                                                                                            { name: "comRollback", history: 20 },
+                                                                                                                            { name: "threads", history: 20 },
+                                                                                                                            { name: "threadsRunning", history: 20 },
+                                                                                                                            {name : "network", history: 20 },
+                                                                                                                            {name : "iops", history: 20 },
+                                                                                                                    ]
+                                                                                                    ) ;
+                            auroraCluster["$" + session_id][ "$" + params.cluster]["property"]  = function(){};
+                            auroraCluster["$" + session_id][ "$" + params.cluster]["property"]  = { clusterId: params.cluster, timestamp : "" }
+                            
+                            
+                        }
                         else
                             mysqlOpenConnection(session_id,params.host,params.port,params.username,params.password);
                         
@@ -425,8 +479,40 @@ app.post("/api/security/rds/auth/", csrfProtection, (req,res)=>{
                         dbconnection.end();
                         var session_id=uuid.v4();
                         
-                        if (params.mode == "cluster")
+                        if (params.mode == "cluster") {
                             aurora["$" + session_id] = {};
+                            
+                            auroraCluster["$" + session_id] = {}
+                            auroraCluster["$" + session_id][ "$" + params.cluster] = {};
+                            auroraCluster["$" + session_id][ "$" + params.cluster]["cluster"] = new classMetric(
+                                                                                                                    0,
+                                                                                                                    "cluster",[
+                                                                                                                        {name : "cpu", history : 20 },
+                                                                                                                        {name : "memory", history : 20 },
+                                                                                                                        {name : "ioreads", history : 20 },
+                                                                                                                        {name : "iowrites", history : 20 },
+                                                                                                                        {name : "netin", history : 20 },
+                                                                                                                        {name : "netout", history : 20 },
+                                                                                                                        {name : "xactTotal", history: 20 },
+                                                                                                                        {name : "xactCommit", history: 20 },
+                                                                                                                        {name : "xactRollback", history: 20 },
+                                                                                                                        {name : "tupReturned", history: 20 },
+                                                                                                                        {name : "tupFetched", history: 20 },
+                                                                                                                        {name : "tupInserted", history: 20 },
+                                                                                                                        {name : "tupDeleted", history: 20 },
+                                                                                                                        {name : "tupUpdated", history: 20 },
+                                                                                                                        {name : "numbackends", history: 20 },
+                                                                                                                        {name : "numbackendsActive", history: 20 },
+                                                                                                                        {name : "network", history: 20 },
+                                                                                                                        {name : "iops", history: 20 },
+                                                                                                                    ]
+                                                                                                    ) ;
+                            auroraCluster["$" + session_id][ "$" + params.cluster]["property"]  = function(){};
+                            auroraCluster["$" + session_id][ "$" + params.cluster]["property"]  = { clusterId: params.cluster, timestamp : "" }
+                    
+                    
+                            
+                        }
                         else
                             postgresqlOpenConnection(session_id,params.host,params.port,params.username,params.password);
                             
@@ -615,7 +701,7 @@ app.get("/api/security/rds/disconnect/", (req,res)=>{
 //   ---------------------------------------- MSSQL
 //--#################################################################################################### 
 
-// MSSQL : Create Connection
+// MSSQL : STANDALONE Create Connection
 function mssqlOpenConnection(session_id,host,port,user,password){
     
     db[session_id] = new mssql.ConnectionPool({
@@ -647,7 +733,7 @@ function mssqlOpenConnection(session_id,host,port,user,password){
 }
 
 
-// MSSQL : API Execute SQL Query
+// MSSQL : STANDALONE : API Execute SQL Query
 app.get("/api/mssql/sql/", (req,res)=>{
 
     // Token Validation
@@ -688,7 +774,8 @@ app.get("/api/mssql/sql/", (req,res)=>{
 //   ---------------------------------------- POSTGRESQL
 //--#################################################################################################### 
 
-// POSTGRESQL : Create Connection
+
+// POSTGRESQL : STANDALONE : Create Connection
 function postgresqlOpenConnection(session_id,host,port,user,password){
     
     db[session_id]  = new postgresql({
@@ -706,132 +793,7 @@ function postgresqlOpenConnection(session_id,host,port,user,password){
 }
 
 
-
-// POSTGRESQL : Create Connection per cluster node
-app.post("/api/postgres/cluster/connection/open", (req,res)=>{
-
-    // Token Validation
-    var standardToken = verifyToken(req.headers['x-token']);
-    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
-
-    if (standardToken.isValid === false || cognitoToken.isValid === false)
-        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
-
-
-    // API Call
-    var params = req.body.params;
-    var sessionId =  "$" + standardToken.session_id;
-    var instanceId = "$" + params.instance;
-    try {
-            
-            if (!(("$" + params.instance) in aurora[sessionId])) {
-                    aurora[sessionId][instanceId]= function() {}
-                    aurora[sessionId][instanceId]["connection"]= function() {}
-                    aurora[sessionId][instanceId]["connection"]  = new postgresql({
-                            host: params.host,
-                            user: params.username,
-                            password: params.password,
-                            database: "postgres",
-                            port: params.port,
-                            max: 2,
-                    });
-                    
-                    console.log("Postgresql Connection opened for session_id : " + standardToken.session_id + "#" + params.instance);
-                    res.status(200).send( {"result":"connection opened", "session_id": standardToken.session_id });
-            }
-            else {
-                console.log("Re-using - Postgresql Instance connection : " + standardToken.session_id + "#" + params.instance )
-                res.status(200).send( {"result":"auth1" });
-            }
-            
-    }
-    catch(err) {
-        console.log(err)
-        res.status(404).send(err);
-    }
-   
-    
-})
-
-
-// POSTGRESQL : Close Connection per cluster node
-app.get("/api/postgres/cluster/connection/close", (req,res)=>{
-    
-    // Token Validation
-    var standardToken = verifyToken(req.headers['x-token']);
-    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
-
-    if (standardToken.isValid === false || cognitoToken.isValid === false)
-        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
-
-    var params = req.query;
-    
-    try
-            {
-                
-                var instances = aurora["$" + standardToken.session_id];
-                for (index of Object.keys(instances)) {
-                        try
-                          {
-                                console.log("Postgresql Cluster Disconnection : " + standardToken.session_id + "#" + index );
-                                instances[index]["connection"].end();
-                          }
-                          catch{
-                              console.log("Postgresql Cluster Disconnection error : " + standardToken.session_id + "#" + index );
-                          }
-                }
-                
-                delete aurora[standardToken.session_id];
-                res.status(200).send( {"result":"disconnected"});
-    }
-    catch(err){
-                console.log(err);
-    }
-})
-
-
-
-// POSTGRESQL : API Execute SQL Query
-app.get("/api/postgres/cluster/sql/", (req,res)=>{
-
-    // Token Validation
-    var standardToken = verifyToken(req.headers['x-token']);
-    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
-
-    if (standardToken.isValid === false || cognitoToken.isValid === false)
-        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
-
-    // API Call
-    var params = req.query;
-    try {
-        
-        var sessionId =  "$" + standardToken.session_id;
-        var instanceId = "$" + params.instance;
-    
-        aurora[sessionId][instanceId]["connection"].query(params.sql_statement, (err,result)=>{
-                        if(err) {
-                            console.log(err)
-                            res.status(404).send(err);
-                        } 
-                        else
-                        {
-                            res.status(200).send(result);
-                         }
-                        
-                }
-            );   
-
-           
-    } catch(error) {
-        console.log(error)
-                
-    }
-
-});
-
-
-
-// POSTGRESQL : API Execute SQL Query
+// POSTGRESQL : STANDALONE :  API Execute SQL Query
 app.get("/api/postgres/sql/", (req,res)=>{
 
     // Token Validation
@@ -868,116 +830,683 @@ app.get("/api/postgres/sql/", (req,res)=>{
 });
 
 
+//---+++ POSTGRESQL : CLUSTER : Open Connection - Aurora Cluster  
+app.post("/api/aurora/postgresql/cluster/connection/open/", openAuroraPostgresqlConnectionCluster);
+async function openAuroraPostgresqlConnectionCluster(req, res) {
+ 
+    var params = req.body.params;
+    
+    try {
+        
+        
+            // Gather Roles
+            var parameterCluster = {
+                DBClusterIdentifier: params.clusterId,
+                MaxRecords: 100
+            };
 
-//--#################################################################################################### 
-//   ---------------------------------------- MYSQL
-//--#################################################################################################### 
-
-
-// MYSQL : Create Connection
-function mysqlOpenConnection(session_id,host,port,user,password){
-
-    db[session_id]  = mysql.createPool({
-            host: host,
-            user: user,
-            password: password,
-            database: "",
-            acquireTimeout: 3000,
-            port: port,
-            connectionLimit:2
-    })
-
-    console.log("Mysql Connection opened for session_id : " + session_id);
+            var clusterData = await rds.describeDBClusters(parameterCluster).promise();
+            var roleType = [];
+            
+            clusterData['DBClusters'][0]['DBClusterMembers'].forEach(function(instance) {
+                roleType[instance['DBInstanceIdentifier']] =  ( String(instance['IsClusterWriter']) == "true" ? "P" : "R" );
+            });
+            
+            
+            // Gather Instances
+            var parameter = {
+                MaxRecords: 100,
+                Filters: [
+                        {
+                          Name: 'db-cluster-id',
+                          Values: [params.clusterId]
+                        },
+                ],
+            };
+            
+            var data = await rds.describeDBInstances(parameter).promise();
+            var nodeList = "";
+            
+            if (data.DBInstances.length> 0) {
+                            
+                           
+                            var clusterNodes = data.DBInstances;
+                             
+                            var nodeList = [];
+                            var nodeUid = 0;
+                       
+                            clusterNodes.forEach(function(node) {
+                                
+                                openAuroraPostgresqlConnectionNode({
+                                                                connectionId : params.connectionId,
+                                                                clusterId: params.clusterId,
+                                                                nodeId : node['DBInstanceIdentifier'],
+                                                                host : node['Endpoint']['Address'],
+                                                                port : node['Endpoint']['Port'],
+                                                                username: params.username,
+                                                                password: params.password,
+                                                                nodeUid : nodeUid,
+                                                                size : node['DBInstanceClass'],
+                                                                az : node['AvailabilityZone'],
+                                                                status : node['DBInstanceStatus'],
+                                                                monitoring :  ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
+                                                                resourceId : node['DbiResourceId'],
+                                                                role : roleType[node['DBInstanceIdentifier']],
+                                                });
+                                
+                               
+                                                                
+                                nodeList = nodeList +  node['DBInstanceIdentifier']  + "," 
+                                nodeUid ++;
+                                
+                        
+                            });
+                            
+                            
+                            res.status(200).send({ data : "Connection Request Opened", nodes : nodeList.slice(0, -1)});
+                            
+                                    
+                            
+            }
+                    
+            
+    }
+    catch (error) {
+        console.log(error)
+        res.status(500).send(error);
+    }
 
 }
 
-// MYSQL : Create Connection per cluster node
-app.post("/api/mysql/cluster/connection/open", (req,res)=>{
-
-    // Token Validation
-    var standardToken = verifyToken(req.headers['x-token']);
-    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
-
-    if (standardToken.isValid === false || cognitoToken.isValid === false)
-        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
 
 
-    // API Call
-    var params = req.body.params;
-    var sessionId =  "$" + standardToken.session_id;
-    var instanceId = "$" + params.instance;
+    
+//---+++ POSTGRESQL : CLUSTER : Open Connection - Aurora Node  
+async function openAuroraPostgresqlConnectionNode(node){
+    
     try {
-        
-            if (!(("$" + params.instance) in aurora[sessionId])) {
-                    aurora[sessionId][instanceId]= function() {}
-                    aurora[sessionId][instanceId]["connection"]= function() {}
-                     aurora[sessionId][instanceId]["connection"]  = mysql.createPool({
-                            host: params.host,
-                            user: params.username,
-                            password: params.password,
-                            database: "",
-                            acquireTimeout: 3000,
-                            port: params.port,
-                            connectionLimit:2
-                    })
+            
+            
+            var connectionId = "$" + node.connectionId;
+            var clusterId = "$" + node.clusterId;
+            var instanceId = "$" + node.nodeId;
+            
+            
+            if (!(instanceId in auroraCluster[connectionId][clusterId])) {
+            
+                var timeNow = new Date();
+                
+                auroraCluster[connectionId][clusterId][instanceId] = function(){};
+                
+                
+                auroraCluster[connectionId][clusterId][instanceId]["connection"] = function(){};
+                auroraCluster[connectionId][clusterId][instanceId]["connection"] = new postgresql({
+                                                                                                        host: node.host,
+                                                                                                        user: node.username,
+                                                                                                        password: node.password,
+                                                                                                        database: "postgres",
+                                                                                                        port: node.port,
+                                                                                                        max: 2,
+                });
+                
+                auroraCluster[connectionId][clusterId][instanceId]["node"] = function(){};
+                auroraCluster[connectionId][clusterId][instanceId]["node"] = new classMetric(
+                                                                                                node.nodeUid,
+                                                                                                node.nodeId,[
+                                                                                                                {name : "cpu", history : 20 },
+                                                                                                                {name : "memory", history : 20 },
+                                                                                                                {name : "ioreads", history : 20 },
+                                                                                                                {name : "iowrites", history : 20 },
+                                                                                                                {name : "netin", history : 20 },
+                                                                                                                {name : "netout", history : 20 },
+                                                                                                                {name : "xactTotal", history: 20 },
+                                                                                                                {name : "xactCommit", history: 20 },
+                                                                                                                {name : "xactRollback", history: 20 },
+                                                                                                                {name : "tupReturned", history: 20 },
+                                                                                                                {name : "tupFetched", history: 20 },
+                                                                                                                {name : "tupInserted", history: 20 },
+                                                                                                                {name : "tupDeleted", history: 20 },
+                                                                                                                {name : "tupUpdated", history: 20 },
+                                                                                                                {name : "numbackends", history: 20 },
+                                                                                                                {name : "numbackendsActive", history: 20 },
+                                                                                                                {name : "network", history: 20 },
+                                                                                                                {name : "iops", history: 20 },
+                                                                                                                {name : "tuples", history: 20 }
+                                                                                                            ]
+                                                                        );
+                
+                
+                auroraCluster[connectionId][clusterId][instanceId]["property"] = function(){};
+                auroraCluster[connectionId][clusterId][instanceId]["property"] = { 
+                                                                                            instanceId: node.nodeId, 
+                                                                                            resourceId : node.resourceId, 
+                                                                                            monitoring : node.monitoring, 
+                                                                                            size : node.size,
+                                                                                            az : node.az,
+                                                                                            status : node.status,
+                                                                                            role : node.role, 
+                                                                                            timestamp : ""
+                }
                     
-                    console.log("Mysql Connection opened for session_id : " + standardToken.session_id + "#" + params.instance);
-                    res.status(200).send( {"result":"connection opened", "session_id": standardToken.session_id });
+                auroraCluster[connectionId][clusterId][instanceId]["node"].newSnapshot(nodeTypeAuroraPostgreSQL,timeNow.getTime());
+                
+                console.log("Aurora Postgresql Instance Connected : " + node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
+                
+                /*
+                auroraCluster[connectionId][clusterId][instanceId]["connection"].connect()
+                    .then(()=> {
+                        console.log("Redis Instance Connected : " + node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
+                        
+                        
+                    })
+                    .catch(()=> {
+                        console.log("Redis Instance Connected with Errors : "  + node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
+                        
+                    });
+                */
+                    
             }
             else {
-                console.log("Re-using - MySQL Instance connection : " + standardToken.session_id + "#" + params.instance )
-                res.status(200).send( {"result":"auth1" });
+                console.log("Re-using - Aurora Postgresql  Instance connection : " +  node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
+                
             }
-            
+    
+        
     }
-    catch(err) {
-        console.log(err)
-        res.status(404).send(err);
+    catch (error) {
+        console.log(error)
+        
     }
    
     
-})
+}
 
 
-// MYSQL : Close Connection per cluster node
-app.get("/api/mysql/cluster/connection/close", (req,res)=>{
-    
-    // Token Validation
-    var standardToken = verifyToken(req.headers['x-token']);
-    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
-
-    if (standardToken.isValid === false || cognitoToken.isValid === false)
-        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
-
-    var params = req.query;
-    
-    try
+//---+++ POSTGRESQL : CLUSTER : Request Update Stats per Cluster
+app.get("/api/aurora/postgresql/cluster/stats/update", updateStatsAuroraClusterPostgresql);
+async function updateStatsAuroraClusterPostgresql(req, res) {
+ 
+        try
             {
+                var params = req.query;
                 
-                var instances = aurora["$" + standardToken.session_id];
-                for (index of Object.keys(instances)) {
-                        try
-                          {
-                                console.log("MySQL Cluster Disconnection : " + standardToken.session_id + "#" + index );
-                                instances[index]["connection"].end();
-                          }
-                          catch{
-                              console.log("MySQL Cluster Disconnection error : " + standardToken.session_id + "#" + index );
-                          }
+                var nodes = auroraCluster["$" + params.connectionId]["$" + params.clusterId];
+                for (let nodeId of Object.keys(nodes)) {
+                        if (nodeId != "cluster"  && nodeId != "property" ){
+                            updateStatsAuoraPostgresqlNode("$" + params.connectionId, "$" + params.clusterId, nodeId, nodes[nodeId]['property']['resourceId'], nodes[nodeId]['property']['monitoring'] );
+                        }
+                       
                 }
                 
-                delete aurora[standardToken.session_id];
-                res.status(200).send( {"result":"disconnected"});
+                res.status(200).send( {"result":"Cluster Update Stats Requested"});
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+        
+}
+
+async function updateStatsAuoraPostgresqlNode(connectionId,clusterId,nodeId, resourceId, monitoring) {
+    
+    try
+    {
+            var timeNow = new Date();
+            var sql_statement = `
+                                        SELECT 
+                                            SUM(numbackends) as numbackends,
+                                            SUM(tup_returned) as tup_returned, 
+                                            SUM(tup_fetched) as tup_fetched, 
+                                            SUM(tup_inserted) as tup_inserted,
+                                            SUM(tup_updated) as tup_updated,
+                                            SUM(tup_deleted) as tup_deleted, 
+                                            SUM(blk_read_time) as blk_read_time, 
+                                            SUM(blk_write_time) as blk_write_time, 
+                                            SUM(xact_commit) as xact_commit, 
+                                            SUM(xact_rollback) as xact_rollback,
+                                            (select count(*) from pg_stat_activity where pid <> pg_backend_pid() and state = \'active\' ) numbackendsactive
+                                        FROM pg_stat_database
+                                `;
+            
+            
+            var currentOperations = await auroraCluster[connectionId][clusterId][nodeId]["connection"].query(sql_statement);
+            currentOperations=currentOperations.rows[0];
+            
+            //-- OS Metrics
+            const osMetrics = await gatherAuroraOsMetrics({ resourceId : resourceId, instanceId : nodeId.substring(1), monitoring : monitoring });
+            
+            auroraCluster[connectionId][clusterId][nodeId]["node"].newSnapshot({
+                                                                                        cpu: osMetrics.cpu,
+                                                                                        cpuTimestamp: osMetrics.cpuTimestamp,
+                                                                                        memory: osMetrics.memory,
+                                                                                        memoryTimestamp: osMetrics.memoryTimestamp,
+                                                                                        ioreads: osMetrics.ioreads,
+                                                                                        ioreadsTimestamp: osMetrics.ioreadsTimestamp,
+                                                                                        iowrites: osMetrics.iowrites,
+                                                                                        iowritesTimestamp: osMetrics.iowritesTimestamp,
+                                                                                        netin: osMetrics.netin,
+                                                                                        netinTimestamp: osMetrics.netinTimestamp,
+                                                                                        netout: osMetrics.netout,
+                                                                                        netoutTimestamp: osMetrics.netoutTimestamp,
+                                                                                        xactTotal: currentOperations['xact_commit'] + currentOperations['xact_rollback'],
+                                                                                        xactCommit: currentOperations['xact_commit'],
+                                                                                        xactRollback: currentOperations['xact_rollback'],
+                                                                                        tupReturned: currentOperations['tup_returned'],
+                                                                                        tupFetched: currentOperations['tup_fetched'],
+                                                                                        tupInserted: currentOperations['tup_inserted'],
+                                                                                        tupDeleted: currentOperations['tup_deleted'],
+                                                                                        tupUpdated: currentOperations['tup_updated'],
+                                                                                        numbackends : parseFloat(currentOperations['numbackends']),
+                                                                                        numbackendsActive : parseFloat(currentOperations['numbackendsactive']),
+                                                                                    
+                                                                                },
+                                                                                timeNow.getTime());
+            
+            auroraCluster[connectionId][clusterId][nodeId]["property"]["timestamp"] =  osMetrics.timestamp;
+            
+          
+          
+            
     }
     catch(err){
                 console.log(err);
     }
-})
+                
+}
+                
+
+
+async function gatherAuroraOsMetrics(node){
+    
+    var nodeMetrics = { 
+                        cpu : 0, 
+                        cpuTimestamp : "",
+                        memory : 0, 
+                        memoryTimestamp : "",
+                        ioreads : 0, 
+                        ioreadsTimestamp : "",
+                        iowrites : 0, 
+                        iowritesTimestamp : "",
+                        netin : 0,
+                        netinTimestamp : "",
+                        netout : 0,
+                        netoutTimestamp : "",
+                        timestamp : ""
+    };
+    
+    try {
+            //-- OS Metrics
+            if ( node.monitoring == "em") {
+                
+                    var params_logs = {
+                        logStreamName: node.resourceId,
+                        limit: '1',
+                        logGroupName: 'RDSOSMetrics',
+                        startFromHead: false
+                    };
+                
+                    var data = await cloudwatchlogs.getLogEvents(params_logs).promise();
+                    
+                    var message=JSON.parse(data.events[0].message);
+                            
+                    nodeMetrics.cpu = message.cpuUtilization.total;
+                    nodeMetrics.cpuTimestamp = message.timestamp;
+                    nodeMetrics.memory = message.memory.free;
+                    nodeMetrics.memoryTimestamp = message.timestamp;
+                    nodeMetrics.ioreads = message.diskIO[0].readIOsPS + message.diskIO[1].readIOsPS;
+                    nodeMetrics.ioreadsTimestamp = message.timestamp;
+                    nodeMetrics.iowrites = message.diskIO[0].writeIOsPS + message.diskIO[1].writeIOsPS;
+                    nodeMetrics.iowritesTimestamp = message.timestamp;
+                    nodeMetrics.netin = message.network[0].rx;
+                    nodeMetrics.netinTimestamp = message.timestamp;
+                    nodeMetrics.netout = message.network[0].tx;
+                    nodeMetrics.netoutTimestamp = message.timestamp;
+                    nodeMetrics.timestamp = message.timestamp;  
+                        
+            }
+            else {
+                
+                    //-- Gather Metrics from CloudWatch
+                
+                    var dimension = [ { Name: "DBInstanceIdentifier", Value: node.instanceId } ];
+                    var metrics = [{
+                                        namespace : "AWS/RDS",
+                                        metric : "CPUUtilization",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/RDS",
+                                        metric : "FreeableMemory",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/RDS",
+                                        metric : "ReadIOPS",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/RDS",
+                                        metric : "WriteIOPS",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/RDS",
+                                        metric : "NetworkReceiveThroughput",
+                                        dimension : dimension
+                                    },
+                                    {
+                                        namespace : "AWS/RDS",
+                                        metric : "NetworkTransmitThroughput",
+                                        dimension : dimension
+                                    },
+                                ];
+          
+                    var dataQueries = [];
+                    var queryId = 0;
+                    metrics.forEach(function(item) {
+                        
+                        dataQueries.push({
+                                Id: "m0" + String(queryId),
+                                MetricStat: {
+                                    Metric: {
+                                        Namespace: item.namespace,
+                                        MetricName: item.metric,
+                                        Dimensions: item.dimension
+                                    },
+                                    Period: "60",
+                                    Stat: "Average"
+                                },
+                                Label: item.metric
+                        });
+                        
+                        queryId++;
+                        
+                    });
+                    
+                    var d_end_time = new Date();
+                    var d_start_time = new Date(d_end_time - ((3*1) * 60000) );
+                    var queryClw = {
+                        MetricDataQueries: dataQueries,
+                        "StartTime": d_start_time,
+                        "EndTime": d_end_time
+                    };
+                   
+                    var data = await cloudwatch.getMetricData(queryClw).promise();
+                    
+                    data.MetricDataResults.forEach(function(item) {
+                            
+                                    switch(item.Label){
+                                        
+                                        case "CPUUtilization":
+                                                nodeMetrics.cpu = item.Values[0];
+                                                nodeMetrics.cpuTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                        
+                                        case "FreeableMemory":
+                                                nodeMetrics.memory = item.Values[0];
+                                                nodeMetrics.memoryTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                                
+                                        case "ReadIOPS":
+                                                nodeMetrics.ioreads = item.Values[0];
+                                                nodeMetrics.ioreadsTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                        
+                                        case "WriteIOPS":
+                                                nodeMetrics.iowrites = item.Values[0];
+                                                nodeMetrics.iowritesTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                                
+                                        case "NetworkReceiveThroughput":
+                                                nodeMetrics.netin = item.Values[0];
+                                                nodeMetrics.netinTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                                
+                                        case "NetworkTransmitThroughput":
+                                                nodeMetrics.netout = item.Values[0];
+                                                nodeMetrics.netoutTimestamp = String(item.Timestamps[0]);
+                                                break;
+                                            
+                                            
+                                            
+                                    }
+                                    nodeMetrics.timestamp = item.Timestamps[0];
+                                    
+                                
+                    });
+                            
+            }
+    }
+    catch(err){
+        
+        console.log(err);
+        
+    }
+    
+    return nodeMetrics;
+    
+        
+}
+
+
+//---+++ POSTGRESQL : CLUSTER : Request Stats per Cluster
+app.get("/api/aurora/postgresql/cluster/stats/gather", gatherStatsAuroraClusterPostgresql);
+async function gatherStatsAuroraClusterPostgresql(req, res) {
+ 
+        try
+            {
+                
+                var params = req.query;
+                var connectionId = "$" + params.connectionId;
+                var clusterId = "$" + params.clusterId;
+                var nodes = auroraCluster[connectionId][clusterId];
+                var clusterInfo = {
+                                    cpu: 0,
+                                    memory: 0,
+                                    ioreads: 0,
+                                    iowrites: 0,
+                                    netin: 0,
+                                    netout: 0,
+                                    xactTotal: 0,
+                                    xactCommit: 0,
+                                    xactRollback: 0,
+                                    tupReturned: 0,
+                                    tupFetched: 0,
+                                    tupDeleted: 0,
+                                    tupInserted: 0,
+                                    tupUpdated: 0,
+                                    numbackends : 0,
+                                    numbackendsActive : 0,
+                                    network : 0,
+                                    iops : 0
+                                
+                };
+                
+                var timestampValues = [];
+                var nodesInfo = [];
+                var totalNodes = 0;
+                for (let nodeId of Object.keys(nodes)) {
+                        if (nodeId != "cluster" && nodeId != "property" ) {
+                            
+                                
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('cpu',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpu"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpuTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('memory',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memory"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('ioreads',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreadsTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('iowrites',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowritesTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('netin',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netinTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('netout',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netoutTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('network',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netoutTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('iops',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowritesTimestamp"));
+                            
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('numbackends',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("numbackends"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('numbackendsActive',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("numbackendsActive"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('xactTotal',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactCommit") + auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactRollback"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('xactCommit',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactCommit"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('xactRollback',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactRollback"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('tupReturned',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupReturned"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('tupFetched',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupFetched"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('tupInserted',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupInserted"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('tupDeleted',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupDeleted"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('tupUpdated',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupUpdated"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('tuples',
+                                                                                                              auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupFetched") + 
+                                                                                                              auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupInserted") +
+                                                                                                              auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupDeleted") +
+                                                                                                              auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupUpdated")
+                                                                                                    );
+                            
+                            
+                            
+                            var nodeStats = {
+                                    name : auroraCluster[connectionId][clusterId][nodeId]["property"]["instanceId"],
+                                    monitoring : auroraCluster[connectionId][clusterId][nodeId]["property"]["monitoring"],
+                                    role : auroraCluster[connectionId][clusterId][nodeId]["property"]["role"],
+                                    size : auroraCluster[connectionId][clusterId][nodeId]["property"]["size"],
+                                    az : auroraCluster[connectionId][clusterId][nodeId]["property"]["az"],
+                                    status : auroraCluster[connectionId][clusterId][nodeId]["property"]["status"],
+                                    nodeId : auroraCluster[connectionId][clusterId][nodeId]["node"].getObjectId(),
+                                    cpu : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpu"),
+                                    memory : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memory"),
+                                    ioreads : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"),
+                                    iowrites : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"),
+                                    netin : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"),
+                                    netout : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"),
+                                    network : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"),
+                                    iops : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"),
+                                    xactTotal: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactCommit") + auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactRollback"),
+                                    xactCommit: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactCommit"),
+                                    xactRollback: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("xactRollback"),
+                                    tupReturned: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupReturned"),
+                                    tupFetched: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupFetched"),
+                                    tupDeleted: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupDeleted"),
+                                    tupInserted: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupInserted"),
+                                    tupUpdated: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("tupUpdated"),
+                                    numbackends : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("numbackends"),
+                                    numbackendsActive : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("numbackendsActive"),
+                                    history : {
+                                            cpu : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('cpu'),
+                                            memory : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('memory'),
+                                            ioreads : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('ioreads'),
+                                            iowrites : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('iowrites'),
+                                            netin : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netin'),
+                                            netout : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netout'),
+                                            xactTotal: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('xactTotal'),
+                                            xactCommit: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('xactCommit'),
+                                            xactRollback: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('xactRollback'),
+                                            tupReturned: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('tupReturned'),
+                                            tupFetched: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('tupFetched'),
+                                            tupDeleted: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('tupDeleted'),
+                                            tupInserted: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('tupInserted'),
+                                            tupUpdated: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('tupUpdated'),
+                                            numbackends : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('numbackends'),
+                                            numbackendsActive : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('numbackendsActive'),
+                                            network : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('network'),
+                                            iops : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('iops'),
+                                            tuples : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('tuples'),
+                                            
+                                    }
+                            };
+                            
+                            
+                            if ( auroraCluster[connectionId][clusterId][nodeId]["node"].getObjectId() >= params.beginItem &&  auroraCluster[connectionId][clusterId][nodeId]["node"].getObjectId() < params.endItem )
+                                nodesInfo.push(nodeStats);
+                            
+                            clusterInfo.cpu = clusterInfo.cpu +  nodeStats.cpu;
+                            clusterInfo.memory = clusterInfo.memory +  nodeStats.memory;
+                            clusterInfo.ioreads = clusterInfo.ioreads +  nodeStats.ioreads;
+                            clusterInfo.iowrites = clusterInfo.iowrites +  nodeStats.iowrites;
+                            clusterInfo.netin = clusterInfo.netin +  nodeStats.netin;
+                            clusterInfo.netout = clusterInfo.netout +  nodeStats.netout;
+                            
+                            clusterInfo.xactTotal = clusterInfo.xactTotal +  nodeStats.xactTotal;
+                            clusterInfo.xactCommit = clusterInfo.xactCommit +  nodeStats.xactCommit;
+                            clusterInfo.xactRollback = clusterInfo.xactRollback +  nodeStats.xactRollback;
+                            clusterInfo.tupReturned = clusterInfo.tupReturned +  nodeStats.tupReturned;
+                            clusterInfo.tupFetched = clusterInfo.tupFetched +  nodeStats.tupFetched;
+                            clusterInfo.tupDeleted = clusterInfo.tupDeleted +  nodeStats.tupDeleted;
+                            clusterInfo.tupInserted = clusterInfo.tupInserted +  nodeStats.tupInserted;
+                            clusterInfo.tupUpdated = clusterInfo.tupUpdated +  nodeStats.tupUpdated;
+                            clusterInfo.numbackends = clusterInfo.numbackends +  nodeStats.numbackends;
+                            clusterInfo.numbackendsActive = clusterInfo.numbackendsActive +  nodeStats.numbackendsActive;
+                            clusterInfo.network = clusterInfo.network +  nodeStats.network;
+                            clusterInfo.iops = clusterInfo.iops +  nodeStats.iops;
+                            
+                            timestampValues.push(String(auroraCluster[connectionId][clusterId][nodeId]["property"]["timestamp"]));
+                            
+                            totalNodes++;
+                            
+                        }
+                        
+                       
+                }
+                
+                clusterInfo.cpu = clusterInfo.cpu / totalNodes;
+                clusterInfo.memory = clusterInfo.memory / totalNodes;
+                
+                //if ( timestampEqual(timestampValues) && (auroraCluster[connectionId][clusterId]["property"]["timestamp"] != timestampValues[0] ) ){
+            
+                    //auroraCluster[connectionId][clusterId]["property"]["timestamp"] = timestampValues[0];
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('cpu',clusterInfo.cpu);
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('memory',clusterInfo.memory);
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('ioreads',clusterInfo.ioreads);
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('iowrites',clusterInfo.iowrites);
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('netin',clusterInfo.netin);
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('netout',clusterInfo.netout);
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('network',clusterInfo.network);
+                    auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('iops',clusterInfo.iops);
+        
+                //}   
+                
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('xactTotal',clusterInfo.xactTotal);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('xactCommit',clusterInfo.xactCommit);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('xactRollback',clusterInfo.xactRollback);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('tupReturned',clusterInfo.tupReturned);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('tupFetched',clusterInfo.tupFetched);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('tupDeleted',clusterInfo.tupDeleted);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('tupInserted',clusterInfo.tupInserted);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('tupUpdated',clusterInfo.tupUpdated);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('numbackends',clusterInfo.numbackends);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('numbackendsActive', clusterInfo.numbackendsActive);
+
+                
+                res.status(200).send( { 
+                                        cluster : {
+                                                    ...clusterInfo,
+                                                    history : {
+                                                                cpu: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('cpu'),
+                                                                memory: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('memory'),
+                                                                ioreads: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('ioreads'),
+                                                                iowrites: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('iowrites'),
+                                                                netin: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('netin'),
+                                                                netout: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('netout'),
+                                                                network: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('network'),
+                                                                iops: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('iops'),
+                                                                xactTotal: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('xactTotal'),
+                                                                xactCommit: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('xactCommit'),
+                                                                xactRollback: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('xactRollback'),
+                                                                tupReturned: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('tupReturned'),
+                                                                tupFetched: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('tupFetched'),
+                                                                tupDeleted: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('tupDeleted'),
+                                                                tupInserted: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('tupInserted'),
+                                                                tupUpdated: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('tupUpdated'),
+                                                                numbackends : auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('numbackends'),
+                                                                numbackendsActive : auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('numbackendsActive')
+                                    
+                                                    }
+                                        },
+                                        nodes : nodesInfo 
+                });
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
 
 
 
-// MYSQL : API Execute SQL Query
-app.get("/api/mysql/cluster/sql/", (req,res)=>{
+//---+++ POSTGRESQL : CLUSTER : API Execute SQL Query per Node
+app.get("/api/aurora/postgresql/cluster/sql/", (req,res)=>{
 
     // Token Validation
     var standardToken = verifyToken(req.headers['x-token']);
@@ -986,14 +1515,16 @@ app.get("/api/mysql/cluster/sql/", (req,res)=>{
     if (standardToken.isValid === false || cognitoToken.isValid === false)
         return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
 
+
     // API Call
     var params = req.query;
     try {
         
-        var sessionId =  "$" + standardToken.session_id;
-        var instanceId = "$" + params.instance;
+        var connectionId =  "$" + standardToken.session_id;
+        var clusterId = "$" + params.clusterId;
+        var instanceId = "$" + params.instanceId;
     
-        aurora[sessionId][instanceId]["connection"].query(params.sql_statement, (err,result)=>{
+        auroraCluster[connectionId][clusterId][instanceId]["connection"].query(params.sql_statement, (err,result)=>{
                         if(err) {
                             console.log(err)
                             res.status(404).send(err);
@@ -1017,7 +1548,79 @@ app.get("/api/mysql/cluster/sql/", (req,res)=>{
 
 
 
-// MYSQL : API Execute SQL Query
+//---+++ POSTGRESQL : CLUSTER : Close Connection per cluster node
+app.get("/api/aurora/postgresql/cluster/connection/close/", (req,res)=>{
+    
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+    var params = req.query;
+    
+    try
+        {
+                var connectionId = "$" + params.connectionId;
+                var clusterId = "$" + params.clusterId;
+                var nodes = auroraCluster[connectionId][clusterId];
+                
+                for (let nodeId of Object.keys(nodes)) {
+                        try {
+                                    if (nodeId != "cluster"  && nodeId != "property" ) {
+                                        console.log("Aurora Postgresql Disconnection  : " +  params.connectionId + " # " + params.clusterId + " # " + nodeId );
+                                        nodes[nodeId]["connection"].end();
+                                    }
+                            }
+                        catch{
+                              console.log("Aurora Postgresql Disconnection error : " +  params.connectionId + " # " + params.clusterId + " # " + nodeId );
+                          }
+                        
+                }
+                
+                delete auroraCluster[params.connectionId];
+                res.status(200).send( {"result":"disconnected"});
+                
+                
+        }
+        catch(err){
+                console.log(err);
+    }
+    
+    
+})
+
+
+
+
+
+
+//--#################################################################################################### 
+//   ---------------------------------------- MYSQL
+//--#################################################################################################### 
+
+
+//--++ MYSQL : STANDALONE : Create Connection
+function mysqlOpenConnection(session_id,host,port,user,password){
+
+    db[session_id]  = mysql.createPool({
+            host: host,
+            user: user,
+            password: password,
+            database: "",
+            //acquireTimeout: 3000,
+            port: port,
+            connectionLimit:2
+    })
+
+    console.log("Mysql Connection opened for session_id : " + session_id);
+
+}
+
+
+
+//--++ MYSQL : STANDALONE : API Execute SQL Query
 app.get("/api/mysql/sql/", (req,res)=>{
 
     // Token Validation
@@ -1055,9 +1658,598 @@ app.get("/api/mysql/sql/", (req,res)=>{
 
 
 
+//---+++ MYSQL : CLUSTER : Open Connection - Aurora Cluster  
+app.post("/api/aurora/mysql/cluster/connection/open/", openAuroraMysqlConnectionCluster);
+async function openAuroraMysqlConnectionCluster(req, res) {
+ 
+    var params = req.body.params;
+    
+    try {
+        
+        
+            // Gather Roles
+            var parameterCluster = {
+                DBClusterIdentifier: params.clusterId,
+                MaxRecords: 100
+            };
+
+            var clusterData = await rds.describeDBClusters(parameterCluster).promise();
+            var roleType = [];
+            
+            clusterData['DBClusters'][0]['DBClusterMembers'].forEach(function(instance) {
+                roleType[instance['DBInstanceIdentifier']] =  ( String(instance['IsClusterWriter']) == "true" ? "P" : "R" );
+            });
+            
+            
+            // Gather Instances
+            var parameter = {
+                MaxRecords: 100,
+                Filters: [
+                        {
+                          Name: 'db-cluster-id',
+                          Values: [params.clusterId]
+                        },
+                ],
+            };
+            
+            var data = await rds.describeDBInstances(parameter).promise();
+            var nodeList = "";
+            
+            if (data.DBInstances.length> 0) {
+                            
+                           
+                            var clusterNodes = data.DBInstances;
+                             
+                            var nodeList = [];
+                            var nodeUid = 0;
+                       
+                            clusterNodes.forEach(function(node) {
+                                
+                                openAuroraMysqlConnectionNode({
+                                                                connectionId : params.connectionId,
+                                                                clusterId: params.clusterId,
+                                                                nodeId : node['DBInstanceIdentifier'],
+                                                                host : node['Endpoint']['Address'],
+                                                                port : node['Endpoint']['Port'],
+                                                                username: params.username,
+                                                                password: params.password,
+                                                                nodeUid : nodeUid,
+                                                                size : node['DBInstanceClass'],
+                                                                az : node['AvailabilityZone'],
+                                                                status : node['DBInstanceStatus'],
+                                                                monitoring :  ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
+                                                                resourceId : node['DbiResourceId'],
+                                                                role : roleType[node['DBInstanceIdentifier']],
+                                                });
+                                
+                               
+                                                                
+                                nodeList = nodeList +  node['DBInstanceIdentifier']  + "," 
+                                nodeUid ++;
+                                
+                        
+                            });
+                            
+                            
+                            res.status(200).send({ data : "Connection Request Opened", nodes : nodeList.slice(0, -1)});
+                            
+                                    
+                            
+            }
+                    
+            
+    }
+    catch (error) {
+        console.log(error)
+        res.status(500).send(error);
+    }
+
+}
+
+
+//---+++ MYSQL : CLUSTER : Open Connection - Aurora Node  
+async function openAuroraMysqlConnectionNode(node){
+    
+    try {
+            
+            
+            var connectionId = "$" + node.connectionId;
+            var clusterId = "$" + node.clusterId;
+            var instanceId = "$" + node.nodeId;
+            
+            
+            if (!(instanceId in auroraCluster[connectionId][clusterId])) {
+            
+                var timeNow = new Date();
+                
+                auroraCluster[connectionId][clusterId][instanceId] = function(){};
+                
+                
+                auroraCluster[connectionId][clusterId][instanceId]["connection"] = function(){};
+                auroraCluster[connectionId][clusterId][instanceId]["connection"] =  mysql.createPool({
+                                                                                            host: node.host,
+                                                                                            user: node.username,
+                                                                                            password: node.password,
+                                                                                            database: "",
+                                                                                            //acquireTimeout: 3000,
+                                                                                            port: node.port,
+                                                                                            connectionLimit:2
+                                                                                    });
+                
+                
+                auroraCluster[connectionId][clusterId][instanceId]["connectionPromise"] = function(){};
+                auroraCluster[connectionId][clusterId][instanceId]["connectionPromise"] = auroraCluster[connectionId][clusterId][instanceId]["connection"].promise();
+                
+                
+                
+                auroraCluster[connectionId][clusterId][instanceId]["node"] = function(){};
+                auroraCluster[connectionId][clusterId][instanceId]["node"] = new classMetric(
+                                                                                                node.nodeUid,
+                                                                                                node.nodeId,[
+                                                                                                                { name: "cpu", history: 20 },
+                                                                                                                { name: "memory", history: 20 },
+                                                                                                                { name: "ioreads", history: 20 },
+                                                                                                                { name: "iowrites", history: 20 },
+                                                                                                                { name: "netin", history: 20 },
+                                                                                                                { name: "netout", history: 20 },
+                                                                                                                { name: "queries", history: 20 },
+                                                                                                                { name: "questions", history: 20 },
+                                                                                                                { name: "comSelect", history: 20 },
+                                                                                                                { name: "comInsert", history: 20 },
+                                                                                                                { name: "comDelete", history: 20 },
+                                                                                                                { name: "comUpdate", history: 20 },
+                                                                                                                { name: "comCommit", history: 20 },
+                                                                                                                { name: "comRollback", history: 20 },
+                                                                                                                { name: "threads", history: 20 },
+                                                                                                                { name: "threadsRunning", history: 20 },
+                                                                                                                {name : "network", history: 20 },
+                                                                                                                {name : "iops", history: 20 }
+                                                                                                            ]
+                                                                        );
+                
+                
+                auroraCluster[connectionId][clusterId][instanceId]["property"] = function(){};
+                auroraCluster[connectionId][clusterId][instanceId]["property"] = { 
+                                                                                            instanceId: node.nodeId, 
+                                                                                            resourceId : node.resourceId, 
+                                                                                            monitoring : node.monitoring, 
+                                                                                            size : node.size,
+                                                                                            az : node.az,
+                                                                                            status : node.status,
+                                                                                            role : node.role, 
+                                                                                            timestamp : ""
+                }
+                    
+                auroraCluster[connectionId][clusterId][instanceId]["node"].newSnapshot(
+                                                                                        {
+                                                                                            cpu: 0,
+                                                                                            memory: 0,
+                                                                                            ioreads: 0,
+                                                                                            iowrites: 0,
+                                                                                            netin: 0,
+                                                                                            netout: 0,
+                                                                                            queries: 0,
+                                                                                            questions: 0,
+                                                                                            comSelect: 0,
+                                                                                            comInsert: 0,
+                                                                                            comDelete: 0,
+                                                                                            comUpdate: 0,
+                                                                                            comCommit: 0,
+                                                                                            comRollback : 0,
+                                                                                            threads : 0,
+                                                                                            threadsRunning : 0,
+                                                                                        }
+                                                                                        ,timeNow.getTime()
+                );
+                
+                console.log("Aurora MySQL Instance Connected : " + node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
+                    
+            }
+            else {
+                console.log("Re-using - Aurora MySQL Instance connection : " +  node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
+                
+            }
+    
+        
+    }
+    catch (error) {
+        console.log(error)
+        
+    }
+   
+    
+}
+
+
+
+//---+++ MYSQL : CLUSTER : Request Update Stats per Cluster
+app.get("/api/aurora/mysql/cluster/stats/update", updateStatsAuroraClusterMysql);
+async function updateStatsAuroraClusterMysql(req, res) {
+ 
+        try
+            {
+                var params = req.query;
+                
+                var nodes = auroraCluster["$" + params.connectionId]["$" + params.clusterId];
+                for (let nodeId of Object.keys(nodes)) {
+                        if (nodeId != "cluster"  && nodeId != "property" ){
+                            updateStatsAuoraMysqlNode("$" + params.connectionId, "$" + params.clusterId, nodeId, nodes[nodeId]['property']['resourceId'], nodes[nodeId]['property']['monitoring'] );
+                        }
+                       
+                }
+                
+                res.status(200).send( {"result":"Cluster Update Stats Requested"});
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+        
+}
+
+
+async function updateStatsAuoraMysqlNode(connectionId,clusterId,nodeId, resourceId, monitoring) {
+    
+    try
+    {
+            var timeNow = new Date();
+            var sql_statement = "SHOW GLOBAL STATUS";
+            
+            var currentOperations = await auroraCluster[connectionId][clusterId][nodeId]["connectionPromise"].query(sql_statement);
+            currentOperations = convertArrayToObject(currentOperations[0],'Variable_name');
+            
+            //-- OS Metrics
+            const osMetrics = await gatherAuroraOsMetrics({ resourceId : resourceId, instanceId : nodeId.substring(1), monitoring : monitoring });
+            
+            auroraCluster[connectionId][clusterId][nodeId]["node"].newSnapshot({
+                                                                                        cpu: osMetrics.cpu,
+                                                                                        cpuTimestamp: osMetrics.cpuTimestamp,
+                                                                                        memory: osMetrics.memory,
+                                                                                        memoryTimestamp: osMetrics.memoryTimestamp,
+                                                                                        ioreads: osMetrics.ioreads,
+                                                                                        ioreadsTimestamp: osMetrics.ioreadsTimestamp,
+                                                                                        iowrites: osMetrics.iowrites,
+                                                                                        iowritesTimestamp: osMetrics.iowritesTimestamp,
+                                                                                        netin: osMetrics.netin,
+                                                                                        netinTimestamp: osMetrics.netinTimestamp,
+                                                                                        netout: osMetrics.netout,
+                                                                                        netoutTimestamp: osMetrics.netoutTimestamp,
+                                                                                        queries: currentOperations['Queries']['Value'],
+                                                                                        questions: currentOperations['Questions']['Value'],
+                                                                                        comSelect: currentOperations['Com_select']['Value'],
+                                                                                        comInsert: currentOperations['Com_insert']['Value'],
+                                                                                        comDelete: currentOperations['Com_delete']['Value'],
+                                                                                        comUpdate: currentOperations['Com_update']['Value'],
+                                                                                        comCommit: currentOperations['Com_commit']['Value'],
+                                                                                        comRollback : currentOperations['Com_rollback']['Value'],
+                                                                                        threads : parseFloat(currentOperations['Threads_connected']['Value']),
+                                                                                        threadsRunning : parseFloat(currentOperations['Threads_running']['Value']),
+                                                                     
+                                                                                    
+                                                                                },
+                                                                                timeNow.getTime());
+            
+            auroraCluster[connectionId][clusterId][nodeId]["property"]["timestamp"] =  osMetrics.timestamp;
+            
+          
+          
+            
+    }
+    catch(err){
+                console.log(err);
+    }
+                
+}
+                
+
+//---+++ MYSQL : CLUSTER : Request Stats per Cluster
+app.get("/api/aurora/mysql/cluster/stats/gather", gatherStatsAuroraClusterMysql);
+async function gatherStatsAuroraClusterMysql(req, res) {
+ 
+        try
+            {
+                
+                var params = req.query;
+                var connectionId = "$" + params.connectionId;
+                var clusterId = "$" + params.clusterId;
+                var nodes = auroraCluster[connectionId][clusterId];
+                var clusterInfo = {
+                                    cpu: 0,
+                                    memory: 0,
+                                    ioreads: 0,
+                                    iowrites: 0,
+                                    netin: 0,
+                                    netout: 0,
+                                    queries: 0,
+                                    questions: 0,
+                                    comSelect: 0,
+                                    comInsert: 0,
+                                    comDelete: 0,
+                                    comUpdate: 0,
+                                    comCommit: 0,
+                                    comRollback : 0,
+                                    threads : 0,
+                                    threadsRunning : 0,
+                                    network : 0,
+                                    iops : 0
+                                
+                };
+                
+                var timestampValues = [];
+                var nodesInfo = [];
+                var totalNodes = 0;
+                for (let nodeId of Object.keys(nodes)) {
+                        if (nodeId != "cluster" && nodeId != "property" ) {
+                            
+                                
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('cpu',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpu"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpuTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('memory',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memory"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memoryTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('ioreads',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreadsTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('iowrites',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowritesTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('netin',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netinTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('netout',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netoutTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('network',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netoutTimestamp"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValueWithTimestamp('iops',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"), auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowritesTimestamp"));
+                            
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('queries',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("queries"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('questions',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("questions"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('comSelect',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comSelect"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('comInsert',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comInsert"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('comDelete',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comDelete"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('comUpdate',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comUpdate"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('comCommit',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comCommit"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('comRollback',auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comRollback"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('threads',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("threads"));
+                            auroraCluster[connectionId][clusterId][nodeId]["node"].addPropertyValue('threadsRunning',auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("threadsRunning"));
+                            
+                            
+                            
+                            var nodeStats = {
+                                    name : auroraCluster[connectionId][clusterId][nodeId]["property"]["instanceId"],
+                                    monitoring : auroraCluster[connectionId][clusterId][nodeId]["property"]["monitoring"],
+                                    role : auroraCluster[connectionId][clusterId][nodeId]["property"]["role"],
+                                    size : auroraCluster[connectionId][clusterId][nodeId]["property"]["size"],
+                                    az : auroraCluster[connectionId][clusterId][nodeId]["property"]["az"],
+                                    status : auroraCluster[connectionId][clusterId][nodeId]["property"]["status"],
+                                    nodeId : auroraCluster[connectionId][clusterId][nodeId]["node"].getObjectId(),
+                                    cpu : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("cpu"),
+                                    memory : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("memory"),
+                                    ioreads : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads"),
+                                    iowrites : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"),
+                                    netin : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin"),
+                                    netout : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"),
+                                    network : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netin") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("netout"),
+                                    iops : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("ioreads") + auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("iowrites"),
+                                    
+                                    queries: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("queries"),
+                                    questions: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("questions"),
+                                    comSelect: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comSelect"),
+                                    comInsert: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comInsert"),
+                                    comDelete: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comDelete"),
+                                    comUpdate: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comUpdate"),
+                                    comCommit: auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comCommit"),
+                                    comRollback : auroraCluster[connectionId][clusterId][nodeId]["node"].getDeltaByIndex("comRollback"),
+                                    threads : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("threads"),
+                                    threadsRunning : auroraCluster[connectionId][clusterId][nodeId]["node"].getValueByIndex("threadsRunning"),
+                                    history : {
+                                            cpu : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('cpu'),
+                                            memory : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('memory'),
+                                            ioreads : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('ioreads'),
+                                            iowrites : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('iowrites'),
+                                            netin : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netin'),
+                                            netout : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('netout'),
+                                            queries: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('queries'),
+                                            questions: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('questions'),
+                                            comSelect: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('comSelect'),
+                                            comInsert: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('comInsert'),
+                                            comDelete: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('comDelete'),
+                                            comUpdate: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('comUpdate'),
+                                            comCommit: auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('comCommit'),
+                                            comRollback : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('comRollback'),
+                                            threads : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('threads'),
+                                            threadsRunning : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('threadsRunning'),
+                                            network : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('network'),
+                                            iops : auroraCluster[connectionId][clusterId][nodeId]["node"].getPropertyValues('iops'),
+                                            
+                                    }
+                            };
+                            
+                            
+                            if ( auroraCluster[connectionId][clusterId][nodeId]["node"].getObjectId() >= params.beginItem &&  auroraCluster[connectionId][clusterId][nodeId]["node"].getObjectId() < params.endItem )
+                                nodesInfo.push(nodeStats);
+                            
+                            clusterInfo.cpu = clusterInfo.cpu +  nodeStats.cpu;
+                            clusterInfo.memory = clusterInfo.memory +  nodeStats.memory;
+                            clusterInfo.ioreads = clusterInfo.ioreads +  nodeStats.ioreads;
+                            clusterInfo.iowrites = clusterInfo.iowrites +  nodeStats.iowrites;
+                            clusterInfo.netin = clusterInfo.netin +  nodeStats.netin;
+                            clusterInfo.netout = clusterInfo.netout +  nodeStats.netout;
+                            
+                            clusterInfo.queries  = clusterInfo.queries +  nodeStats.queries;
+                            clusterInfo.questions  = clusterInfo.questions +  nodeStats.questions;
+                            clusterInfo.comSelect  = clusterInfo.comSelect +  nodeStats.comSelect;
+                            clusterInfo.comInsert = clusterInfo.comInsert +  nodeStats.comInsert;
+                            clusterInfo.comDelete = clusterInfo.comDelete +  nodeStats.comDelete;
+                            clusterInfo.comUpdate = clusterInfo.comUpdate +  nodeStats.comUpdate;
+                            clusterInfo.comCommit = clusterInfo.comCommit +  nodeStats.comCommit;
+                            clusterInfo.comRollback  = clusterInfo.comRollback +  nodeStats.comRollback;
+                            clusterInfo.threads = clusterInfo.threads +  nodeStats.threads;
+                            clusterInfo.threadsRunning = clusterInfo.threadsRunning +  nodeStats.threadsRunning;
+                                        
+                            clusterInfo.network = clusterInfo.network +  nodeStats.network;
+                            clusterInfo.iops = clusterInfo.iops +  nodeStats.iops;
+                            
+                            timestampValues.push(String(auroraCluster[connectionId][clusterId][nodeId]["property"]["timestamp"]));
+                            
+                            totalNodes++;
+                            
+                        }
+                        
+                       
+                }
+                
+                clusterInfo.cpu = clusterInfo.cpu / totalNodes;
+                clusterInfo.memory = clusterInfo.memory / totalNodes;
+                
+                //if ( timestampEqual(timestampValues) && (auroraCluster[connectionId][clusterId]["property"]["timestamp"] != timestampValues[0] ) ){
+                //auroraCluster[connectionId][clusterId]["property"]["timestamp"] = timestampValues[0];
+                //}   
+                
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('cpu',clusterInfo.cpu);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('memory',clusterInfo.memory);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('ioreads',clusterInfo.ioreads);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('iowrites',clusterInfo.iowrites);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('netin',clusterInfo.netin);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('netout',clusterInfo.netout);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('network',clusterInfo.network);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('iops',clusterInfo.iops);
+    
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('queries',clusterInfo.queries);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('questions',clusterInfo.questions);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('comSelect',clusterInfo.comSelect);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('comInsert',clusterInfo.comInsert);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('comDelete',clusterInfo.comDelete);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('comUpdate',clusterInfo.comUpdate);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('comCommit',clusterInfo.comCommit);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('comRollback',clusterInfo.comRollback);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('threads',clusterInfo.threads);
+                auroraCluster[connectionId][clusterId]["cluster"].addPropertyValue('threadsRunning',clusterInfo.threadsRunning);
+                
+                res.status(200).send( { 
+                                        cluster : {
+                                                    ...clusterInfo,
+                                                    history : {
+                                                                cpu: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('cpu'),
+                                                                memory: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('memory'),
+                                                                ioreads: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('ioreads'),
+                                                                iowrites: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('iowrites'),
+                                                                netin: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('netin'),
+                                                                netout: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('netout'),
+                                                                network: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('network'),
+                                                                iops: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('iops'),
+                                                                queries: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('queries'),
+                                                                questions: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('questions'),
+                                                                comSelect: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('comSelect'),
+                                                                comInsert: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('comInsert'),
+                                                                comDelete: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('comDelete'),
+                                                                comUpdate: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('comUpdate'),
+                                                                comCommit: auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('comCommit'),
+                                                                comRollback : auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('comRollback'),
+                                                                threads : auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('threads'),
+                                                                threadsRunning : auroraCluster[connectionId][clusterId]["cluster"].getPropertyValues('threadsRunning'),
+                                    
+                                                    }
+                                        },
+                                        nodes : nodesInfo 
+                });
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+
+
+
+const convertArrayToObject = (array, key) => 
+      array.reduce((acc, curr) =>(acc[curr[key]] = curr, acc), {});
+    
+    
+
+
+//---+++ MYSQL : CLUSTER : API Execute SQL Query per Node
+app.get("/api/aurora/mysql/cluster/sql/", (req,res)=>{
+
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+
+    // API Call
+    var params = req.query;
+    try {
+        
+        var connectionId =  "$" + standardToken.session_id;
+        var clusterId = "$" + params.clusterId;
+        var instanceId = "$" + params.instanceId;
+    
+        auroraCluster[connectionId][clusterId][instanceId]["connection"].query(params.sql_statement, (err,result)=>{
+                        if(err) {
+                            console.log(err)
+                            res.status(404).send(err);
+                        } 
+                        else
+                        {
+                            res.status(200).send(result);
+                         }
+                        
+                }
+            );   
+
+           
+    } catch(error) {
+        console.log(error)
+                
+    }
+
+});
+
+
+
+//---+++ MYSQL : CLUSTER : Close Connection per cluster node
+app.get("/api/aurora/mysql/cluster/connection/close/", (req,res)=>{
+    
+    // Token Validation
+    var standardToken = verifyToken(req.headers['x-token']);
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (standardToken.isValid === false || cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+    var params = req.query;
+    
+    try
+        {
+                var connectionId = "$" + params.connectionId;
+                var clusterId = "$" + params.clusterId;
+                var nodes = auroraCluster[connectionId][clusterId];
+                
+                for (let nodeId of Object.keys(nodes)) {
+                        try {
+                                    if (nodeId != "cluster"  && nodeId != "property" ) {
+                                        console.log("Aurora Mysql Disconnection  : " +  params.connectionId + " # " + params.clusterId + " # " + nodeId );
+                                        nodes[nodeId]["connection"].end();
+                                    }
+                            }
+                        catch{
+                              console.log("Aurora Mysql Disconnection error : " +  params.connectionId + " # " + params.clusterId + " # " + nodeId );
+                          }
+                        
+                }
+                
+                delete auroraCluster[params.connectionId];
+                res.status(200).send( {"result":"disconnected"});
+                
+                
+        }
+        catch(err){
+                console.log(err);
+    }
+    
+    
+})
+
+
+
 //--#################################################################################################### 
 //   ---------------------------------------- ORACLE
 //--#################################################################################################### 
+
+
 
 app.get('/api/oracle/sql/', function (req, res) {
 
@@ -1922,8 +3114,7 @@ async function getDocumentDBCommand(req, res) {
     var params = req.query;
  
     try {
-          
-          const result = await documentDBCluster["$" + params.connectionId]["$" + params.clusterId]["$" + params.instanceId]["connection"].db("admin").command(params.command);
+          const result = await documentDBCluster["$" + params.connectionId]["$" + params.clusterId]["$" + params.instanceId]["connection"].db("admin").command(JSON.parse(params.command));
           return res.status(200).send(result);
     
       } catch (error) {
@@ -2232,16 +3423,23 @@ async function gatherDocumentDBOsMetrics(node){
                         startFromHead: false
                     };
                 
-                    var data = await cloudwatchlogs.getLogEvents(parameter).promise();
+                    var data = await cloudwatchlogs.getLogEvents(params_logs).promise();
                     
                     var message=JSON.parse(data.events[0].message);
                             
                     nodeMetrics.cpu = message.cpuUtilization.total;
+                    nodeMetrics.cpuTimestamp = message.timestamp;
                     nodeMetrics.memory = message.memory.free;
+                    nodeMetrics.memoryTimestamp = message.timestamp;
                     nodeMetrics.ioreads = message.diskIO[0].readIOsPS + message.diskIO[1].readIOsPS;
+                    nodeMetrics.ioreadsTimestamp = message.timestamp;
                     nodeMetrics.iowrites = message.diskIO[0].writeIOsPS + message.diskIO[1].writeIOsPS;
+                    nodeMetrics.iowritesTimestamp = message.timestamp;
                     nodeMetrics.netin = message.network[0].rx;
+                    nodeMetrics.netinTimestamp = message.timestamp;
                     nodeMetrics.netout = message.network[0].tx;
+                    nodeMetrics.netoutTimestamp = message.timestamp;
+                    nodeMetrics.timestamp = message.timestamp;  
                         
                         
             }
@@ -2370,7 +3568,6 @@ async function gatherDocumentDBOsMetrics(node){
 }
 
 // GENERAL : Compare Array Elements
-
 const timestampEqual =
     arr => arr.every(v => v === arr[0]);
     
@@ -2622,57 +3819,6 @@ async function gatherStatsDocumentDBCluster(req, res) {
         }
 }
 
-/*
-// DOCUMENTDB : Open Connection - Single
-app.post("/api/documentdb/connection/open/", openDocumentDBConnectionSingle);
-
-async function openDocumentDBConnectionSingle(req, res) {
- 
-    var params = req.body.params;;
-         
-    try {
-        
-            const uriDocDB = "mongodb://" + params.username  + ":" + params.password +"@" + params.host + ":" + params.port +"/?tls=true&tlsCAFile=global-bundle.pem&retryWrites=false&directConnection=true";
-            
-            var connectionId = "$" + params.connectionId;
-            var instanceId = "$" + params.instance;
-            if (!(instanceId in docdb[connectionId])) {
-            
-                docdb[connectionId][instanceId] = function(){};
-                docdb[connectionId][instanceId]["connection"] = function(){};
-                docdb[connectionId][instanceId]["connection"] = new MongoClient(uriDocDB);
-                
-                try {
-                    
-                    await docdb[connectionId][instanceId]["connection"].connect();
-                    await docdb[connectionId][instanceId]["connection"].db("admin").command({ ping: 1 });
-                    
-                    console.log("DocumentDB Instance Connected : " + params.connectionId + "#" + params.instance )
-                    res.status(200).send( {"result":"auth1" });
-                        
-                }
-                catch {
-                    
-                    console.log("DocumentDB Instance Connected with Errors : " + params.connectionId + "#" + params.instance )
-                    res.status(200).send( {"result":"auth0" });
-                    
-                }
-                    
-            }
-            else {
-                console.log("Re-using - DocumentDB Instance connection : " + params.connectionId + "#" + params.instance )
-                res.status(200).send( {"result":"auth1" });
-            }
-    
-        
-    }
-    catch (error) {
-        console.log(error)
-        res.status(500).send(error);
-    }}
-    
-
-*/
 
 
 // DOCUMENTDB : Close Connection
