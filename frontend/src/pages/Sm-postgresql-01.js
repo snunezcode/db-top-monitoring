@@ -3,9 +3,14 @@ import Axios from 'axios'
 import { useSearchParams } from 'react-router-dom';
 
 import CustomHeader from "../components/Header";
+import CustomTable from "../components/Table01";
 import AppLayout from "@awsui/components-react/app-layout";
 import { configuration } from './Configs';
-import { classMetric} from '../components/Functions';
+import { classMetric, getMatchesCountText, createLabelFunction, paginationLabels, pageSizePreference, EmptyState } from '../components/Functions';
+
+import { useCollection } from '@cloudscape-design/collection-hooks';
+import {CollectionPreferences,Pagination } from '@awsui/components-react';
+import TextFilter from "@awsui/components-react/text-filter";
 
 import Container from "@awsui/components-react/container";
 import Tabs from "@awsui/components-react/tabs";
@@ -151,33 +156,79 @@ export default function App() {
     
     const dataMetricQuery="SELECT SUM(numbackends) as numbackends,SUM(tup_returned) as tup_returned, SUM(tup_fetched) as tup_fetched, SUM(tup_inserted) as tup_inserted,SUM(tup_updated) as tup_updated,SUM(tup_deleted) as tup_deleted, SUM(blk_read_time) as blk_read_time, SUM(blk_write_time) as blk_write_time, SUM(xact_commit) as xact_commit FROM pg_stat_database";
     const dataSessionQuery = 'select pid as "PID",usename as "Username",state as "State",wait_event as "WaitEvent",datname as "Database",CAST(CURRENT_TIMESTAMP-query_start AS VARCHAR)  as "ElapsedTime",application_name as "AppName",client_addr as "Host",query as "SQLText" from pg_stat_activity where pid <> pg_backend_pid() and state = \'active\' order by query_start asc limit 250';
-    const dataSessionColumns=[
-                    { id: "PID",header: "PID",cell: item => item['PID'] || "-",sortingField: "PID",isRowHeader: true },
-                    { id: "Username",header: "Username",cell: item => item['Username'] || "-",sortingField: "Username",isRowHeader: true },
-                    { id: "State",header: "State",cell: item => item['State'] || "-",sortingField: "State",isRowHeader: true },
-                    { id: "WaitEvent",header: "WaitEvent",cell: item => item['WaitEvent'] || "-",sortingField: "WaitEvent",isRowHeader: true },
-                    { id: "Database",header: "Database",cell: item => item['Database'] || "-",sortingField: "Database",isRowHeader: true },
-                    { id: "ElapsedTime",header: "ElapsedTime",cell: item => item['ElapsedTime'] || "-",sortingField: "ElapsedTime",isRowHeader: true },
-                    { id: "AppName",header: "AppName",cell: item => item['AppName'] || "-",sortingField: "AppName",isRowHeader: true },
-                    { id: "Host",header: "Host",cell: item => item['Host'] || "-",sortingField: "Host",isRowHeader: true },
-                    { id: "SQLText",header: "SQLText",cell: item => item['SQLText'] || "-",sortingField: "SQLText",isRowHeader: true } 
-                    ];
     
+    
+    //-- Variables Table - Sessions
+    const columnsTable = [
+                  {id: 'PID',header: 'PID',cell: item => item['PID'],ariaLabel: createLabelFunction('PID'),sortingField: 'ThreadID',},
+                  {id: 'Username',header: 'Username',cell: item => item['Username'],ariaLabel: createLabelFunction('Username'),sortingField: 'Username',},
+                  {id: 'State',header: 'State',cell: item => item['State'] ,ariaLabel: createLabelFunction('State'),sortingField: 'State',},
+                  {id: 'Host',header: 'Host',cell: item => item['Host'],ariaLabel: createLabelFunction('Host'),sortingField: 'Host',},
+                  {id: 'WaitEvent',header: 'WaitEvent',cell: item => item['WaitEvent'] ,ariaLabel: createLabelFunction('WaitEvent'),sortingField: 'WaitEvent',},
+                  {id: 'Database',header: 'Database',cell: item => item['Database'],ariaLabel: createLabelFunction('Database'),sortingField: 'Database',},
+                  {id: 'ElapsedTime',header: 'ElapsedTime',cell: item => item['ElapsedTime'],ariaLabel: createLabelFunction('ElapsedTime'),sortingField: 'ElapsedTime',},
+                  {id: 'AppName',header: 'AppName',cell: item => item['AppName'],ariaLabel: createLabelFunction('AppName'),sortingField: 'AppName',},
+                  {id: 'SQLText',header: 'SQLText',cell: item => item['SQLText'],ariaLabel: createLabelFunction('SQLText'),sortingField: 'SQLText',}
+    ];
+
+
+    const visibleContentPreference = {
+              title: 'Select visible content',
+              options: [
+                {
+                  label: 'Main properties',
+                  options: columnsTable.map(({ id, header }) => ({ id, label: header, editable: id !== 'id' })),
+                },
+              ],
+    };
+  
+  
+   const collectionPreferencesProps = {
+            pageSizePreference,
+            visibleContentPreference,
+            cancelLabel: 'Cancel',
+            confirmLabel: 'Confirm',
+            title: 'Preferences',
+    };
+    
+   
+    const [preferences, setPreferences] = useState({ pageSize: 10, visibleContent: ['PID', 'Username', 'State', 'Host', 'WaitEvent', 'Database', 'ElapsedTime', 'AppName', 'SQLText' ] });
+    
+    const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
+                dataMetricRealTimeSession['Sessions'],
+                {
+                  filtering: {
+                    empty: <EmptyState title="No Records" />,
+                    noMatch: (
+                      <EmptyState
+                        title="No matches"
+                        action={<Button onClick={() => actions.setFiltering('')}>Clear filter</Button>}
+                      />
+                    ),
+                  },
+                  pagination: { pageSize: preferences.pageSize },
+                  sorting: {},
+                  selection: {},
+                }
+    );
+  
+   
     
     
     //--######## Enhanced Monitoring Feature
-    const dataColsProcessList=[
-                    { id: "id",header: "PID",cell: item => item['id'] || "-",sortingField: "id",isRowHeader: true },
-                    { id: "parentID",header: "ParentPID",cell: item => item['parentID'] || "-",sortingField: "parentID",isRowHeader: true },
-                    { id: "name",header: "Name",cell: item => item['name'] || "-",sortingField: "name",isRowHeader: true },
-                    { id: "cpuUsedPc",header: "CPU",cell: item => item['cpuUsedPc'] || "-",sortingField: "cpuUsedPc",isRowHeader: true },
-                    { id: "memoryUsedPc",header: "Memory",cell: item => item['memoryUsedPc'] || "-",sortingField: "memoryUsedPc",isRowHeader: true },
-                    { id: "rss",header: "RSS",cell: item => item['rss'] || "-",sortingField: "rss",isRowHeader: true },
-                    { id: "vmlimit",header: "VMLimit",cell: item => item['vmlimit'] || "-",sortingField: "vmlimit",isRowHeader: true },
-                    { id: "vss",header: "VSS",cell: item => item['vss'] || "-",sortingField: "vss",isRowHeader: true },
-                    { id: "tgid",header: "TGID",cell: item => item['tgid'] || "-",sortingField: "tgid",isRowHeader: true }
-                    ];
-    
+    const columnsTableEm = [
+                  {id: 'id',header: 'PID',cell: item => item['id'],ariaLabel: createLabelFunction('id'),sortingField: 'id',},
+                  {id: 'parentID',header: 'ParentPID',cell: item => item['parentID'] || "-",ariaLabel: createLabelFunction('parentID'),sortingField: 'parentID',},
+                  {id: 'name',header: 'Name',cell: item => item['name'],ariaLabel: createLabelFunction('name'),sortingField: 'name',},
+                  {id: 'cpuUsedPc',header: 'CPU',cell: item => item['cpuUsedPc'] || "-",ariaLabel: createLabelFunction('cpuUsedPc'),sortingField: 'cpuUsedPc',},
+                  {id: 'memoryUsedPc',header: 'Memory',cell: item => item['memoryUsedPc'],ariaLabel: createLabelFunction('memoryUsedPc'),sortingField: 'memoryUsedPc',},
+                  {id: 'rss',header: 'RSS',cell: item => item['rss'],ariaLabel: createLabelFunction('rss'),sortingField: 'rss',},
+                  {id: 'vmlimit',header: 'VMLimit',cell: item => item['vmlimit'],ariaLabel: createLabelFunction('vmlimit'),sortingField: 'vmlimit',},
+                  {id: 'vss',header: 'VSS',cell: item => item['vss'],ariaLabel: createLabelFunction('vss'),sortingField: 'vss',},
+                  {id: 'tgid',header: 'TGID',cell: item => item['tgid'],ariaLabel: createLabelFunction('tgid'),sortingField: 'tgid',}
+    ];
+
+    const visibleContentEm = ['id', 'parentID', 'name', 'cpuUsedPc', 'memoryUsedPc', 'rss', 'vmlimit', 'vss', 'tgid' ];
 
     
     const [dataEnhancedMonitor,setdataEnhancedMonitor] = useState({ 
@@ -901,54 +952,57 @@ export default function App() {
                                 <tr>  
                                    <td>
                                             <Table
-                                                    stickyHeader
-                                                    columnDefinitions={dataSessionColumns}
-                                                    items={dataMetricRealTimeSession['Sessions']}
-                                                    loadingText="Loading records"
-                                                    sortingDisabled
-                                                    variant="embedded"
-                                                    selectionType="single"
-                                                    onSelectionChange={({ detail }) => {
-                                                      setSelectedItems(detail.selectedItems);
-                                                      setsplitPanelShow(true);
-                                                      }
-                                                    }
-                                                    selectedItems={selectedItems}
-                                                    empty={
-                                                      <Box textAlign="center" color="inherit">
-                                                        <b>No records</b>
-                                                        <Box
-                                                          padding={{ bottom: "s" }}
-                                                          variant="p"
-                                                          color="inherit"
-                                                        >
-                                                          No records to display.
-                                                        </Box>
-                                                      </Box>
-                                                    }
-                                                    filter={
-                                                     <Header variant="h2" counter={"(" +  dataMetricRealTimeSession['Sessions'].length + ")"}
-                                                      >
-                                                        Active sessions
-                                                    </Header>
-                                                    }
-                                                    
-                                                    pagination={
-                                                      
-                                                      <Toggle
-                                                          onChange={({ detail }) =>{
-                                                              setcollectionState(detail.checked);
-                                                              pauseCollection.current=detail.checked;
-                                                            }
+                                              {...collectionProps}
+                                              selectionType="single"
+                                              header={
+                                                <Header
+                                                  variant="h2"
+                                                  counter= {"(" + dataMetricRealTimeSession['Sessions'].length + ")"} 
+                                                  actions={
+                                                            <Toggle
+                                                                onChange={({ detail }) =>{
+                                                                    setcollectionState(detail.checked);
+                                                                    pauseCollection.current=detail.checked;
+                                                                  }
+                                                                }
+                                                                checked={collectionState}
+                                                              >
+                                                                Auto-Refresh
+                                                              </Toggle>
+                                                                        
                                                           }
-                                                          checked={collectionState}
-                                                        >
-                                                          Auto-Refresh
-                                                        </Toggle>
-                                                        
-                                                    }
-                                                  resizableColumns
-                                                  />
+                                                >
+                                                  Active Sessions
+                                                </Header>
+                                              }
+                                              columnDefinitions={columnsTable}
+                                              visibleColumns={preferences.visibleContent}
+                                              items={items}
+                                              pagination={<Pagination {...paginationProps} ariaLabels={paginationLabels} />}
+                                              filter={
+                                                <TextFilter
+                                                  {...filterProps}
+                                                  countText={getMatchesCountText(filteredItemsCount)}
+                                                  filteringAriaLabel="Filter instances"
+                                                />
+                                              }
+                                              preferences={
+                                                <CollectionPreferences
+                                                  {...collectionPreferencesProps}
+                                                  preferences={preferences}
+                                                  onConfirm={({ detail }) => setPreferences(detail)}
+                                                />
+                                              }
+                                              onSelectionChange={({ detail }) => {
+                                                  setSelectedItems(detail.selectedItems);
+                                                  setsplitPanelShow(true);
+                                                  }
+                                                }
+                                              selectedItems={selectedItems}
+                                              resizableColumns
+                                              stickyHeader
+                                              loadingText="Loading records"
+                                            />
                           
                                     </td>  
                                 </tr>
@@ -1508,57 +1562,12 @@ export default function App() {
                                       <tr>  
                                           <td style={{"width":"100%"}}>
                                                 
-                                                <Table
-                                                    stickyHeader
-                                                    columnDefinitions={dataColsProcessList}
-                                                    items={dataEnhancedMonitor['counters']['processlist']}
-                                                    loadingText="Loading records"
-                                                    sortingDisabled
-                                                    variant="embedded"
-                                                    selectionType="single"
-                                                    onSelectionChange={({ detail }) => {
-                                                      setSelectedItems(detail.selectedItems);
-                                                      }
-                                                    }
-                                                    selectedItems={selectedItems}
-                                                    empty={
-                                                      <Box textAlign="center" color="inherit">
-                                                        <b>No records</b>
-                                                        <Box
-                                                          padding={{ bottom: "s" }}
-                                                          variant="p"
-                                                          color="inherit"
-                                                        >
-                                                          No records to display.
-                                                        </Box>
-                                                        <Button>Create resource</Button>
-                                                      </Box>
-                                                    }
-                                                    filter={
-                                                     <Header counter={"(" + dataEnhancedMonitor['counters']['processlist'].length + ")"}
-                                                      >
-                                                        ProcessList
-                                                    </Header>
-                                                    }
-                                                    
-                                                    pagination={
-                                                      
-                                                      <Toggle
-                                                          onChange={({ detail }) =>{
-                                                              setcollectionState(detail.checked);
-                                                              pauseCollection.current=detail.checked;
-                                                              console.log('value checked:' + detail.checked);
-                                                            }
-                                                          }
-                                                          checked={collectionState}
-                                                        >
-                                                          Auto-Refresh
-                                                        </Toggle>
-                                                        
-                                                    }
-                                                  resizableColumns
-                                                  />
-                                      
+                                                <CustomTable
+                                                  columnsTable={columnsTableEm}
+                                                  visibleContent={visibleContentEm}
+                                                  dataset={dataEnhancedMonitor['counters']['processlist']}
+                                                  title={"Processes"}
+                                                />
                                       
                                           </td>
                                       </tr>
