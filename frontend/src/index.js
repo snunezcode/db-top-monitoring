@@ -42,7 +42,7 @@ import ProtectedApp from "./components/ProtectedApp";
 import { applyMode,  Mode } from '@cloudscape-design/global-styles';
 
 if (localStorage.getItem("themeMode") === null ){
-    localStorage.setItem("themeMode", "dark");
+    localStorage.setItem("themeMode", "light");
 }
 
 if (localStorage.getItem("themeMode") == "dark")

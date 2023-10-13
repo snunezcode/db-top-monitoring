@@ -3,11 +3,13 @@ import Axios from 'axios';
 import ChartLine02 from './ChartLine02';
 import ChartRadialBar01 from './ChartRadialBar01';
 
+import { createLabelFunction } from '../components/Functions';
+import CustomTable from "./Table01";
+
 import Container from "@awsui/components-react/container";
 import CompMetric01 from './Metric01';
 import CompMetric04 from './Metric04';
 import { configuration } from './../pages/Configs';
-import { classMetric } from './Functions';
 import Badge from "@awsui/components-react/badge";
 import Link from "@awsui/components-react/link";
 import Box from "@awsui/components-react/box";
@@ -20,18 +22,21 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
     const [detailsVisible, setDetailsVisible] = useState(false);
     const detailsVisibleState = useRef(false);
     const activeSessions = useRef([]);
-   
-   const dataSessionColumns=[
-                    { id: "ThreadID",header: "ThreadID",cell: item => item['ThreadID'] || "-",sortingField: "ThreadID",isRowHeader: true },
-                    { id: "Username",header: "Username",cell: item => item['Username'] || "-",sortingField: "Username",isRowHeader: true },
-                    { id: "Host",header: "Host",cell: item => item['Host'] || "-",sortingField: "Host",isRowHeader: true },
-                    { id: "Database",header: "Database",cell: item => item['Database'] || "-",sortingField: "Database",isRowHeader: true },
-                    { id: "Command",header: "Command",cell: item => item['Command'] || "-",sortingField: "Command",isRowHeader: true },
-                    { id: "ElapsedTime",header: "ElapsedTime",cell: item => item['Time'] || "-",sortingField: "Time",isRowHeader: true },
-                    { id: "State",header: "State",cell: item => item['State'] || "-",sortingField: "State",isRowHeader: true },
-                    { id: "SQLText",header: "SQLText",cell: item => item['SQLText'] || "-",sortingField: "SQLText",isRowHeader: true } 
-                    ];
-                    
+
+    const columnsTable = [
+                  {id: 'ThreadID',header: 'ThreadID',cell: item => item['ThreadID'],ariaLabel: createLabelFunction('ThreadID'),sortingField: 'ThreadID',},
+                  {id: 'State',header: 'State',cell: item => item['State'] || "-",ariaLabel: createLabelFunction('State'),sortingField: 'State',},
+                  {id: 'Username',header: 'Username',cell: item => item['Username'],ariaLabel: createLabelFunction('Username'),sortingField: 'Username',},
+                  {id: 'Host',header: 'Host',cell: item => item['Host'] || "-",ariaLabel: createLabelFunction('Host'),sortingField: 'Host',},
+                  {id: 'Database',header: 'Database',cell: item => item['Database'],ariaLabel: createLabelFunction('Database'),sortingField: 'Database',},
+                  {id: 'Command',header: 'Command',cell: item => item['Command'],ariaLabel: createLabelFunction('Command'),sortingField: 'Command',},
+                  {id: 'ElapsedTime',header: 'ElapsedTime',cell: item => item['Time'],ariaLabel: createLabelFunction('ElapsedTime'),sortingField: 'ElapsedTime',},
+                  {id: 'SQLText',header: 'SQLText',cell: item => item['SQLText'],ariaLabel: createLabelFunction('SQLText'),sortingField: 'SQLText',}
+                  
+    ];
+    
+    const visibleContent = ['ThreadID', 'State', 'Username', 'Host', 'Database', 'Command', 'ElapsedTime', 'SQLText' ];
+    
    //-- Function Gather Active Sessions
     async function fetchSessions() {
         //--- API Call Gather Sessions
@@ -420,33 +425,16 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                                 <td style={{"padding-left": "0em"}}>  
 
                                     <div style={{"overflow-y":"scroll", "overflow-y":"auto", "height": "450px"}}>  
-                                        <Table
-                                            stickyHeader
-                                            columnDefinitions={dataSessionColumns}
-                                            items={activeSessions.current}
-                                            loadingText="Loading records"
-                                            sortingDisabled
-                                            variant="embedded"
-                                            empty={
-                                              <Box textAlign="center" color="inherit">
-                                                <b>No records</b>
-                                                <Box
-                                                  padding={{ bottom: "s" }}
-                                                  variant="p"
-                                                  color="inherit"
-                                                >
-                                                  No records to display.
-                                                </Box>
-                                              </Box>
-                                            }
-                                            filter={
-                                             <Header variant="h2" counter={"(" +  activeSessions.current.length + ")"}
-                                              >
-                                                Active sessions
-                                            </Header>
-                                            }
-                                          resizableColumns
-                                          />
+                                    
+                                    
+                                        <CustomTable
+                                                  columnsTable={columnsTable}
+                                                  visibleContent={visibleContent}
+                                                  dataset={activeSessions.current}
+                                                  title={"Active Sessions"}
+                                        />
+                                              
+                                        
                                      </div> 
                                 </td>  
                             </tr>  

@@ -3,6 +3,9 @@ import Axios from 'axios';
 import ChartLine02 from './ChartLine02';
 import ChartRadialBar01 from './ChartRadialBar01';
 
+import { createLabelFunction } from '../components/Functions';
+import CustomTable from "./Table01";
+
 import Container from "@awsui/components-react/container";
 import CompMetric01 from './Metric01';
 import CompMetric04 from './Metric04';
@@ -19,19 +22,20 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
     const detailsVisibleState = useRef(false);
     const activeSessions = useRef([]);
     
-    const dataSessionColumns=[
-                    { id: "PID",header: "PID",cell: item => item['PID'] || "-",sortingField: "PID",isRowHeader: true },
-                    { id: "Username",header: "Username",cell: item => item['Username'] || "-",sortingField: "Username",isRowHeader: true },
-                    { id: "State",header: "State",cell: item => item['State'] || "-",sortingField: "State",isRowHeader: true },
-                    { id: "WaitEvent",header: "WaitEvent",cell: item => item['WaitEvent'] || "-",sortingField: "WaitEvent",isRowHeader: true },
-                    { id: "Database",header: "Database",cell: item => item['Database'] || "-",sortingField: "Database",isRowHeader: true },
-                    { id: "ElapsedTime",header: "ElapsedTime",cell: item => item['ElapsedTime'] || "-",sortingField: "ElapsedTime",isRowHeader: true },
-                    { id: "AppName",header: "AppName",cell: item => item['AppName'] || "-",sortingField: "AppName",isRowHeader: true },
-                    { id: "Host",header: "Host",cell: item => item['Host'] || "-",sortingField: "Host",isRowHeader: true },
-                    { id: "SQLText",header: "SQLText",cell: item => item['SQLText'] || "-",sortingField: "SQLText",isRowHeader: true } 
-                    ];
-                    
-                    
+
+    const columnsTable =  [
+                  {id: 'PID',header: 'PID',cell: item => item['PID'],ariaLabel: createLabelFunction('PID'),sortingField: 'ThreadID',},
+                  {id: 'Username',header: 'Username',cell: item => item['Username'],ariaLabel: createLabelFunction('Username'),sortingField: 'Username',},
+                  {id: 'State',header: 'State',cell: item => item['State'] ,ariaLabel: createLabelFunction('State'),sortingField: 'State',},
+                  {id: 'Host',header: 'Host',cell: item => item['Host'],ariaLabel: createLabelFunction('Host'),sortingField: 'Host',},
+                  {id: 'WaitEvent',header: 'WaitEvent',cell: item => item['WaitEvent'] ,ariaLabel: createLabelFunction('WaitEvent'),sortingField: 'WaitEvent',},
+                  {id: 'Database',header: 'Database',cell: item => item['Database'],ariaLabel: createLabelFunction('Database'),sortingField: 'Database',},
+                  {id: 'ElapsedTime',header: 'ElapsedTime',cell: item => item['ElapsedTime'],ariaLabel: createLabelFunction('ElapsedTime'),sortingField: 'ElapsedTime',},
+                  {id: 'AppName',header: 'AppName',cell: item => item['AppName'],ariaLabel: createLabelFunction('AppName'),sortingField: 'AppName',},
+                  {id: 'SQLText',header: 'SQLText',cell: item => item['SQLText'],ariaLabel: createLabelFunction('SQLText'),sortingField: 'SQLText',}
+    ];
+    
+    const visibleContent = ['PID', 'Username', 'State', 'Host', 'WaitEvent', 'Database', 'ElapsedTime', 'AppName', 'SQLText' ];
     
     //-- Function Gather Active Sessions
     async function fetchSessions() {
@@ -423,33 +427,12 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                                 <td style={{"padding-left": "0em"}}>  
 
                                     <div style={{"overflow-y":"scroll", "overflow-y":"auto", "height": "450px"}}>  
-                                        <Table
-                                            stickyHeader
-                                            columnDefinitions={dataSessionColumns}
-                                            items={activeSessions.current}
-                                            loadingText="Loading records"
-                                            sortingDisabled
-                                            variant="embedded"
-                                            empty={
-                                              <Box textAlign="center" color="inherit">
-                                                <b>No records</b>
-                                                <Box
-                                                  padding={{ bottom: "s" }}
-                                                  variant="p"
-                                                  color="inherit"
-                                                >
-                                                  No records to display.
-                                                </Box>
-                                              </Box>
-                                            }
-                                            filter={
-                                             <Header variant="h2" counter={"(" +  activeSessions.current.length + ")"}
-                                              >
-                                                Active sessions
-                                            </Header>
-                                            }
-                                          resizableColumns
-                                          />
+                                        <CustomTable
+                                                  columnsTable={columnsTable}
+                                                  visibleContent={visibleContent}
+                                                  dataset={activeSessions.current}
+                                                  title={"Active Sessions"}
+                                        />
                                      </div> 
                                 </td>  
                             </tr>  

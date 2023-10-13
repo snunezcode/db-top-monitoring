@@ -9,7 +9,7 @@ export const configuration =
         "refresh-interval-documentdb-sessions": 10*1000,
         "items-per-page-documentdb": 10,
         "refresh-interval-aurora-pgs-sessions": 10*1000,
-        "items-per-page-aurora-pgs": 2,
+        "items-per-page-aurora-pgs": 10,
         "api_url": "",
         "release" : "0.1.0",
         "release-enforcement" : false,

@@ -16,35 +16,27 @@ import Box from "@awsui/components-react/box";
 import Table from "@awsui/components-react/table";
 import Header from "@awsui/components-react/header";
 
-import {  getMatchesCountText, paginationLabels, pageSizePreference, EmptyState } from './Functions';
-
-import { useCollection } from '@cloudscape-design/collection-hooks';
-import {CollectionPreferences,Pagination } from '@awsui/components-react';
-import TextFilter from "@awsui/components-react/text-filter";
-
-
 
 const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
 
-    
     const [detailsVisible, setDetailsVisible] = useState(false);
     const detailsVisibleState = useRef(false);
     const activeSessions = useRef([]);
 
     const columnsTable = [
                   {id: 'opid',header: 'PID',cell: item => item['opid'],ariaLabel: createLabelFunction('opid'),sortingField: 'opid',},
-                  {id: 'db',header: 'Database',cell: item => item['$db'] || "-",ariaLabel: createLabelFunction('db'),sortingField: 'db',},
+                  {id: '$db',header: 'Database',cell: item => item['$db'] || "-",ariaLabel: createLabelFunction('$db'),sortingField: '$db',},
                   {id: 'client',header: 'Host',cell: item => item['client'],ariaLabel: createLabelFunction('client'),sortingField: 'client',},
                   {id: 'WaitState',header: 'WaitType',cell: item => item['WaitState'] || "-",ariaLabel: createLabelFunction('WaitState'),sortingField: 'WaitState',},
                   {id: 'secs_running',header: 'ElapsedTime(sec)',cell: item => item['secs_running'],ariaLabel: createLabelFunction('secs_running'),sortingField: 'secs_running',},
                   {id: 'ns',header: 'Namespace',cell: item => item['ns'],ariaLabel: createLabelFunction('ns'),sortingField: 'ns',},
                   {id: 'ns',header: 'Operation',cell: item => item['op'],ariaLabel: createLabelFunction('op'),sortingField: 'op',},
-                  {id: 'command',header: 'Command',cell: item =>  String(JSON.stringify(item['command'])),ariaLabel: createLabelFunction('command'),sortingField: 'command',}
+                  {id: 'command',header: 'Command',cell: item => item['command'],ariaLabel: createLabelFunction('command'),sortingField: 'command',}
                   
     ];
     
-    const visibleContent = ['opid', 'db', 'client', 'WaitState', 'secs_running', 'ns', 'op', 'command'];
-
+    const visibleContent = ['opid', '$db', 'client', 'WaitState', 'secs_running', 'ns', 'op', 'command'];
+    
     //-- Function Gather Active Sessions
     async function fetchSessions() {
         //--- API Call Gather Sessions
@@ -53,13 +45,13 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                               connectionId: sessionId,
                               clusterId : clusterId,
                               instanceId : nodeStats.name,
-                              command : JSON.stringify({ currentOp: 1, microsecs_running : {"$gte" : 1000000}, "$sort" : { microsecs_running : 1 } })
+                              command : JSON.stringify({ currentOp: 1, microsecs_running : {"$gte" : 1000000}, "$sort" : { microsecs_running : 1 }  })
                               };
                 
                 Axios.get(`${configuration["apps-settings"]["api_url"]}/api/documentdb/cluster/command/`,{
                       params: api_params
                       }).then((data)=>{
-                           
+                        
                           activeSessions.current = data.data.inprog;
                           
                       })
@@ -67,6 +59,8 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                           console.log('Timeout API Call : /api/documentdb/cluster/command/' );
                           console.log(err)
                       });
+                
+                console.log("gather active sessions");      
             
         }
         else {
@@ -543,12 +537,12 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                                 <td style={{"padding-left": "0em"}}>  
 
                                     <div style={{"overflow-y":"scroll", "overflow-y":"auto", "height": "450px"}}>  
-                                                <CustomTable
+                                        <CustomTable
                                                   columnsTable={columnsTable}
                                                   visibleContent={visibleContent}
                                                   dataset={activeSessions.current}
                                                   title={"Active Sessions"}
-                                                />
+                                        />
                                      </div> 
                                 </td>  
                             </tr>  

@@ -11,6 +11,7 @@ import Button from "@awsui/components-react/button";
 
 const TableComponent = memo(({columnsTable,visibleContent, dataset, title }) => {
 
+    
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
 
     const visibleContentPreference = {
@@ -38,7 +39,7 @@ const TableComponent = memo(({columnsTable,visibleContent, dataset, title }) => 
                 dataset,
                 {
                   filtering: {
-                    empty: <EmptyState title="No Records" />,
+                    empty: <EmptyState title="No records" />,
                     noMatch: (
                       <EmptyState
                         title="No matches"
