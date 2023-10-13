@@ -137,7 +137,6 @@ function App() {
                              }
               }).then((data)=>{
                 
-                console.log(data.data.nodes);
                 nodeList.current = data.data.nodes;
                   
               })
@@ -158,8 +157,7 @@ function App() {
                       params: { connectionId : cnf_connection_id, clusterId : cnf_identifier }
                   }).then((data)=>{
                    
-                   //console.log(data);         
-                     
+                   
               })
               .catch((err) => {
                   console.log('Timeout API Call : /api/redis/cluster/stats/update' );

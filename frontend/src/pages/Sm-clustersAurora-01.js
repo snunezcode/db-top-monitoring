@@ -349,7 +349,7 @@ function Login() {
                           } 
                           i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
                           onSplitPanelToggle={({ detail }) => {
-                                        console.log(detail);
+                                         //console.log(detail);
                                         }
                                       }
                       >

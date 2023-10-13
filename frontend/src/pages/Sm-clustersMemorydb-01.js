@@ -142,7 +142,6 @@ function Login() {
     //-- Handle Click Events
     const handleClickLogin = () => {
             
-            console.log(selectedItems[0]['engine']);
             // Add CSRF Token
             Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
 
@@ -160,7 +159,7 @@ function Login() {
                   
                 }
             }).then((data)=>{
-                console.log(data);
+                
                 if (data.data.result === "auth1") {
                      sessionStorage.setItem(data.data.session_id, data.data.session_token );
                      var userId;

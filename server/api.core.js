@@ -992,19 +992,7 @@ async function openAuroraPostgresqlConnectionNode(node){
                 
                 console.log("Aurora Postgresql Instance Connected : " + node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
                 
-                /*
-                auroraCluster[connectionId][clusterId][instanceId]["connection"].connect()
-                    .then(()=> {
-                        console.log("Redis Instance Connected : " + node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
-                        
-                        
-                    })
-                    .catch(()=> {
-                        console.log("Redis Instance Connected with Errors : "  + node.connectionId + " # " + node.clusterId + " # " + node.nodeId );
-                        
-                    });
-                */
-                    
+
             }
             else {
                 console.log("Re-using - Aurora Postgresql  Instance connection : " +  node.connectionId + " # " + node.clusterId + " # " + node.nodeId );

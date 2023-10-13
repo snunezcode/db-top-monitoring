@@ -51,7 +51,6 @@ var CryptoJS = require("crypto-js");
 
 export default function App() {
     
-    console.log("Rendering");
     
     //--######## Global Settings
     

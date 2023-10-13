@@ -49,7 +49,6 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
                       }).then((data)=>{
                         
                           activeSessions.current = data.data.inprog;
-                          console.log(data.data.inprog);
                           
                       })
                       .catch((err) => {

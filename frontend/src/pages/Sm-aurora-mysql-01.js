@@ -248,7 +248,7 @@ function App() {
                              }
               }).then((data)=>{
                 
-                console.log(data);
+                
                 nodeList.current = data.data.nodes;
                   
               })
@@ -295,7 +295,6 @@ function App() {
                       params: { connectionId : cnf_connection_id, clusterId : cnf_identifier, beginItem : ( (pageId.current-1) * itemsPerPage), endItem : (( (pageId.current-1) * itemsPerPage) + itemsPerPage) }
                   }).then((data)=>{
                    
-                   console.log(data);
                    
                    setClusterStats({
                          cluster : data.data.cluster,
