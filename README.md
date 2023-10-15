@@ -11,17 +11,20 @@ DBTop Monitoring is lightweight application to perform realtime monitoring for A
 Based on same simplicity concept of Unix top utility, provide quick and fast view of database performance, just all in one screen.
 
 
-<img width="1089" alt="image" src="./images/img01.png">
+<img width="1089" alt="image" src="./images/image01.png">
 
 
 ## How looks like DBTop Monitoring ?
 
-<img width="1089" alt="image" src="./images/img04.png">
+<img width="1089" alt="image" src="./images/image02.png">
 
+<img width="1089" alt="image" src="./images/image03.png">
+
+<img width="1089" alt="image" src="./images/image04.png">
 
 ## How it works?
 
-<img width="1089" alt="image" src="./images/img02.png">
+<img width="1089" alt="image" src="./images/image05.png">
 
 
 
@@ -60,7 +63,7 @@ Additional expanded support coming later to :
 
 ## Architecture
 
-<img width="1023" alt="image" src="./images/img03.png">
+<img width="1023" alt="image" src="./images/image06.png">
 
 
 ## Use cases
@@ -170,7 +173,7 @@ Follow the step-by-step instructions to configure and deploy the DBTop Monitorin
 3. [**Open AWS CloudFormation Console**](https://console.aws.amazon.com/cloudformation/home#/stacks/create/template?stackName=DBTopMonitoringSolution)
 4. Create an stack using Cloudformation template (DBMonitoringSolution.template) already downloaded on step 2.
 5. Input **Stack name** parameter. 
-6. Acknowledge **Application Update - Disclaimer** parameter.
+6. Acknowledge **Application Updates - Disclaimer** parameter.
 7. Input **Username** parameter, this username will be used to access the application. An email will be sent with temporary password from AWS Cognito Service. 
 8. Input **AWS Linux AMI** parameter, this parameter specify AWS AMI to build App EC2 Server. Keep default value.
 9. Select **Instance Type** parameter, indicate what instance size is needed.

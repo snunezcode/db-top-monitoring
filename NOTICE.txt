@@ -10,6 +10,7 @@ aws-amplify/ui-react  under the Apache License 2.0
 cloudscape-design/components  under the Apache License 2.0
 cloudscape-design/design-tokens  under the Apache License 2.0
 cloudscape-design/global-styles  under the Apache License 2.0
+awsui/components-react under the Apache License 2.0
 testing-library/jest-dom  under the Massachusetts Institute of Technology (MIT) license
 testing-library/react  under the Massachusetts Institute of Technology (MIT) license
 testing-library/user-event under the Massachusetts Institute of Technology (MIT) license
@@ -27,7 +28,7 @@ cors under the Massachusetts Institute of Technology (MIT) license
 express under the Massachusetts Institute of Technology (MIT) license
 jsonwebtoken under the Massachusetts Institute of Technology (MIT) license
 jwk-to-pem under the Apache License 2.0
-mysql under the Massachusetts Institute of Technology (MIT) license
+mysql2 under the Massachusetts Institute of Technology (MIT) license
 mssql under the Massachusetts Institute of Technology (MIT) license
 oracledb under the Apache License 2.0
 pg under the Massachusetts Institute of Technology (MIT) license
