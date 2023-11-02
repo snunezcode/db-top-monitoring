@@ -3,10 +3,11 @@ export const configuration =
 {
     "apps-settings": {
         "refresh-interval": 10*1000,
+        "refresh-interval-rds": 5*1000,
         "refresh-interval-clw": 20*1000,
         "refresh-interval-elastic": 5*1000,
-        "refresh-interval-documentdb-metrics": 10*1000,
-        "refresh-interval-documentdb-sessions": 10*1000,
+        "refresh-interval-documentdb-metrics": 5*1000,
+        "refresh-interval-documentdb-sessions": 5*1000,
         "items-per-page-documentdb": 10,
         "refresh-interval-aurora-pgs-sessions": 10*1000,
         "items-per-page-aurora-pgs": 10,

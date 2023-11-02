@@ -1,4 +1,4 @@
-import {useState,useEffect,useRef} from 'react'
+import {useState,useEffect} from 'react'
 import { createSearchParams } from "react-router-dom";
 import Axios from 'axios'
 import { configuration, SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } from './Configs';
@@ -23,19 +23,11 @@ import Table from "@awsui/components-react/table";
 import Header from "@awsui/components-react/header";
 import Box from "@awsui/components-react/box";
 import ColumnLayout from "@awsui/components-react/column-layout";
-import Tabs from "@awsui/components-react/tabs";
 import Container from "@awsui/components-react/container";
 
 import '@aws-amplify/ui-react/styles.css';
-
 import { SplitPanel } from '@awsui/components-react';
-
 import { applyMode,  Mode } from '@cloudscape-design/global-styles';
-
-// Apply a color mode
-//applyMode(Mode.Dark);
-applyMode(Mode.Light);
-
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -58,15 +50,9 @@ var CryptoJS = require("crypto-js");
 
 function Login() {
   
-  
     //-- Application Version
     const [versionMessage, setVersionMessage] = useState([]);
-    
-    
-    //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("modeIam");
-    const currentTabId = useRef("modeIam");
-    
+  
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
@@ -74,17 +60,15 @@ function Login() {
     
     //-- Variables Table
     const columnsTable = [
-                  {id: 'identifier',header: 'Cluster identifier',cell: item => item.identifier,ariaLabel: createLabelFunction('Cluster identifier'),sortingField: 'identifier',},
+                  {id: 'identifier',header: 'DB identifier',cell: item => item.identifier,ariaLabel: createLabelFunction('DB identifier'),sortingField: 'identifier',},
                   {id: 'status',header: 'Status',cell: item => ( <> <StatusIndicator type={item.status === 'available' ? 'success' : 'pending'}> {item.status} </StatusIndicator> </> ),ariaLabel: createLabelFunction('Status'),sortingField: 'status',},
                   {id: 'size',header: 'Size',cell: item => item.size,ariaLabel: createLabelFunction('Size'),sortingField: 'size',},
                   {id: 'engine',header: 'Engine',cell: item => item.engine,ariaLabel: createLabelFunction('Engine'),sortingField: 'engine',},
                   {id: 'version',header: 'Engine Version',cell: item => item.version,ariaLabel: createLabelFunction('Engine Version"'),sortingField: 'version',},
-                  {id: 'shards',header: 'Shards',cell: item => item.shards,ariaLabel: createLabelFunction('Shards'),sortingField: 'shards',},
-                  {id: 'nodes',header: 'Nodes',cell: item => item.nodes,ariaLabel: createLabelFunction('Nodes'),sortingField: 'nodes',},
-                  {id: 'tier',header: 'Tier',cell: item => item.tier,ariaLabel: createLabelFunction('Tier'),sortingField: 'tier',},
-                  {id: 'ssl',header: 'SSL',cell: item => item.ssl,ariaLabel: createLabelFunction('SSL'),sortingField: 'ssl',},
-                  {id: 'acl',header: 'ACL',cell: item => item.acl,ariaLabel: createLabelFunction('ACL'),sortingField: 'acl',}
+                  {id: 'az',header: 'Region & AZ',cell: item => item.az,ariaLabel: createLabelFunction('Region & AZ'),sortingField: 'az',},
+                  {id: 'multiaz',header: 'MultiAZ',cell: item => item.multiaz,ariaLabel: createLabelFunction('MultiAZ'),sortingField: 'multiaz',},
     ];
+
 
     const visibleContentPreference = {
               title: 'Select visible content',
@@ -106,7 +90,7 @@ function Login() {
     };
     
    
-    const [preferences, setPreferences] = useState({ pageSize: 10, visibleContent: ['identifier', 'status', 'size', 'engine', 'version', 'shards', 'nodes', 'tier', 'ssl', 'acl' ] });
+    const [preferences, setPreferences] = useState({ pageSize: 10, visibleContent: ['identifier', 'status', 'size', 'engine', 'version', 'az', 'multiaz' ] });
     
     const [itemsTable,setItemsTable] = useState([]);
     const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
@@ -128,7 +112,6 @@ function Login() {
   );
   
 
-    
     //-- Variable for textbox components
     const [txtUser, settxtUser] = useState('');
     const [txtPassword, settxtPassword] = useState('');
@@ -139,72 +122,79 @@ function Login() {
     Axios.defaults.headers.common['x-token-cognito'] = sessionStorage.getItem("x-token-cognito");
     Axios.defaults.withCredentials = true;
     
+
+    
     //-- Handle Click Events
     const handleClickLogin = () => {
             
             // Add CSRF Token
             Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
 
-            // Get Authentication 
-            Axios.post(`${configuration["apps-settings"]["api_url"]}/api/memorydb/redis/cluster/authentication/`,{
+            // Get Authentication
+            Axios.post(`${configuration["apps-settings"]["api_url"]}/api/security/rds/auth/`,{
                 params: { 
-                          cluster : selectedItems[0]['identifier'],
                           host: selectedItems[0]['endpoint'], 
                           port: selectedItems[0]['port'], 
                           username: txtUser, 
                           password: txtPassword, 
                           engine: selectedItems[0]['engine'],
-                          auth : currentTabId.current,
-                          ssl : selectedItems[0]['ssl'],
-                          engineType : "memorydb"
+                          instance : selectedItems[0]['instance']
                   
                 }
             }).then((data)=>{
                 
                 if (data.data.result === "auth1") {
                      sessionStorage.setItem(data.data.session_id, data.data.session_token );
-                     var userId;
-                     switch(currentTabId.current){
-                        case "modeIam":
-                                        userId = "IAM Integrated";
-                                        break;
-                                        
-                        case "modeOpen":
-                                        userId = "Open-Access";
-                                        break;
-                        case "modeAcl":
-                                        userId = txtUser;
-                                        break;
-                          
-                     }
                      var session_id = CryptoJS.AES.encrypt(JSON.stringify({
                                                                             session_id : data.data.session_id,
                                                                             rds_id : selectedItems[0]['identifier'],
-                                                                            rds_user : userId, 
-                                                                            rds_password : txtPassword, 
+                                                                            rds_user : txtUser, 
                                                                             rds_host : selectedItems[0]['endpoint'], 
-                                                                            rds_port : selectedItems[0]['port'], 
-                                                                            rds_engine : selectedItems[0]['engine'],
-                                                                            rds_auth : currentTabId.current,
-                                                                            rds_ssl : selectedItems[0]['ssl'],
-                                                                            rds_size : selectedItems[0]['size'],
-                                                                            rds_shards : selectedItems[0]['shards'],
-                                                                            rds_nodes : selectedItems[0]['nodes'],
-                                                                            rds_tier : selectedItems[0]['tier'],
-                                                                            rds_status : selectedItems[0]['status'],
+                                                                            rds_engine : selectedItems[0]['engine'], 
+                                                                            rds_class : selectedItems[0]['size'], 
+                                                                            rds_az : selectedItems[0]['az'], 
                                                                             rds_version : selectedItems[0]['version'],
-                                                                            rds_acl : selectedItems[0]['authmode'],
+                                                                            rds_resource_id : selectedItems[0]['resourceId'],
+                                                                            rds_storage : selectedItems[0]['storage'],
+                                                                            rds_storage_size : selectedItems[0]['storageSize']
                                                                             }), 
                                                             data.data.session_id
                                                             ).toString();
                                                             
-                                                                            
+                                                            
                      var path_name = "";
                      switch (selectedItems[0]['engine']) {
-                         
-                          case "memorydb:redis":
-                            path_name = "/sm-memorydb-01";
+                          case "mysql":
+                            path_name = "/sm-mysql-01";
                             break;
+                            
+                          case "mariadb":
+                            path_name = "/sm-mysql-01";
+                            break;
+                            
+                          case "aurora-mysql":
+                            path_name = "/sm-mysql-02";
+                            break;
+                            
+                          case "postgres":
+                            path_name = "/sm-postgresql-01";
+                            break;
+                            
+                          case "aurora-postgresql":
+                            path_name = "/sm-postgresql-02";
+                            break;
+                          
+                          case "sqlserver-se":
+                            path_name = "/sm-mssql-01";
+                            break;
+                          
+                          case "oracle-ee":
+                          case "oracle-ee-cdb":
+                          case "oracle-se2":
+                          case "oracle-se2-cdb":
+                            path_name = "/sm-oracle-01";
+                            break;
+                          
                           
                           default:
                              break;
@@ -231,19 +221,22 @@ function Login() {
             })
             .catch((err) => {
                 
-                console.log('Timeout API Call : /api/memorydb/redis/cluster/authentication/');
+                console.log('Timeout API Call : /api/security/auth/');
                 console.log(err)
             });
             
             
     };
     
-    
-    //-- Call API to App Version
+  
+  //-- Call API to App Version
    async function gatherVersion (){
 
         //-- Application Update
-        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "memorydb"} );
+        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "rds"} );
+        
+        
+        
         
         if (appVersionObject.release > configuration["apps-settings"]["release"] && configuration["apps-settings"]["release-enforcement"] ){
           setVersionMessage([
@@ -260,67 +253,62 @@ function Login() {
         }
         
    }
-   
-   
+    
    //-- Call API to gather instances
-   async function gatherClusters (){
-       
+   async function gatherInstances (){
+
         //--- GATHER INSTANCES
         var rdsItems=[];
         
         try{
-                   
-           
-            const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/region/memorydb/cluster/nodes/`);
+        
+            const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/rds/instance/region/list/`);
             sessionStorage.setItem("x-csrf-token", data.csrfToken );
-            
-            data.Clusters.forEach(function(item) {
+            data.data.DBInstances.forEach(function(item) {
+                          if (item['Engine']==='mysql' || item['Engine']==='postgres' || item['Engine']==='mariadb' || item['Engine']==='aurora-mysql' || item['Engine']==='aurora-postgresql' || item['Engine']==='sqlserver-se' || item['Engine']==='sqlserver-ee' || item['Engine']==='sqlserver-web' || item['Engine']==='sqlserver-ex' || item['Engine']==='oracle-ee'  || item['Engine']==='oracle-ee-cdb'  || item['Engine']==='oracle-se2'  || item['Engine']==='oracle-se2-cdb'){
                             
-                            var nodes = 0;                
-                            item['Shards'].forEach(function(shards) {
-                                nodes = nodes + shards['NumberOfNodes'];
-                            });
-                           
                             try{
                                   rdsItems.push({
-                                                identifier : item['Name'],
-                                                status : item['Status'] ,
-                                                size : item['NodeType'] ,
-                                                engine : "memorydb:redis" ,
-                                                shards : item['NumberOfShards'],
-                                                nodes: nodes,
-                                                version: item['EnginePatchVersion'],
-                                                endpoint: item['ClusterEndpoint']['Address'],
-                                                port : item['ClusterEndpoint']['Port'],
-                                                tier : item['DataTiering'],
-                                                ssl : ( String(item['TLSEnabled']) == "true" ? "required" : "-" ),
-                                                acl : item['ACLName'],
-                                                authmode : ( String(item['ACLName']) == "open-access" ? "modeOpen" : "modeAcl" ) 
+                                                identifier: item['DBInstanceIdentifier'],
+                                                engine: item['Engine'] ,
+                                                version: item['EngineVersion'] ,
+                                                az: item['AvailabilityZone'],
+                                                size: item['DBInstanceClass'],
+                                                status: item['DBInstanceStatus'],
+                                                multiaz: String(item['MultiAZ']),
+                                                pi: item['PerformanceInsightsEnabled'],
+                                                resourceId: item['DbiResourceId'],
+                                                storage: item['StorageType'],
+                                                storageSize:  item['AllocatedStorage'],
+                                                username: item['MasterUsername'], 
+                                                endpoint: item['Endpoint']['Address'], 
+                                                port: item['Endpoint']['Port'],
+                                                instance : item['DBName']
+                                                
                                   });
-                                  
                                   
                             }
                             catch{
-                              console.log('Timeout API error : /api/aws/region/elasticache/cluster/nodes/');                  
+                              console.log('Timeout API error : /api/aws/rds/instance/region/list/');                  
                             }
                             
-                   
+                          }
                           
             })
                                   
             
         }
         catch{
-          console.log('Timeout API error : /api/aws/region/elasticache/cluster/nodes/');                  
+          console.log('Timeout API error : /api/aws/rds/instance/region/list/');                  
         }
-
+        
+        
         setItemsTable(rdsItems);
         if (rdsItems.length > 0 ) {
           setSelectedItems([rdsItems[0]]);
-          setActiveTabId(rdsItems[0]['authmode']);
-          currentTabId.current = rdsItems[0]['authmode'];
           setsplitPanelShow(true);
         }
+        
 
     }
     
@@ -332,13 +320,15 @@ function Login() {
       }
     }
     
-
+    
+    
+    
     
     //-- Init Function
       
     // eslint-disable-next-line
     useEffect(() => {
-        gatherClusters();
+        gatherInstances();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     
@@ -349,14 +339,13 @@ function Login() {
     }, []);
     
     
-    
   return (
     <div style={{"background-color": "#f2f3f3"}}>
         <CustomHeader/>
         <AppLayout
             headerSelector="#h" 
             breadCrumbs={breadCrumbs}
-            navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/clusters/memorydb/"} />}
+            navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/rds/instances/"} />}
             splitPanelOpen={splitPanelShow}
             onSplitPanelToggle={() => setsplitPanelShow(false)}
             splitPanelSize={350}
@@ -383,15 +372,14 @@ function Login() {
                           } 
                           i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
                           onSplitPanelToggle={({ detail }) => {
+                                        //console.log(detail);
                                         }
                                       }
                       >
                           
-                                                
-                    
-                            <ColumnLayout columns="3" variant="text-grid">
-                              <div>
-                                  <Box variant="awsui-key-label">Cluster Identifier</Box>
+                        <ColumnLayout columns="4" variant="text-grid">
+                             <div>
+                                  <Box variant="awsui-key-label">DB Identifier</Box>
                                   {selectedItems[0]['identifier']}
                               </div>
                               <div>
@@ -399,20 +387,20 @@ function Login() {
                                   {selectedItems[0]['engine']}
                               </div>
                               <div>
-                                  <Box variant="awsui-key-label">DataTiering</Box>
-                                  {selectedItems[0]['tier']}
+                                  <Box variant="awsui-key-label">Version</Box>
+                                  {selectedItems[0]['version']}
                               </div>
                               <div>
-                                  <Box variant="awsui-key-label">Total Shards</Box>
-                                  {selectedItems[0]['shards']}
+                                  <Box variant="awsui-key-label">Region & AZ</Box>
+                                  {selectedItems[0]['az']}
                               </div>
-                               <div>
-                                  <Box variant="awsui-key-label">Total Nodes</Box>
-                                  {selectedItems[0]['nodes']}
-                              </div>
+                            </ColumnLayout>
+                            <br /> 
+                            <br />
+                            <ColumnLayout columns="4" variant="text-grid">
                               <div>
-                                  <Box variant="awsui-key-label">ACLName</Box>
-                                  {selectedItems[0]['acl']}
+                                  <Box variant="awsui-key-label">Master User</Box>
+                                  {selectedItems[0]['username']}
                               </div>
                               <div>
                                   <Box variant="awsui-key-label">Endpoint</Box>
@@ -428,6 +416,27 @@ function Login() {
                               </div>
                             
                             </ColumnLayout>
+                            <br /> 
+                            <br />
+                            <ColumnLayout columns="4" variant="text-grid">
+                              <div>
+                                  <Box variant="awsui-key-label">ResourceID</Box>
+                                  {selectedItems[0]['resourceId']}
+                              </div>
+                              <div>
+                                  <Box variant="awsui-key-label">Storage Type</Box>
+                                  {selectedItems[0]['storage']}
+                              </div>
+                              <div>
+                                  <Box variant="awsui-key-label">Storage Size(GB)</Box>
+                                  {selectedItems[0]['storageSize']}
+                              </div>
+                              <div>
+                                  <Box variant="awsui-key-label">MultiAZ</Box>
+                                  {selectedItems[0]['multiaz']}
+                              </div>
+                              
+                            </ColumnLayout>
                             
                             
                       </SplitPanel>
@@ -435,10 +444,10 @@ function Login() {
             contentType="table"
             content={
                 <>
+                     
                       <Flashbar items={versionMessage} />
                       <br/>
-                      
-                      
+                                              
                       <Table
                         {...collectionProps}
                         selectionType="single"
@@ -452,11 +461,11 @@ function Login() {
                                                 size="xs"
                                               >
                                                 <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);}}>Connect</Button>
-                                                <Button variant="primary" onClick={() => {gatherClusters();}}>Refresh</Button>
+                                                <Button variant="primary" onClick={() => {gatherInstances();}}>Refresh</Button>
                                               </SpaceBetween>
                                       }
                           >
-                            MemoryDB Clusters
+                            RDS Instances
                           </Header>
                         }
                         columnDefinitions={columnsTable}
@@ -480,16 +489,15 @@ function Login() {
                         onSelectionChange={({ detail }) => {
                             setSelectedItems(detail.selectedItems);
                             setsplitPanelShow(true);
-                            setActiveTabId(detail.selectedItems[0]['authmode']);
-                            currentTabId.current=detail.selectedItems[0]['authmode'];
                             }
-                        }
+                          }
                         selectedItems={selectedItems}
                         resizableColumns
                         stickyHeader
                         loadingText="Loading records"
                       />
-                        
+
+
                         <Modal
                             onDismiss={() => setModalConnectVisible(false)}
                             visible={modalConnectVisible}
@@ -511,68 +519,21 @@ function Login() {
                               
                             }
                           >
-                            
-                                { activeTabId === "modeAcl" &&
-                                <Tabs
-                                    onChange={({ detail }) => {
-                                          setActiveTabId(detail.activeTabId);
-                                          currentTabId.current=detail.activeTabId;
-                                      }
-                                    }
-                                    activeTabId={activeTabId}
-                                    tabs={[
-                                                {
-                                                  label: "ACL Mode - Password Auth",
-                                                  id: "modeAcl",
-                                                  content: 
-                                                          <>
-                                                                
-                                                                <FormField label="Username">
-                                                                  <Input value={txtUser} onChange={event =>settxtUser(event.detail.value)}
-                                                                />
-                                                                </FormField>
-                                                                
-                                                                <FormField label="Password">
-                                                                  <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
-                                                                         type="password"
-                                                                  />
-                                                                </FormField>
-                                                                
-                                                          </>
-                                                }
-                                      ]}
-                                />
+                                <FormField
+                                  label="Username"
+                                >
+                                  <Input value={txtUser} onChange={event =>settxtUser(event.detail.value)}
+                                  
+                                  />
+                                </FormField>
                                 
-                                }
-                                
-                                
-                                { activeTabId === "modeOpen" &&
-                                <Tabs
-                                    onChange={({ detail }) => {
-                                          setActiveTabId(detail.activeTabId);
-                                          currentTabId.current=detail.activeTabId;
-                                      }
-                                    }
-                                    activeTabId={activeTabId}
-                                    tabs={[
-                                                
-                                                {
-                                                      label: "Open Access Mode",
-                                                      id: "modeOpen",
-                                                      content: 
-                                                              <>
-                                                                    
-                                                                    With Open-Access mode you can authenticate a connection to MemoryDB for Redis, 
-                                                                    when your cluster is configured to use open access.
-                                                              
-                                                                    
-                                                              </>
-                                                },
-                                                
-                                      ]}
-                                />
-                                
-                                }
+                                <FormField
+                                  label="Password"
+                                >
+                                  <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
+                                         type="password"
+                                  />
+                                </FormField>
                                 
                                 
                           </Modal>
@@ -588,3 +549,4 @@ function Login() {
 }
 
 export default Login;
+
