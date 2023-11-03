@@ -307,7 +307,6 @@ export default function App() {
                           }
                       }).then((data)=>{
                        
-                       console.log(data.data.instance);
                        setInstanceStats(data.data.instance);
                          
                   })
