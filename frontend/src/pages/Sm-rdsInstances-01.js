@@ -147,9 +147,12 @@ function Login() {
                     break;
                     
                   
-                  case "sqlserver-se":
+                  case 'sqlserver-se':
+                  case 'sqlserver-ee':
+                  case 'sqlserver-ex':
+                  case 'sqlserver-web':
                     pathName = "/sm-mssql-01";
-                    engineType = "mssql";
+                    engineType = "sqlserver";
                     break;
                   
                   case "oracle-ee":

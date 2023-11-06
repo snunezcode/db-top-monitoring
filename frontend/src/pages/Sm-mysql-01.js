@@ -274,7 +274,6 @@ export default function App() {
     async function validateConnection() {
         
         Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
-        console.log(parameter_object_values);
         if (parameter_object_values["newObject"]==false) {
             setConnectionMessage([
                           {
@@ -397,7 +396,7 @@ export default function App() {
               params: api_params
               }).then((data)=>{
                 
-                  console.log(data);
+                  
                   
                   var colInfo=[];
                   try{
@@ -1804,7 +1803,7 @@ export default function App() {
                                           <td style={{"width":"60%"}}>        
                                               <ChartLine02 
                                                     series={JSON.stringify([instanceStats['history']['memoryUsage']])} 
-                                                    title={"Memory Usage (GB)"} height="200px" 
+                                                    title={"Memory Usage (%)"} height="200px" 
                                                 />
                                           </td>
                                       </tr>
