@@ -12,7 +12,7 @@ export const configuration =
         "refresh-interval-aurora-pgs-sessions": 10*1000,
         "items-per-page-aurora-pgs": 10,
         "api_url": "",
-        "release" : "0.1.0",
+        "release" : "0.1.1",
         "release-enforcement" : false,
         "application-title": "DBTop Monitoring",
         "version-code-url" : "https://version.code.ds.wwcs.aws.dev/",
