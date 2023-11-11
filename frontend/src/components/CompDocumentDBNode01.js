@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react'
+import { useState, useRef, memo } from 'react'
 import ChartLine02 from './ChartLine02';
 import ChartRadialBar01 from './ChartRadialBar01';
 
@@ -14,10 +14,8 @@ import Badge from "@awsui/components-react/badge";
 import Link from "@awsui/components-react/link";
 import Header from "@awsui/components-react/header";
 
-
 const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
 
-    
     const [detailsVisible, setDetailsVisible] = useState(false);
     const detailsVisibleState = useRef(false);
 
@@ -35,55 +33,12 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
     
     const visibleContent = ['opid', 'db', 'client', 'WaitState', 'secs_running', 'ns', 'op', 'command'];
 
-    //-- Function Gather Active Sessions
-    async function fetchSessions() {
-        /*
-        
-        //--- API Call Gather Sessions
-        if (detailsVisibleState.current == true) {
-                var api_params = {
-                              connectionId: sessionId,
-                              clusterId : clusterId,
-                              instanceId : nodeStats.name,
-                              command : JSON.stringify({ currentOp: 1, microsecs_running : {"$gte" : 1000000}, "$sort" : { microsecs_running : 1 } })
-                              };
-                
-                Axios.get(`${configuration["apps-settings"]["api_url"]}/api/documentdb/cluster/command/`,{
-                      params: api_params
-                      }).then((data)=>{
-                           
-                          activeSessions.current = data.data.inprog;
-                          
-                      })
-                      .catch((err) => {
-                          console.log('Timeout API Call : /api/documentdb/cluster/command/' );
-                          console.log(err)
-                      });
-            
-        }
-        else {
-                activeSessions.current = [];
-        }
-        
-        */
     
-    }
-    
-    
-
     function onClickNode() {
 
         detailsVisibleState.current = (!(detailsVisibleState.current));
         setDetailsVisible(detailsVisibleState.current);
-        fetchSessions();
     }
-
-
-    useEffect(() => {
-        const id = setInterval(fetchSessions, configuration["apps-settings"]["refresh-interval-documentdb-sessions"]);
-        return () => clearInterval(id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
 
     return (

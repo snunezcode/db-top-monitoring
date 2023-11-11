@@ -19,9 +19,7 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
 
     const [detailsVisible, setDetailsVisible] = useState(false);
     const detailsVisibleState = useRef(false);
-    const activeSessions = useRef([]);
-    
-
+ 
     const columnsTable =  [
                   {id: 'PID',header: 'PID',cell: item => item['PID'],ariaLabel: createLabelFunction('PID'),sortingField: 'ThreadID',},
                   {id: 'Username',header: 'Username',cell: item => item['Username'],ariaLabel: createLabelFunction('Username'),sortingField: 'Username',},
@@ -36,45 +34,6 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
     
     const visibleContent = ['PID', 'Username', 'State', 'Host', 'WaitEvent', 'Database', 'ElapsedTime', 'AppName', 'SQLText' ];
     
-    //-- Function Gather Active Sessions
-    async function fetchSessions() {
-        //--- API Call Gather Sessions
-        if (detailsVisibleState.current == true) {
-            
-            /*
-            
-                //--- API Call Gather Sessions
-                var api_params = {
-                              connectionId: sessionId,
-                              clusterId : clusterId,
-                              instanceId : nodeStats.name,
-                              sql_statement: `
-                                                select pid as "PID",usename as "Username",state as "State",wait_event as "WaitEvent",datname as "Database",CAST(CURRENT_TIMESTAMP-query_start AS VARCHAR)  as "ElapsedTime",application_name as "AppName",client_addr as "Host",query as "SQLText" from pg_stat_activity where pid <> pg_backend_pid() and state = \'active\' order by query_start asc limit 250;
-                                             `
-                              };
-                
-                      Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aurora/postgresql/cluster/sql/`,{
-                      params: api_params
-                      }).then((data)=>{
-                        
-                          activeSessions.current = data.data.rows;
-                          
-                      })
-                      .catch((err) => {
-                          console.log('Timeout API Call : /api/aurora/postgresql/cluster/sql/' );
-                          console.log(err)
-                      });
-              
-                */
-            
-        }
-        else {
-                activeSessions.current = [];
-        }
-    
-    }
-    
-   
     function onClickNode() {
 
         detailsVisibleState.current = (!(detailsVisibleState.current));
@@ -82,13 +41,6 @@ const ComponentObject = memo(({  sessionId, clusterId, nodeStats }) => {
 
     }
 
-
-    useEffect(() => {
-        const id = setInterval(fetchSessions, configuration["apps-settings"]["refresh-interval-aurora-pgs-sessions"]);
-        return () => clearInterval(id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    
 
     return (
         <>

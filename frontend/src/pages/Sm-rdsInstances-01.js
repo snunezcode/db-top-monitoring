@@ -180,6 +180,7 @@ function Login() {
                           password: txtPassword, 
                           engineType: selectedItems[0]['engine'],
                           instanceId : selectedItems[0]['identifier'],
+                          instance : selectedItems[0]['instance'],
                           resourceId : selectedItems[0]['resourceId'],
                   
                 }
@@ -203,7 +204,8 @@ function Login() {
                                                                             connectionId : data.data.connectionId,
                                                                             creationTime : data.data.creationTime,
                                                                             instanceId : selectedItems[0]['identifier'],
-                                                                            engineType : selectedItems[0]['engine'], 
+                                                                            instance : selectedItems[0]['intance'], 
+                                                                            engineType : selectedItems[0]['engine'],
                                                                             }), 
                                                             data.data.session_id
                                                             ).toString();

@@ -168,11 +168,7 @@ function App() {
     
     const visibleContent = ['instanceId', 'ThreadID', 'State', 'Username', 'Host', 'Database', 'Command', 'ElapsedTime', 'SQLText' ];
     
-    
 
-
-
-    
     //-- Function Gather Metrics
     async function openClusterConnection() {
         

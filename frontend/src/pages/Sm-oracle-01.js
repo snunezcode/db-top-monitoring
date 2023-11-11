@@ -79,8 +79,7 @@ export default function App() {
     const cnf_connection_id=parameter_object_values["session_id"];  
     const cnf_rds_id=parameter_object_values["rds_id"];  
     const cnf_rds_host=parameter_object_values["rds_host"];  
-    const cnf_rds_engine=parameter_object_values["rds_engine"];
-    
+
     //-- Add token header
     Axios.defaults.headers.common['x-token'] = sessionStorage.getItem(cnf_connection_id);
     Axios.defaults.headers.common['x-token-cognito'] = sessionStorage.getItem("x-token-cognito");
@@ -129,14 +128,14 @@ export default function App() {
                                                   networkTx : 0,
                                                   networkRx : 0,
                                                   network : 0, 
-                                                  batchRequests : 0, 
-                                                  transactions : 0, 
-                                                  sqlCompilations : 0, 
-                                                  sqlReCompilations : 0, 
-                                                  logins : 0, 
-                                                  connections : 0, 
-                                                  pageWrites : 0, 
-                                                  pageReads : 0, 
+                                                  userCalls : 0,
+                                                  userCommits : 0,
+                                                  dbIOWrites : 0,
+                                                  dbIOReads : 0,
+                                                  redoWrites : 0,
+                                                  logons : 0,
+                                                  dbBlockChanges : 0,
+                                                  dbBlockGets : 0,
                                                   status : "-",
                                                   lastUpdate : "-",
                                                   az : "-",
@@ -170,14 +169,14 @@ export default function App() {
                                                             networkTx : [],
                                                             networkRx : [],
                                                             network : [],
-                                                            batchRequests : [],
-                                                            transactions : [],
-                                                            sqlCompilations : [],
-                                                            sqlReCompilations : [],
-                                                            logins : [],
-                                                            connections : [],
-                                                            pageWrites : [],
-                                                            pageReads : [],
+                                                            userCalls : [],
+                                                            userCommits : [],
+                                                            dbIOWrites : [],
+                                                            dbIOReads : [],
+                                                            redoWrites : [],
+                                                            logons : [],
+                                                            dbBlockChanges : [],
+                                                            dbBlockGets : [],
                                                   },
                                                   sessions : [],
                                                   processes : []
@@ -186,15 +185,15 @@ export default function App() {
     
     //--######## Variables for Table - Sessions
     const columnsTable = [
-                  {id: 'SessionId',header: 'SessionId',cell: item => item['session_id'],ariaLabel: createLabelFunction('SessionId'),sortingField: 'SessionId',},
-                  {id: 'Username',header: 'Username',cell: item => item['login_name'] ,ariaLabel: createLabelFunction('Username'),sortingField: 'Username',},
-                  {id: 'Status',header: 'Status',cell: item => item['status'],ariaLabel: createLabelFunction('Status'),sortingField: 'Status',},
-                  {id: 'Database',header: 'Database',cell: item => item['database_name'],ariaLabel: createLabelFunction('Database'),sortingField: 'Database',},
-                  {id: 'ElapsedTime',header: 'ElapsedTime',cell: item => item['total_elapsed_time'],ariaLabel: createLabelFunction('ElapsedTime'),sortingField: 'ElapsedTime',},
-                  {id: 'Host',header: 'Host',cell: item => item['host_name'],ariaLabel: createLabelFunction('Host'),sortingField: 'Host',},
-                  {id: 'Program',header: 'Program',cell: item => item['program_name'],ariaLabel: createLabelFunction('Program'),sortingField: 'Program',},
-                  {id: 'WaitType',header: 'WaitType',cell: item => item['wait_type'],ariaLabel: createLabelFunction('WaitType'),sortingField: 'WaitType',},
-                  {id: 'SQLText',header: 'SQLText',cell: item => item['sql_text'],ariaLabel: createLabelFunction('SQLText'),sortingField: 'SQLText',}
+                  {id: 'SID',header: 'SID',cell: item => item[0],ariaLabel: createLabelFunction('SID'),sortingField: 'SID',},
+                  {id: 'State',header: 'State',cell: item => item[1],ariaLabel: createLabelFunction('State'),sortingField: 'State',},
+                  {id: 'Username',header: 'Username',cell: item => item[2],ariaLabel: createLabelFunction('Username'),sortingField: 'Username',},
+                  {id: 'Host',header: 'Host',cell: item => item[3],ariaLabel: createLabelFunction('Host'),sortingField: 'Host',},
+                  {id: 'Program',header: 'Program',cell: item => item[4],ariaLabel: createLabelFunction('Program'),sortingField: 'Program',},
+                  {id: 'Event',header: 'Event',cell: item => item[5],ariaLabel: createLabelFunction('Event'),sortingField: 'Event',},
+                  {id: 'ElapsedTime',header: 'ElapsedTime',cell: item => item[6],ariaLabel: createLabelFunction('ElapsedTime'),sortingField: 'ElapsedTime',},
+                  {id: 'SQLID',header: 'SQLID',cell: item => item[7],ariaLabel: createLabelFunction('SQLID'),sortingField: 'SQLID',},
+                  {id: 'SQLText',header: 'SQLText',cell: item => item[8],ariaLabel: createLabelFunction('SQLText'),sortingField: 'SQLText',}
                   
     ];
 
@@ -219,7 +218,7 @@ export default function App() {
     };
     
    
-    const [preferences, setPreferences] = useState({ pageSize: 10, visibleContent: ['SessionId', 'Username', 'Status', 'Database', 'ElapsedTime', 'Host', 'Program', 'WaitType', 'SQLText' ] });
+    const [preferences, setPreferences] = useState({ pageSize: 10, visibleContent: ['SID', 'State', 'Username', 'Host', 'Program', 'Event', 'ElapsedTime', 'SQLID', 'SQLText' ] });
     
     const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
                 instanceStats['sessions'],
@@ -261,12 +260,14 @@ export default function App() {
     
     //--######## SQL Query Feature
     
-    const [dataQuery,setdataQuery] = useState({columns: [], dataset: [], rows : 0 });
+    const [dataQuery,setdataQuery] = useState({columns: [], dataset: []});
     const txtSQLText = useRef('');
 
     
     //--######## Function Validate Connection
     async function validateConnection() {
+        
+        console.log(parameter_object_values);
         
         Axios.defaults.headers.common['x-csrf-token'] = sessionStorage.getItem("x-csrf-token");
         if (parameter_object_values["newObject"]==false) {
@@ -292,7 +293,7 @@ export default function App() {
         
             var api_url = configuration["apps-settings"]["api_url"];
             
-            Axios.get(`${api_url}/api/rds/instance/sqlserver/gather/stats/`,{
+            Axios.get(`${api_url}/api/rds/instance/oracle/gather/stats/`,{
                           params: { 
                                     connectionId : parameter_object_values["connectionId"], 
                                     instanceId : parameter_object_values["instanceId"], 
@@ -305,7 +306,7 @@ export default function App() {
                          
                   })
                   .catch((err) => {
-                      console.log('Timeout API Call : /api/rds/instance/sqlserver/gather/stats/' );
+                      console.log('Timeout API Call : /api/rds/instance/oracle/gather/stats/' );
                       console.log(err);
                       
                   });
@@ -319,7 +320,7 @@ export default function App() {
      //--######## Function Close Database Connection
     const closeDatabaseConnection = () => {
        
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/rds/instance/sqlserver/close/connection/`,{
+        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/rds/instance/oracle/close/connection/`,{
                       params: {     connectionId : parameter_object_values["connectionId"], 
                                     instanceId : parameter_object_values["instanceId"], 
                                     engineType : parameter_object_values["engineType"],
@@ -329,7 +330,7 @@ export default function App() {
                       sessionStorage.removeItem(parameter_code_id);
                   })
                   .catch((err) => {
-                      console.log('Timeout API Call : /api/rds/instance/sqlserver/close/connection/');
+                      console.log('Timeout API Call : /api/rds/instance/oracle/close/connection/');
                       console.log(err)
                   });
       
@@ -387,41 +388,51 @@ export default function App() {
           
         };
     
-        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/rds/instance/sqlserver/execute/query/`,{
+        Axios.get(`${configuration["apps-settings"]["api_url"]}/api/rds/instance/oracle/execute/query/`,{
               params: api_params
               }).then((data)=>{
-                
-                  try {
-                      var colInfo=[];
-                      try{
-                        
-                            if (Array.isArray(data.data.recordset)){
-                                var columns = Object.keys(data.data.recordset[0]);
-                                columns.forEach(function(colItem) {
-                                    colInfo.push({ id: colItem, header: colItem,cell: item => item[colItem] || "-",sortingField: colItem,isRowHeader: true });
-                                })
-                            }
-                        
-                      }
-                      catch {
-                        
-                        colInfo = [];
-                        
-                      }
-                      setdataQuery({columns:colInfo, dataset: data.data.recordset, rows : data.data.recordset.length, result_code:0, result_info: ""});
                   
-                  }
-                  catch(err){
+                 var colInfo=[];
+                  var rowsInfo=[];
+                  try{
                     
-                      console.log(err)
-                      setdataQuery({columns:[], dataset: [], rows : 0, esult_code:1, result_info: "invalid operation"});
+                        if (Array.isArray(data.data.metaData)){
+                            
+                            data.data.metaData.forEach(function(colItem) {
+                                colInfo.push({ id: colItem['name'], header: colItem['name'], cell: item => item[colItem['name']],sortingField: colItem['name'],isRowHeader: true });
+                            })
+                        }
+                        if (Array.isArray(data.data.rows)){
+                            
+                            data.data.rows.forEach(function(rowItem) {
+                                var iCol=0;
+                                var row=[];
+                                data.data.metaData.forEach(colName => {
+                                    row[colName['name']] = String(rowItem[iCol]);
+                                    iCol++;
+                                });
+                                rowsInfo.push(row);
+                                
+                            })
+                            
+                        }
+                        
                     
                   }
+                  catch(err) {
+                    console.log(err);
+                    colInfo = [];
+                    rowsInfo = [];
+                    
+                  }
+                  
+                  setdataQuery({columns:colInfo, dataset: rowsInfo, result_code:0, result_info: ""});
+                  
                   
               })
               .catch((err) => {
                   console.log(err)
-                  setdataQuery({columns:[], dataset: [], rows : 0,result_code:1, result_info: err.response.data.sqlMessage});
+                  setdataQuery({columns:[], dataset: [], result_code:1, result_info: err.response.data.sqlMessage});
                   
               });
               
@@ -461,54 +472,54 @@ export default function App() {
         onSplitPanelToggle={() => setsplitPanelShow(false)}
         splitPanelSize={250}
         splitPanel={
-                  <SplitPanel  header={"Session Details (" + selectedItems[0].session_id + ")"} i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
+                  <SplitPanel  header={"Session Details (" + selectedItems[0][0] + ")"} i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
                     onSplitPanelToggle={({ detail }) => {
                                     
                                     }
                                   }
                   >
                       <table style={{"width":"100%"}}>
-                            <tr>  
-                                <td style={{"width":"100%","padding-left": "1em"}}>
+                          <tr>  
+                              <td style={{"width":"100%","padding-left": "1em"}}>  
                                     <ColumnLayout columns="4" variant="text-grid">
                                          <div>
-                                              <Box variant="awsui-key-label">SessionId</Box>
-                                              {selectedItems[0]['session_id']}
+                                              <Box variant="awsui-key-label">SID</Box>
+                                              {selectedItems[0][0]}
                                           </div>
                                           <div>
                                               <Box variant="awsui-key-label">Username</Box>
-                                              {selectedItems[0]['login_name']}
+                                              {selectedItems[0][2]}
                                           </div>
                                           <div>
                                               <Box variant="awsui-key-label">Host</Box>
-                                              {selectedItems[0]['host_name']}
+                                              {selectedItems[0][3]}
                                           </div>
                                           <div>
-                                              <Box variant="awsui-key-label">Database</Box>
-                                              {selectedItems[0]['database_name']}
+                                              <Box variant="awsui-key-label">Program</Box>
+                                              {selectedItems[0][4]}
                                           </div>
                                         </ColumnLayout>
                                 
                                         <ColumnLayout columns="4" variant="text-grid">
                                          <div>
-                                              <Box variant="awsui-key-label">Time</Box>
-                                              {selectedItems[0]['total_elapsed_time']}
+                                              <Box variant="awsui-key-label">ElapsedTime</Box>
+                                              {selectedItems[0][6]}
                                           </div>
                                           <div>
                                               <Box variant="awsui-key-label">State</Box>
-                                              {selectedItems[0]['status']}
+                                              {selectedItems[0][1]}
                                           </div>
                                           <div>
                                               <Box variant="awsui-key-label">SQLText</Box>
-                                              {selectedItems[0]['sql_text']}
+                                              {selectedItems[0][8]}
                                           </div>
                                         
                                         </ColumnLayout>
                                     </td>
                                 </tr>
-                            </table>
+                            </table>    
+                        
                   </SplitPanel>
-                  
         }
         content={
             <>
@@ -667,80 +678,84 @@ export default function App() {
                                                   <tr>  
                                                     <td style={{"width":"12.5%","padding-left": "1em"}}> 
                                                         <CompMetric02
-                                                          value={instanceStats['batchRequests'] || 0}
-                                                          title={"Batch Requests/sec"}
+                                                          value={instanceStats['userCalls'] || 0}
+                                                          title={"User Calls/sec"}
                                                           precision={0}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
  
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
-                                                          value={instanceStats['transactions'] || 0}
-                                                          title={"Transactions/sec"}
+                                                          value={instanceStats['userCommits'] || 0}
+                                                          title={"User commits/sec"}
                                                           type={1}
                                                           precision={0}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
-                                                          value={instanceStats['sqlCompilations'] || 0}
-                                                          title={"SQL Compilations/sec"}
+                                                          value={instanceStats['dbIOWrites'] || 0}
+                                                          title={"DB IO Writes/sec"}
                                                           type={1}
                                                           precision={0}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
-                                                          value={instanceStats['sqlReCompilations'] || 0}
+                                                          value={instanceStats['dbIOReads'] || 0}
+                                                          title={"DB IO Reads/sec"}
                                                           type={1}
                                                           precision={0}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
-                                                          value={instanceStats['logins'] || 0}
-                                                          title={"Logins/sec"}
-                                                          type={1}
+                                                          value={instanceStats['redoWrites'] || 0}
+                                                          title={"Redo Writes/sec"}
+                                                          format={1}
                                                           precision={0}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                         <CompMetric02
-                                                          value={instanceStats['connections'] || 0}
-                                                          title={"User Connections"}
-                                                          type={2}
+                                                          value={instanceStats['logons'] || 0}
+                                                          title={"Logons Current"}
+                                                          format={2}
                                                           precision={0}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
                                                     </td>
                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
                                                          <CompMetric02
-                                                          value={instanceStats['pageWrites'] || 0}
-                                                          title={"Page writes/sec"}
+                                                          value={instanceStats['dbBlocksChanges'] || 0}
+                                                          title={"DB Block Changes/sec"}
                                                           type={1}
                                                           precision={0}
-                                                          format={2}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
-                                                    </td>
-                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                        <CompMetric02
-                                                          value={instanceStats['pageReads'] || 0}
-                                                          title={"Page reads/sec"}
+                                                    </td><td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
+                                                         <CompMetric02
+                                                          value={instanceStats['dbBlocksGet'] || 0}
+                                                          title={"DB Block Gets/sec"}
                                                           type={1}
                                                           precision={0}
-                                                          format={2}
                                                           fontColorValue={configuration.colors.fonts.metric100}
+                                                          fontSizeValue={"18px"}
                                                         />
                                                     </td>
-                                                   
-                                              </tr>  
-                                              
+                                                </tr>  
                                               </table>  
                                                
                                               <br />
@@ -749,20 +764,20 @@ export default function App() {
                                                     
                                                     <td style={{"width":"25%","padding-left": "1em"}}> 
                                                         <ChartLine02 series={JSON.stringify( [
-                                                                                                instanceStats['history']['connections']
-                                                                                              ] )} title={"Sessions"} height="200px" />
+                                                                                                instanceStats['history']['userCalls']
+                                                                                              ] )} title={"User Calls/sec"} height="200px" />
                                                     </td>
                                                     <td style={{"width":"25%","padding-left": "1em"}}> 
-                                                        <ChartLine02 series={JSON.stringify( [instanceStats['history']['batchRequests']] )}  title={"Batch Requests/sec"} height="200px" />
+                                                        <ChartLine02 series={JSON.stringify( [instanceStats['history']['userCommits']] )}  title={"User Commits/sec"} height="200px" />
                                                     </td>
                                                     <td style={{"width":"25%","padding-left": "1em"}}> 
                                                         <ChartLine02 series={JSON.stringify( [
-                                                                                                instanceStats['history']['transactions']
-                                                                                              ] )} title={"Transactions/sec"} height="200px" />
+                                                                                                instanceStats['history']['dbIOWrites'],
+                                                                                                instanceStats['history']['dbIOReads']
+                                                                                              ] )} title={"IOPS"} height="200px" />
                                                     </td>
                                                   </tr>
                                               </table>
-
                                         </Container>
                                         <br/>
                                     </td>  
@@ -849,7 +864,7 @@ export default function App() {
                                                         <div style={{"text-align":"center"}}>
                                                             <CLWChart 
                                                                               title="CPU" 
-                                                                              subtitle="Usage (%)" 
+                                                                              subtitle="Usage %" 
                                                                               height="180px" 
                                                                               color="orange" 
                                                                               namespace="AWS/RDS" 
@@ -1132,10 +1147,8 @@ export default function App() {
                                           </Container>
                                     </td>  
                                 </tr>
-                          </table>  
-                        
-                          
-                              
+                          </table>
+
                           </>
                           
                         
@@ -1169,7 +1182,6 @@ export default function App() {
                                           <td style={{"width":"25%", "text-align":"center", "border-left": "2px solid red", "padding-left": "1em"}}>  
                                                 
                                                 <ColumnLayout columns={4} variant="text-grid">
-                                                
                                                     <CompMetric03
                                                       value={ instanceStats['cpuUser'] || 0 }
                                                       title={"User"}
@@ -1188,6 +1200,41 @@ export default function App() {
                                                       fontSizeValue={"16px"}
                                                     />
                                                     
+                                                    <CompMetric03
+                                                      value={ instanceStats['cpuWait'] || 0 }
+                                                      title={"Wait"}
+                                                      precision={1}
+                                                      format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
+                                                      fontSizeValue={"16px"}
+                                                    />
+                                                    
+                                                    <CompMetric03
+                                                      value={ instanceStats['cpuSteal'] || 0 }
+                                                      title={"Steal"}
+                                                      precision={1}
+                                                      format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
+                                                      fontSizeValue={"16px"}
+                                                    />
+                                                    
+                                                    <CompMetric03
+                                                      value={ instanceStats['cpuNice'] || 0 }
+                                                      title={"Nice"}
+                                                      precision={1}
+                                                      format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
+                                                      fontSizeValue={"16px"}
+                                                    />
+                                                    
+                                                    <CompMetric03
+                                                      value={ instanceStats['cpuGuest'] || 0 }
+                                                      title={"Guest"}
+                                                      precision={1}
+                                                      format={1}
+                                                      fontColorValue={configuration.colors.fonts.metric100}
+                                                      fontSizeValue={"16px"}
+                                                    />
                                                   
                                                 </ColumnLayout>
                                                 
@@ -1199,6 +1246,11 @@ export default function App() {
                                                                               instanceStats['history']['cpuUsage'],
                                                                               instanceStats['history']['cpuUser'],
                                                                               instanceStats['history']['cpuSys'],
+                                                                              instanceStats['history']['cpuWait'],
+                                                                              instanceStats['history']['cpuGuest'],
+                                                                              instanceStats['history']['cpuSteal'],
+                                                                              instanceStats['history']['cpuNice'],
+                                                                              instanceStats['history']['cpuIrq']
                                                                               
                                                                           ])} 
                                                     title={"CPU Usage (%)"} height="200px" 
@@ -1232,10 +1284,10 @@ export default function App() {
                                                       fontColorValue={configuration.colors.fonts.metric100}
                                                       fontSizeValue={"16px"}
                                                     />
-                                                    
+                                                  
                                                     <CompMetric03
-                                                        value={ instanceStats['memorySqlserver'] || 0 }
-                                                        title={"SQLServer"}
+                                                        value={ instanceStats['memoryActive'] || 0 }
+                                                        title={"Active"}
                                                         precision={0}
                                                         format={2}
                                                         fontColorValue={configuration.colors.fonts.metric100}
@@ -1243,8 +1295,8 @@ export default function App() {
                                                     />
                                                     
                                                     <CompMetric03
-                                                        value={ instanceStats['memoryCommit'] || 0 }
-                                                        title={"Commited"}
+                                                        value={ instanceStats['memoryInactive'] || 0 }
+                                                        title={"Inactive"}
                                                         precision={0}
                                                         format={2}
                                                         fontColorValue={configuration.colors.fonts.metric100}
@@ -1441,7 +1493,7 @@ export default function App() {
                                                       </Box>
                                                     }
                                                     filter={
-                                                     <Header variant="h3" counter={"(" + String(dataQuery.rows) + ")"}
+                                                     <Header variant="h3" counter={"(" + dataQuery.dataset.length + ")"}
                                                       >
                                                         Result Items
                                                     </Header>

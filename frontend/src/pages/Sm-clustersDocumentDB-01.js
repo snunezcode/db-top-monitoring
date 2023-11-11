@@ -197,7 +197,7 @@ function Login() {
    async function gatherVersion (){
 
         //-- Application Update
-        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "aurora"} );
+        var appVersionObject = await applicationVersionUpdate({ codeId : "dbtop", moduleId: "documentdb"} );
         
         if (appVersionObject.release > configuration["apps-settings"]["release"] && configuration["apps-settings"]["release-enforcement"] ){
           setVersionMessage([

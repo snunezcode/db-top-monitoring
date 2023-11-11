@@ -113,6 +113,8 @@ function App() {
                                             iowrites: 0,
                                             netin: 0,
                                             netout: 0,
+                                            network: 0,
+                                            iops : 0,
                                             connectionsCurrent : 0,
                                             connectionsAvailable : 0,
                                             connectionsCreated : 0,
@@ -122,10 +124,12 @@ function App() {
                                             opsDelete : 0,
                                             opsGetmore : 0,
                                             opsCommand : 0,
+                                            operations : 0,
                                             docsDeleted : 0,
                                             docsInserted : 0,
                                             docsReturned : 0,
                                             docsUpdated : 0,
+                                            docops : 0,
                                             transactionsActive : 0,
                                             transactionsCommited : 0,
                                             transactionsAborted : 0,
@@ -139,6 +143,8 @@ function App() {
                                                         iowrites: [],
                                                         netin: [],
                                                         netout: [],
+                                                        network: [],
+                                                        iops: [],
                                                         connectionsCurrent : [],
                                                         connectionsAvailable : [],
                                                         connectionsCreated : [],
@@ -148,10 +154,12 @@ function App() {
                                                         opsDelete : [],
                                                         opsGetmore : [],
                                                         opsCommand : [],
+                                                        operations : [],
                                                         docsDeleted : [],
                                                         docsInserted : [],
                                                         docsReturned : [],
                                                         docsUpdated : [],
+                                                        docops : [],
                                                         transactionsActive : [],
                                                         transactionsCommited : [],
                                                         transactionsAborted : [],
@@ -252,7 +260,6 @@ function App() {
         
         
     }
-
 
 
     useEffect(() => {
