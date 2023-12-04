@@ -18,6 +18,10 @@ const Metric = memo(({ value, title, precision, format=1, fontSizeTitle = "11px"
                 counterValue = CustomFormatNumberRawInteger(value,0);
                 break;
               
+              case 4:
+                counterValue = CustomFormatNumber(value,precision);
+                break;
+              
             }
 
       }
@@ -51,6 +55,17 @@ const Metric = memo(({ value, title, precision, format=1, fontSizeTitle = "11px"
     
     function CustomFormatNumberRawInteger(value,decimalLength) {
         return value.toLocaleString('en-US', {minimumFractionDigits:decimalLength, maximumFractionDigits:decimalLength}); 
+    }
+    
+    
+    function CustomFormatNumber(value,decimalLength) {
+        if(value == 0) return '0';
+        if(value < 1000) return parseFloat(value).toFixed(decimalLength);
+        
+        var k = 1000,
+        sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
+        i = Math.floor(Math.log(value) / Math.log(k));
+        return parseFloat((value / Math.pow(k, i)).toFixed(decimalLength)) + ' ' + sizes[i];
     }
     
     return (

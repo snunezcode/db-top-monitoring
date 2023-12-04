@@ -15,7 +15,7 @@
     "crypto-js": "^4.1.1",
     "percentile": "^1.6.0",
     "react": "^18.2.0",
-    "react-apexcharts": "^1.4.0",
+    "react-apexcharts": "^1.4.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.1",
     "web-vitals": "^2.1.4"

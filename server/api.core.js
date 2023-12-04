@@ -561,6 +561,33 @@ async function gatherStatsElasticacheServerlessCluster(req, res) {
 
 
 
+//--++ ELASTICACHE - SERVERLESS : Gather Information
+app.get("/api/elasticache/redis/serverless/cluster/gather/analytics/", gatherAnalyticsElasticacheServerlessCluster);
+async function gatherAnalyticsElasticacheServerlessCluster(req, res) {
+    
+        // Token Validation
+        var standardToken = verifyToken(req.headers['x-token']);
+        var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+        if (standardToken.isValid === false || cognitoToken.isValid === false)
+            return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+        try
+            {
+                var params = req.query;
+                
+                var metricInfo = await elasticacheObjectContainer[params.engineType + ":" + params.clusterId].getAnalyticsData({ metricName : params.metricName, period : params.period, interval : params.interval, factor : params.factor });
+                res.status(200).send({ 
+                                        metric : metricInfo 
+                                    });
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+
 //--++ ELASTICACHE - SERVERLESS : Close Connection
 app.get("/api/elasticache/redis/serverless/cluster/close/connection/", closeConnectionElasticacheRedisServerlessCluster);
 async function closeConnectionElasticacheRedisServerlessCluster(req, res) {

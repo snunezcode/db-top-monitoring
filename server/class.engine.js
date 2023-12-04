@@ -3758,6 +3758,46 @@ class classElasticacheServerlessCluster {
             
         }
 
+
+        async getAnalyticsData(object)
+        {
+            var results = [];
+            try {
+                        
+                //-- Gather Cluster Metrics - AWS CloudWatch
+                const clusterMetrics = await AWSObject.getGenericMetricsDataset({ 
+                                                                                    metrics : [
+                                                                                                {
+                                                                                                    namespace : "AWS/ElastiCache",
+                                                                                                    metric : object.metricName,
+                                                                                                    dimension : [{ Name: "clusterId", Value: this.objectProperties.clusterId }]
+                                                                                                }
+                                                                                            ], 
+                                                                                    interval : object.interval, 
+                                                                                    period : object.period 
+                });
+                
+                
+                if (clusterMetrics.length > 0) {
+                    
+                    results  = clusterMetrics[0].Timestamps.map((value, index) => {
+                                      if ( object.factor == 1)
+                                        return [clusterMetrics[0].Timestamps[index], clusterMetrics[0].Values[index] ];
+                                      else
+                                        return [clusterMetrics[0].Timestamps[index], clusterMetrics[0].Values[index] / object.factor ];
+                        });
+                }
+                                
+                
+                
+            }   
+            catch(err){
+                    this.#objLog.write("getAnalyticsData","err",err);
+            }
+            
+            return results;
+            
+        }
         
         
         

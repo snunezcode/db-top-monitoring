@@ -14,6 +14,8 @@ import Icon from "@awsui/components-react/icon";
 import StatusIndicator from "@awsui/components-react/status-indicator";
 import Spinner from "@awsui/components-react/spinner";
 
+import FormField from "@awsui/components-react/form-field";
+import Select from "@awsui/components-react/select";
 import SpaceBetween from "@awsui/components-react/space-between";
 import Pagination from "@awsui/components-react/pagination";
 import Link from "@awsui/components-react/link";
@@ -21,12 +23,15 @@ import Header from "@awsui/components-react/header";
 import Container from "@awsui/components-react/container";
 import ElasticNode  from '../components/CompElasticNode01';
 import CompMetric01  from '../components/Metric01';
+import ChartLine02  from '../components/ChartLine02';
 import ChartLine04  from '../components/ChartLine04';
+import ChartLine05  from '../components/ChartLine05';
 import CLWChart  from '../components/ChartCLW03';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
 import ChartColumn01 from '../components/ChartColumn01';
 import ChartProgressBar01 from '../components/ChartProgressBar-01';
 import ChartBar01 from '../components/ChartBar01';
+import ChartBar02 from '../components/ChartBar02';
 
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
@@ -57,8 +62,8 @@ function App() {
     //--######## Global Settings
     
     //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("tab01");
-    const currentTabId = useRef("tab01");
+    const [activeTabId, setActiveTabId] = useState("tab02");
+    const currentTabId = useRef("tab02");
     
     
     const parameter_code_id=params.get("code_id");  
@@ -208,6 +213,87 @@ function App() {
                 });
     
     
+    
+    //-- Variables for Analytics
+                                                
+    const [selectedOptionInterval,setSelectedOptionInterval] = useState({label: "3 Hours",value: 3});
+    const analyticsInterval = useRef(3);
+        
+    const [selectedMetricAnalytics,setSelectedMetricAnalytics] = useState({label: "ElastiCacheProcessingUnits",value: "ElastiCacheProcessingUnits"});
+    const analyticsMetricName = useRef({ name : "ElastiCacheProcessingUnits", factor : 60, descriptions : "The total number of ElastiCacheProcessingUnits (ECPUs) consumed by the requests executed on your cache", unit : "Count/sec" });
+    
+    const [dataAnalytics,setDatadAnalytics] = useState({ name : "", dataset : [], datasetSorted : [],  max :  0, min : 0, avg : 0, count : 0, p50 : 0, p90 : 0, p95 : 0 });
+    
+    const analyticsMetrics = [
+                                {
+                                  label: "Server metrics",
+                                  options: [
+                                            { label : "AuthenticationFailures", value : "AuthenticationFailures", factor : 60, descriptions : "The total number of failed attempts to authenticate to Redis using the AUTH command. We suggest setting an alarm on this to detect unauthorized access attempts.", unit : "Count/sec" },
+                                            { label : "BytesUsedForCache", value : "BytesUsedForCache", factor : 1, descriptions : "The total number of bytes used by the data stored in your cache.", unit : "Bytes" },
+                                            { label : "CacheHitRate", value : "CacheHitRate", factor : ( 1 / 100 ), descriptions : "Indicates the hit rate of your cache. This is calculated using cache_hits and cache_misses statistics in the following way: cache_hits /(cache_hits + cache_misses).", unit : "Percent" },
+                                            { label : "CacheHits", value : "CacheHits", factor : 60, descriptions : "The number of successful read-only key lookups in the cache.", unit : "Count/sec" },
+                                            { label : "CommandAuthorizationFailures", value : "CommandAuthorizationFailures", factor : 60, descriptions : "The total number of failed attempts by users to run commands they don’t have permission to call. We suggest setting an alarm on this to detect unauthorized access attempts.", unit : "Count/sec" },
+                                            { label : "CurrConnections", value : "CurrConnections", factor : 1, descriptions : "The number of client connections to your cache.", unit : "Count" },
+                                            { label : "CurrItems", value : "CurrItems", factor : 1, descriptions : "The number of items in the cache.", unit : "Count" },
+                                            { label : "CurrVolatileItems", value : "CurrVolatileItems", factor : 1, descriptions : "The number of items in the cache with TTL.", unit : "Count/sec" },
+                                            { label : "ElastiCacheProcessingUnits", value : "ElastiCacheProcessingUnits", factor : 60, descriptions : "The total number of ElastiCacheProcessingUnits (ECPUs) consumed by the requests executed on your cache", unit : "Count/sec" },
+                                            { label : "Evictions", value : "Evictions", factor : 60, descriptions : "The count of keys evicted by the cache", unit : "Count/sec" },
+                                            { label : "IamAuthenticationExpirations", value : "IamAuthenticationExpirations", factor : 60, descriptions : "The total number of expired IAM-authenticated Redis connections. You can find more information about Authenticating with IAM in the user guide.", unit : "Count/sec" },
+                                            { label : "IamAuthenticationThrottling", value : "IamAuthenticationThrottling", factor : 60, descriptions : "The total number of throttled IAM-authenticated Redis AUTH or HELLO requests. You can find more information about Authenticating with IAM in the user guide.", unit : "Count/sec" },
+                                            { label : "KeyAuthorizationFailures", value : "KeyAuthorizationFailures", factor : 60, descriptions : "The total number of failed attempts by users to access keys they don’t have permission to access. We suggest setting an alarm on this to detect unauthorized access attempts.", unit : "Count/sec" },
+                                            { label : "NetworkBytesIn", value : "NetworkBytesIn", factor : 60, descriptions : "Total bytes transferred in to cache", unit : "Bytes" },
+                                            { label : "NetworkBytesOut", value : "NetworkBytesOut", factor : 60, descriptions : "Total bytes transferred out of cache", unit : "Bytes" },
+                                            { label : "NewConnections", value : "NewConnections", factor : 60, descriptions : "The total number of connections that have been accepted by the server during this period.", unit : "Count/sec" },
+                                            { label : "SuccessfulReadRequestLatency", value : "SuccessfulReadRequestLatency", factor : 0.000001, descriptions : "Latency of successful read requests.", unit : "Microseconds" },
+                                            { label : "SuccessfulWriteRequestLatency", value : "SuccessfulWriteRequestLatency", factor : 0.000001, descriptions : "Latency of successful write requests", unit : "Microseconds" },
+                                            { label : "ThrottledCmds", value : "ThrottledCmds", factor : 60, descriptions : "The number of requests that were throttled by ElastiCache because the workload was scaling faster than ElastiCache can scale.", unit : "Count/sec" },
+                                            { label : "TotalCmdsCount", value : "TotalCmdsCount", factor : 60, descriptions : "Total count of all commands executed on your cache", unit : "Count/sec" },
+                                  ]
+                                },
+                                {
+                                  label: "Command metrics",
+                                  options: [
+                                            { label : "EvalBasedCmds", value : "EvalBasedCmds", factor : 60, descriptions : "The number of get commands the cache has received.", unit : "Count/sec" },
+                                            { label : "EvalBasedCmdsECPUs", value : "EvalBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by eval-based commands.", unit : "Count/sec" },
+                                            { label : "GeoSpatialBasedCmds", value : "GeoSpatialBasedCmds", factor : 60, descriptions : "The total number of commands for geospatial-based commands. This is derived from the Redis commandstats statistic. It's derived by summing all of the geo type of commands: geoadd, geodist, geohash, geopos, georadius, and georadiusbymember.", unit : "Count/sec" },
+                                            { label : "GeoSpatialBasedCmdsECPUs", value : "GeoSpatialBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by geospatial-based commands.", unit : "Count/sec" },
+                                            { label : "GetTypeCmds", value : "GetTypeCmds", factor : 60, descriptions : "The total number of read-only type commands. This is derived from the Redis commandstats statistic by summing all of the read-only type commands (get, hget, scard, lrange, and so on.)", unit : "Count/sec" },
+                                            { label : "GetTypeCmdsECPUs", value : "GetTypeCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by read commands.", unit : "Count/sec" },
+                                            { label : "HashBasedCmds", value : "HashBasedCmds", factor : 60, descriptions : "The total number of commands that are hash-based. This is derived from the Redis commandstats statistic by summing all of the commands that act upon one or more hashes (hget, hkeys, hvals, hdel, and so on).", unit : "Count/sec" },
+                                            { label : "HashBasedCmdsECPUs", value : "HashBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by hash-based commands.", unit : "Count/sec" },
+                                            { label : "HyperLogLogBasedCmds", value : "HyperLogLogBasedCmds", factor : 60, descriptions : "The total number of HyperLogLog-based commands. This is derived from the Redis commandstats statistic by summing all of the pf type of commands (pfadd, pfcount, pfmerge, and so on.).", unit : "Count/sec" },
+                                            { label : "HyperLogLogBasedCmdsECPUs", value : "HyperLogLogBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by HyperLogLog-based commands.", unit : "Count/sec" },
+                                            { label : "JsonBasedCmds", value : "JsonBasedCmds", factor : 60, descriptions : "The total number of JSON commands, including both read and write commands. This is derived from the Redis commandstats statistic by summing all JSON commands that act upon JSON keys.", unit : "Count/sec" },
+                                            { label : "JsonBasedCmdsECPUs", value : "JsonBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by all JSON commands, including both read and write commands.", unit : "Count/sec" },
+                                            { label : "JsonBasedGetCmds", value : "JsonBasedGetCmds", factor : 60, descriptions : "The total number of JSON read-only commands. This is derived from the Redis commandstats statistic by summing all JSON read commands that act upon JSON keys.", unit : "Count/sec" },
+                                            { label : "JsonBasedGetCmdsECPUs", value : "JsonBasedGetCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by JSON read-only commands.", unit : "Count/sec" },
+                                            { label : "JsonBasedSetCmds", value : "JsonBasedSetCmds", factor : 60, descriptions : "The total number of JSON write commands. This is derived from the Redis commandstats statistic by summing all JSON write commands that act upon JSON keys.", unit : "Count/sec" },
+                                            { label : "JsonBasedSetCmdsECPUs", value : "JsonBasedSetCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by JSON write commands.", unit : "Count/sec" },
+                                            { label : "KeyBasedCmds", value : "KeyBasedCmds", factor : 60, descriptions : "The total number of commands that are key-based. This is derived from the Redis commandstats statistic by summing all of the commands that act upon one or more keys across multiple data structures (del, expire, rename, and so on.).", unit : "Count/sec" },
+                                            { label : "KeyBasedCmdsECPUs", value : "KeyBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by key-based commands.", unit : "Count/sec" },
+                                            { label : "ListBasedCmds", value : "ListBasedCmds", factor : 60, descriptions : "The total number of commands that are list-based. This is derived from the Redis commandstats statistic by summing all of the commands that act upon one or more lists (lindex, lrange, lpush, ltrim, and so on).", unit : "Count/sec" },
+                                            { label : "ListBasedCmdsECPUs", value : "ListBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by list-based commands.", unit : "Count/sec" },
+                                            { label : "NonKeyTypeCmds", value : "NonKeyTypeCmds", factor : 60, descriptions : "The total number of commands that are not key-based. This is derived from the Redis commandstats statistic by summing all of the commands that do not act upon a key, for example, acl, dbsize or info.", unit : "Count/sec" },
+                                            { label : "NonKeyTypeCmdsECPUs", value : "NonKeyTypeCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by non-key-based commands.", unit : "Count/sec" },
+                                            { label : "PubSubBasedCmds", value : "PubSubBasedCmds", factor : 60, descriptions : "The total number of commands for pub/sub functionality. This is derived from the Redis commandstatsstatistics by summing all of the commands used for pub/sub functionality: psubscribe, publish, pubsub, punsubscribe, ssubscribe, sunsubscribe, spublish, subscribe, and unsubscribe.", unit : "Count/sec" },
+                                            { label : "PubSubBasedCmdsECPUs", value : "PubSubBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by pub/sub-based commands.", unit : "Count/sec" },
+                                            { label : "SetBasedCmds", value : "SetBasedCmds", factor : 60, descriptions : "The total number of commands that are set-based. This is derived from the Redis commandstats statistic by summing all of the commands that act upon one or more sets (scard, sdiff, sadd, sunion, and so on).", unit : "Count/sec" },
+                                            { label : "SetBasedCmdsECPUs", value : "SetBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by set-based commands.", unit : "Count/sec" },
+                                            { label : "SetTypeCmds", value : "SetTypeCmds", factor : 60, descriptions : "The total number of write types of commands. This is derived from the Redis commandstats statistic by summing all of the mutative types of commands that operate on data (set, hset, sadd, lpop, and so on.)", unit : "Count/sec" },
+                                            { label : "SetTypeCmdsECPUs", value : "SetTypeCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by write commands.", unit : "Count/sec" },
+                                            { label : "SortedSetBasedCmds", value : "SortedSetBasedCmds", factor : 60, descriptions : "The total number of commands that are sorted set-based. This is derived from the Redis commandstats statistic by summing all of the commands that act upon one or more sorted sets (zcount, zrange, zrank, zadd, and so on).", unit : "Count/sec" },
+                                            { label : "SortedSetBasedCmdsECPUs", value : "SortedSetBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by sorted-based commands.", unit : "Count/sec" },
+                                            { label : "StreamBasedCmds", value : "StreamBasedCmds", factor : 60, descriptions : "The total number of commands that are stream-based. This is derived from the Redis commandstats statistic by summing all of the commands that act upon one or more streams data types (xrange, xlen, xadd, xdel, and so on).", unit : "Count/sec" },
+                                            { label : "StreamBasedCmdsECPUs", value : "StreamBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by stream-based commands.", unit : "Count/sec" },
+                                            { label : "StringBasedCmds", value : "StringBasedCmds", factor : 60, descriptions : "The total number of commands that are string-based. This is derived from the Redis commandstats statistic by summing all of the commands that act upon one or more strings (strlen, setex, setrange, and so on).", unit : "Count/sec" },
+                                            { label : "StringBasedCmdsECPUs", value : "StringBasedCmdsECPUs", factor : 60, descriptions : "ECPUs consumed by string-based commands.", unit : "Count/sec" },
+                                  ]
+                                },
+                            ];
+                            
+                            
+    
+    
     //-- Function Gather Metrics
     async function openClusterConnection() {
         
@@ -252,37 +338,130 @@ function App() {
     //-- Function Cluster Gather Stats
     async function gatherClusterStats() {
         
-        if (currentTabId.current != "tab01") {
-            return;
+        var api_url = configuration["apps-settings"]["api_url"];
+        
+        if (currentTabId.current == "tab01") {
+            
+            Axios.get(`${api_url}/api/elasticache/redis/serverless/cluster/gather/stats/`,{
+                          params: { 
+                                    connectionId : cnf_connection_id, 
+                                    clusterId : cnf_identifier, 
+                                    beginItem : ( (pageId.current-1) * itemsPerPage), 
+                                    endItem : (( (pageId.current-1) * itemsPerPage) + itemsPerPage),
+                                    engineType : "elasticache:serverless"
+                              
+                          }
+                      }).then((data)=>{
+                       
+                       console.log(data.data.cluster);
+                       setClusterStats({ cluster : {...data.data.cluster} });
+    
+                  })
+                  .catch((err) => {
+                      console.log('Timeout API Call : /api/elasticache/redis/serverless/cluster/gather/stats/' );
+                      console.log(err);
+                      
+                  });
         }
+        
+        
+        if (currentTabId.current == "tab02") {
+        
+            var period = 1;
+            switch(analyticsInterval.current) {
+                case 1:
+                case 3:
+                    period = 1;
+                    break;
+                    
+                case 6:
+                    period = 3;
+                    break;
+                    
+                case 12:
+                    period = 5;
+                    break;
+                        
+                case 24:
+                    period = 10;
+                    break;
+                
+                case 168:
+                    period = 60;
+                    break;
+            }
+        
+            Axios.get(`${api_url}/api/elasticache/redis/serverless/cluster/gather/analytics/`,{
+                          params: { 
+                                    connectionId : cnf_connection_id, 
+                                    clusterId : cnf_identifier, 
+                                    metricName : analyticsMetricName.current.name,
+                                    period : period,
+                                    interval : analyticsInterval.current * 60,
+                                    factor : analyticsMetricName.current.factor,
+                                    engineType : "elasticache:serverless"
+                              
+                          }
+                      }).then((data)=>{
+                       
+                            
+                            var dataset = data.data.metric.map((value, index) => {
+                                    return data.data.metric[index][1];
+                                });
+                                
+                            dataset = dataset.filter(elements => {
+                                    return elements !== null;
+                                })
+                            
+                            var max = Math.max(...dataset);
+                            var min = Math.min(...dataset);
+                            var avg = dataset.reduce((a,b) => a + b, 0) / dataset.length;
+                            var stats = percentile([50,90,95], dataset);
+                            
+                            setDatadAnalytics({ name : analyticsMetricName.current.name , dataset : data.data.metric, datasetSorted : dataset.sort(function(a, b){return a - b}),  max : max, min : min, avg : avg, count : dataset.length, p50 : stats[0], p90 : stats[1], p95 : stats[2] });
+    
+                  })
+                  .catch((err) => {
+                      console.log('Timeout API Call : /api/elasticache/redis/serverless/cluster/gather/analytics/' );
+                      console.log(err);
+                      
+                  });
+            
+        }
+
+    }
+
+
+    //-- Function Cluster Gather Stats
+    async function gatherAnalyticsStats() {
+        
         
         var api_url = configuration["apps-settings"]["api_url"];
         
-        Axios.get(`${api_url}/api/elasticache/redis/serverless/cluster/gather/stats/`,{
+        
+        Axios.get(`${api_url}/api/elasticache/redis/serverless/cluster/gather/analytics/`,{
                       params: { 
                                 connectionId : cnf_connection_id, 
                                 clusterId : cnf_identifier, 
-                                beginItem : ( (pageId.current-1) * itemsPerPage), 
-                                endItem : (( (pageId.current-1) * itemsPerPage) + itemsPerPage),
+                                metricName : analyticsMetricName.current.name,
+                                period : 1,
+                                interval : 180,
+                                factor : analyticsMetricName.current.factor,
                                 engineType : "elasticache:serverless"
                           
                       }
                   }).then((data)=>{
                    
-                   console.log(data.data.cluster);
-                   setClusterStats({ cluster : {...data.data.cluster} });
-
+                   console.log(data.data.metric);
+                   setDatadAnalytics({ name : analyticsMetricName.current.name , dataset : data.data.metric });
               })
               .catch((err) => {
-                  console.log('Timeout API Call : /api/elasticache/redis/serverless/cluster/gather/stats/' );
+                  console.log('Timeout API Call : /api/elasticache/redis/serverless/cluster/gather/analytics/' );
                   console.log(err);
                   
               });
-              
-        
-        
-    }
 
+    }
 
 
     useEffect(() => {
@@ -308,10 +487,8 @@ function App() {
                 
               case 'other':
                 break;
-                
               
             }
-
     };
     
     //-- Function Handle Logout
@@ -351,11 +528,11 @@ function App() {
         
         
         var dataset = clusterStats['cluster']['history'][metricId].map((value, index) => {
-                    return clusterStats['cluster']['history'][metricId][index][1];
+            return clusterStats['cluster']['history'][metricId][index][1];
         });
         
         dataset = dataset.filter(elements => {
-         return elements !== null;
+            return elements !== null;
         })
 
         var max = Math.max(...dataset);
@@ -365,9 +542,7 @@ function App() {
         
         setMetricDetailsIndex ({ index : metricId, title : metricTitle, p50 : stats[0], p90 : stats[1], p95 : stats[2], max : max, min : min, avg : avg });
         setsplitPanelShow(true);
-        
-        
-                                                      
+                   
     }
     
     
@@ -390,7 +565,7 @@ function App() {
         navigationHide={true}
         splitPanelOpen={splitPanelShow}
         onSplitPanelToggle={() => setsplitPanelShow(false)}
-        splitPanelSize={300}
+        splitPanelSize={350}
         splitPanel={
                   <SplitPanel  header={metricDetailsIndex.title} i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
                     onSplitPanelToggle={({ detail }) => {
@@ -404,10 +579,15 @@ function App() {
                     <table style={{"width":"100%", "padding": "1em"}}>
                         <tr>
                             <td valign="top" style={{"width":"80%", "padding-left": "1em"}}>  
-                                <ChartLine04 series={JSON.stringify([
+                                <ChartLine05 series={JSON.stringify([
                                                         { name : metricDetailsIndex.index, data : clusterStats['cluster']['history'][metricDetailsIndex.index] }
                                                     ])}
-                                                title={metricDetailsIndex.title} height="220px" 
+                                                    p50={metricDetailsIndex.p50}
+                                                    p90={metricDetailsIndex.p90}
+                                                    p95={metricDetailsIndex.p95}
+                                                    avg={metricDetailsIndex.avg}
+                                                    max={metricDetailsIndex.max}
+                                                title={""} height="300px" 
                                 />
                             </td>
                             <td valign="top" style={{"width":"10%", "padding-left": "1em"}}>  
@@ -651,21 +831,6 @@ function App() {
                                                                                                 ])}
                                                                                             title={"TotalCmds/sec"} height="220px" 
                                                                             />
-                                                                            {/*
-                                                                            
-                                                                            <ChartBar01 series={JSON.stringify([
-                                                                                                    { name : "TotalCmdsCount", data : clusterStats['cluster']['history']['TotalCmdsCount'] }
-                                                                                                ])}
-                                                                                            title={"TotalCmds/sec"} height="220px" 
-                                                                            />
-                                                                            
-                                                                            <ChartBar01 series={[
-                                                                                                    dataMetrics.refObject.getPropertyValues('Operations')
-                                                                                                ]} 
-                                                                             timestamp={dataMetrics.timestamp} title={"Operations/sec"} height="180px" 
-                                                                             />
-                                                                             */}
-                                                                                   
                                                                         </td>
                                                                     </tr>
                                                                     
@@ -887,9 +1052,9 @@ function App() {
                                                                   <tr>  
                                                                     <td style={{"width":"50%","padding-left": "1em"}}> 
                                                                             <ChartLine04 series={JSON.stringify([
-                                                                                                    { name : "TotalCmdsCount", data : clusterStats['cluster']['history']['ElastiCacheProcessingUnits'] }
+                                                                                                    { name : "ElastiCacheProcessingUnits", data : clusterStats['cluster']['history']['ElastiCacheProcessingUnits'] }
                                                                                                 ])}
-                                                                                            title={"ECPU"} height="220px" 
+                                                                                            title={"ECPU (Count/sec)"} height="300px" 
                                                                             />
                                                                     </td>
                                                                     
@@ -897,7 +1062,7 @@ function App() {
                                                                             <ChartLine04 series={JSON.stringify([
                                                                                                     { name : "BytesUsedForCache", data : clusterStats['cluster']['history']['BytesUsedForCache'] }
                                                                                                 ])}
-                                                                                            title={"Memory"} height="220px" 
+                                                                                            title={"Memory (Bytes)"} height="300px" 
                                                                             />
                                                                     </td>
                                                                   </tr>
@@ -908,41 +1073,23 @@ function App() {
                                                                   <tr>  
                                                                     <td style={{"width":"50%","padding-left": "1em"}}> 
                                                                             <ChartLine04 series={JSON.stringify([
+                                                                                                    { name : "SuccessfulWriteRequestLatency", data : clusterStats['cluster']['history']['SuccessfulWriteRequestLatency'] },
                                                                                                     { name : "SuccessfulReadRequestLatency", data : clusterStats['cluster']['history']['SuccessfulReadRequestLatency'] }
                                                                                                 ])}
-                                                                                            title={"ReadLatency(us)"} height="220px" 
+                                                                                            title={"Latency (us)"} height="300px" 
                                                                             />
                                                                     </td>
                                                                     <td style={{"width":"50%","padding-left": "1em"}}> 
                                                                             <ChartLine04 series={JSON.stringify([
-                                                                                                    { name : "SuccessfulWriteRequestLatency", data : clusterStats['cluster']['history']['SuccessfulWriteRequestLatency'] }
-                                                                                                ])}
-                                                                                            title={"WriteLatency(us)"} height="220px" 
-                                                                            />
-                                                                    </td>
-                                                                  </tr>
-                                                              </table>
-                                                              <br/>
-                                                              <br/>
-                                                              <table style={{"width":"100%"}}>
-                                                                  <tr>  
-                                                                    <td style={{"width":"50%","padding-left": "1em"}}> 
-                                                                            <ChartLine04 series={JSON.stringify([
-                                                                                                    { name : "NetworkBytesOut", data : clusterStats['cluster']['history']['NetworkBytesOut'] }
-                                                                                                ])}
-                                                                                            title={"NetworkOut"} height="220px" 
-                                                                            />
-                                                                    </td>
-                                                                    
-                                                                    <td style={{"width":"50%","padding-left": "1em"}}> 
-                                                                            <ChartLine04 series={JSON.stringify([
+                                                                                                    { name : "NetworkBytesOut", data : clusterStats['cluster']['history']['NetworkBytesOut'] },
                                                                                                     { name : "NetworkBytesIn", data : clusterStats['cluster']['history']['NetworkBytesIn'] }
                                                                                                 ])}
-                                                                                            title={"NetworkIn"} height="220px" 
+                                                                                            title={"Network (Bytes)"} height="300px" 
                                                                             />
                                                                     </td>
                                                                   </tr>
                                                               </table>
+                                                              
                                                         </Container>
                                                         <br/>
                                                         
@@ -955,425 +1102,192 @@ function App() {
                                           
                                       },
                                       {
-                                        label: "CloudWatch Metrics",
+                                        label: "Analytics",
                                         id: "tab02",
                                         content: 
                                           
                                           <>    
                                                 
-                                                <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
-                                                <tr>  
-                                                   <td> 
-                                                   
-                                                        <Container
-                                                                
-                                                                header={
-                                                                                <Header
-                                                                                  variant="h2"
-                                                                                  description={"AWS CloudWatch metrics from last 60 minutes."}
-                                                                                  actions={
-                                                                                        <Pagination
-                                                                                                  currentPageIndex={currentPageIndex}
-                                                                                                  onChange={({ detail }) => {
-                                                                                                            setCurrentPageIndex(detail.currentPageIndex);
-                                                                                                            pageId.current = detail.currentPageIndex;
-                                                                                                    }
-                                                                                                  }
-                                                                                                  pagesCount={ totalPages } 
-                                                                                        />
-                                                                                  }
+                                                <table style={{"width":"100%", "padding": "1em"}}>
+                                                    <tr>  
+                                                        <td valign="top">
+                                                            <Container>
+                                                            
+                                                                <table style={{"width":"100%", "padding": "1em"}}>
+                                                                    <tr>  
+                                                                        
+                                                                        <td valign="top" style={{ "width":"30%", "padding": "1em"}}>
+                                                                            <FormField
+                                                                                  description="Select a metric to analyze the serverless cluster performance."
+                                                                                  label="Performance Metric"
                                                                                 >
-                                                                                  Performance Metrics
-                                                                                </Header>
-                                                                            }
+                                                                                
+                                                                                    <Select
+                                                                                          selectedOption={selectedMetricAnalytics}
+                                                                                          onChange={({ detail }) => {
+                                                                                                 analyticsMetricName.current = { name : detail.selectedOption.value, factor : detail.selectedOption.factor, descriptions : detail.selectedOption.descriptions, unit : detail.selectedOption.unit };
+                                                                                                 setSelectedMetricAnalytics(detail.selectedOption);
+                                                                                                 ///gatherAnalyticsStats();
+                                                                                                 gatherClusterStats();
+                                                                                          }
+                                                                                          }
+                                                                                          options={analyticsMetrics}
+                                                                                          filteringType="auto"
+                                                                                    />
+                                                                            </FormField>
+                                                                        </td>
+                                                                        <td valign="middle" style={{ "width":"15%","padding-left": "1em", "padding-right": "4em"}}>
+                                                                                
+                                                                            <FormField
+                                                                              description="Period of time for analysis."
+                                                                              label="Period"
+                                                                            >
+                                                                                
+                                                                                <Select
+                                                                                  selectedOption={selectedOptionInterval}
+                                                                                  onChange={({ detail }) => {
+                                                                                        analyticsInterval.current = detail.selectedOption.value;
+                                                                                        setSelectedOptionInterval(detail.selectedOption);
+                                                                                        gatherClusterStats();
+                                                                                  }}
+                                                                                  options={[
+                                                                                    { label: "1 Hour", value: 1 },
+                                                                                    { label: "3 Hours", value: 3 },
+                                                                                    { label: "6 Hours", value: 6 },
+                                                                                    { label: "12 Hours", value: 12 },
+                                                                                    { label: "24 Hours", value: 24 },
+                                                                                    { label: "7 Days", value: 168 }
+                                                                                  ]}
+                                                                                />
+                                                                            
+                                                                            </FormField>
+                                                                                
+                                                                        </td>
+                                                                        <td style={{ "width":"55%","padding-left": "2em", "border-left": "4px solid " + configuration.colors.lines.separator100 }}>
+                                                                                <Box variant="h4">{analyticsMetricName.current.name} ({analyticsMetricName.current.unit})</Box>
+                                                                                <Box fontSize="body-s" color="text-body-secondary">{analyticsMetricName.current.descriptions}</Box>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                             
+                                                                <table style={{"width":"100%", "padding": "1em"}}>
+                                                                    <tr>  
+                                                                        <td valign="top" style={{ "width":"10%","padding-left": "1em"}}>
+                                                                            <CompMetric01 
+                                                                                value={dataAnalytics.count || 0 }
+                                                                                title={"Items"}
+                                                                                precision={0}
+                                                                                format={4}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"20px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td valign="top" style={{ "width":"10%","padding-left": "1em"}}>
+                                                                            <CompMetric01 
+                                                                                value={dataAnalytics.max || 0 }
+                                                                                title={"Max"}
+                                                                                precision={2}
+                                                                                format={4}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"20px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td valign="top" style={{ "width":"10%","padding-left": "1em"}}>
+                                                                             <CompMetric01 
+                                                                                value={ dataAnalytics.avg || 0 }
+                                                                                title={"Avg"}
+                                                                                precision={2}
+                                                                                format={4}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"20px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td valign="top" style={{ "width":"10%","padding-left": "1em"}}>
+                                                                            <CompMetric01 
+                                                                                value={dataAnalytics.min || 0 }
+                                                                                title={"Min"}
+                                                                                precision={2}
+                                                                                format={4}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"20px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td valign="top" style={{ "width":"10%","padding-left": "1em"}}>
+                                                                            <CompMetric01 
+                                                                                value={dataAnalytics.p50 || 0}
+                                                                                title={"p50"}
+                                                                                precision={2}
+                                                                                format={4}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"20px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td valign="top" style={{ "width":"10%","padding-left": "1em"}}>
+                                                                             <CompMetric01 
+                                                                                value={ dataAnalytics.p90 || 0 }
+                                                                                title={"p90"}
+                                                                                precision={2}
+                                                                                format={4}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"20px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td valign="top" style={{ "width":"10%","padding-left": "1em"}}>
+                                                                            <CompMetric01 
+                                                                                value={dataAnalytics.p95 || 0}
+                                                                                title={"p95"}
+                                                                                precision={2}
+                                                                                format={4}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"20px"}
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                                
+                                                                <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
+                                                                    <tr>  
+                                                                        <td valign="top" style={{ "width":"100%","padding-left": "1em"}}>
+                                                                            <ChartLine05 series={JSON.stringify([
+                                                                                                        { name : dataAnalytics.name, data : dataAnalytics.dataset }
+                                                                                                    ])}
+                                                                                                p50={dataAnalytics.p50}
+                                                                                                p90={dataAnalytics.p90}
+                                                                                                p95={dataAnalytics.p95}
+                                                                                                avg={dataAnalytics.avg}
+                                                                                                max={dataAnalytics.max}
+                                                                                                title={""} height="400px" 
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                                <br/>
+                                                                <br/>
+                                                                <br/>
+                                                                <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
+                                                                    <tr>  
+                                                                        <td valign="top" style={{ "width":"50%","padding-left": "1em"}}>
+                                                                            
+                                                                            <ChartBar02 series={JSON.stringify([
+                                                                                                        { name : dataAnalytics.name, data : dataAnalytics.datasetSorted }
+                                                                                                    ])}
+                                                                                                    p50={dataAnalytics.p50}
+                                                                                                    p90={dataAnalytics.p90}
+                                                                                                    p95={dataAnalytics.p95}
+                                                                                                    avg={dataAnalytics.avg}
+                                                                                                    max={dataAnalytics.max}
+                                                                                                    title={""} height="300px" 
+                                                                            />
+                                                                            
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                                
+                                                            </Container>
                                                         
-                                                        >
-                                                            <CLWChart
-                                                                  title="CPU Utilization % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CPUUtilization"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Engine CPU Utilization % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="EngineCPUUtilization"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Database Memory Usage Percentage % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="DatabaseMemoryUsagePercentage"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Database Capacity Usage Percentage % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="DatabaseCapacityUsagePercentage"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Network Bytes In" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBytesIn"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Network Bytes Out" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBytesOut"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="NetworkBandwidthInAllowanceExceeded" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBandwidthInAllowanceExceeded"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="NetworkBandwidthOutAllowanceExceeded" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBandwidthOutAllowanceExceeded"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="CurrConnections" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CurrConnections"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={3}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Current Items" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CurrItems"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="GetTypeCmds" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="GetTypeCmds"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="SetTypeCmds" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="SetTypeCmds"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="GetTypeCmdsLatency" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="GetTypeCmdsLatency"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="SetTypeCmdsLatency" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="SetTypeCmdsLatency"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="CacheHits" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CacheHits"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="CacheHitRate" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CacheHitRate"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            
-                                                            
-                                                        </Container>
-                                                
-                                                    </td>
-                                                </tr>
-                                            </table> 
+                                                        </td>
+                                                    </tr>
+                                                </table> 
                                             
                                           </>
                                           
@@ -1388,23 +1302,15 @@ function App() {
                                               <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                     <tr>  
                                                         <td>
-                                                                <Container 
-                                                                        header={
-                                                                                <Header
-                                                                                  variant="h2"
-                                                                                >
-                                                                                  Configuration
-                                                                                </Header>
-                                                                        }
-                                                                >
+                                                                <Container>
                                                                     <ColumnLayout columns={4} variant="text-grid">
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Cluster name</Box>
                                                                             <div>{parameter_object_values['rds_id']}</div>
                                                                       </div>
                                                                       <div>
-                                                                            <Box variant="awsui-key-label">CacheNodeType</Box>
-                                                                            <div>{clusterStats['cluster']['size']}</div>
+                                                                            <Box variant="awsui-key-label">Capacity</Box>
+                                                                            <div>{parameter_object_values['rds_size']}</div>
                                                                       </div>
                                                                       <div>
                                                                             <Box variant="awsui-key-label">ConfigurationEndpoint</Box>
@@ -1427,22 +1333,6 @@ function App() {
                                                                             <div>{parameter_object_values['rds_mode']}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <Box variant="awsui-key-label">Shards</Box>
-                                                                            <div>{clusterStats['cluster']['totalShards']}</div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">Nodes</Box>
-                                                                            <div>{clusterStats['cluster']['totalNodes']}</div>
-                                                                        </div>
-                                                                    </ColumnLayout>
-                                                                    <br/>
-                                                                    <br/>
-                                                                    <ColumnLayout columns={4} variant="text-grid">
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">MultiAZ</Box>
-                                                                            <div>{parameter_object_values['rds_multiaz']}</div>
-                                                                        </div>
-                                                                        <div>
                                                                             <Box variant="awsui-key-label">AutheticationMode</Box>
                                                                             <div>{parameter_object_values['rds_auth']}</div>
                                                                         </div>
@@ -1451,8 +1341,6 @@ function App() {
                                                                             <div>{clusterStats['cluster']['connectionId']}</div>
                                                                         </div>
                                                                     </ColumnLayout>
-                                                                    <br/>
-                                                                    <br/>
                                                                   </Container>
                                                 
                                                         </td>
