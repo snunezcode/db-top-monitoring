@@ -26,7 +26,7 @@ export const configuration =
         },
         "lines" : {
             "separator100" : "#737c85",
-            "separator101" : "red"
+            "separator101" : "#9e9b9a"
         }
     }
 };

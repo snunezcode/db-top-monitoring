@@ -14,6 +14,7 @@ import Icon from "@awsui/components-react/icon";
 import StatusIndicator from "@awsui/components-react/status-indicator";
 import Spinner from "@awsui/components-react/spinner";
 
+
 import FormField from "@awsui/components-react/form-field";
 import Select from "@awsui/components-react/select";
 import SpaceBetween from "@awsui/components-react/space-between";
@@ -32,6 +33,10 @@ import ChartColumn01 from '../components/ChartColumn01';
 import ChartProgressBar01 from '../components/ChartProgressBar-01';
 import ChartBar01 from '../components/ChartBar01';
 import ChartBar02 from '../components/ChartBar02';
+import Animation01 from '../components/Animation01';
+
+import Card01 from '../components/Card01';
+import "../styles/css/arrow.css";
 
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
@@ -46,6 +51,8 @@ export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   openButtonAriaLabel: 'Open panel',
   resizeHandleAriaLabel: 'Resize split panel',
 };
+
+
 
 var CryptoJS = require("crypto-js");
 const percentile = require("percentile");
@@ -62,8 +69,8 @@ function App() {
     //--######## Global Settings
     
     //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("tab02");
-    const currentTabId = useRef("tab02");
+    const [activeTabId, setActiveTabId] = useState("tab01");
+    const currentTabId = useRef("tab01");
     
     
     const parameter_code_id=params.get("code_id");  
@@ -101,40 +108,6 @@ function App() {
     var totalPages = Math.trunc( parameter_object_values['rds_nodes'] / itemsPerPage) + (  parameter_object_values['rds_nodes'] % itemsPerPage != 0 ? 1 : 0 ) 
     
     
-    /*
-    BytesUsedForCache
-    CacheHitRate
-    CacheHits
-    CacheMisses
-    ChannelAuthorizationFailures
-    CommandAuthorizationFailures
-    CurrConnections
-    CurrItems
-    CurrVolatileItems
-    DB0AverageTTL
-    ElastiCacheProcessingUnits
-    Evictions
-    GetTypeCmds
-    GetTypeCmdsECPUs
-    IamAuthenticationExpirations
-    IamAuthenticationThrottling
-    KeyAuthorizationFailures
-    NetworkBytesIn
-    NetworkBytesOut
-    NewConnections
-    NonKeyTypeCmds
-    NonKeyTypeCmdsECPUs
-    Reclaimed
-    SetTypeCmds
-    SetTypeCmdsECPUs
-    StringBasedCmds
-    StringBasedCmdsECPUs
-    SuccessfulReadRequestLatency
-    SuccessfulWriteRequestLatency
-    ThrottledCmds
-    TotalCmdsCount
-*/
-
     //-- Variable for Cluster Stats
     var timeNow = new Date();
     const nodeList = useRef("");
@@ -340,7 +313,7 @@ function App() {
         
         var api_url = configuration["apps-settings"]["api_url"];
         
-        if (currentTabId.current == "tab01") {
+        if ( currentTabId.current == "tab01" || currentTabId.current == "tab02") {
             
             Axios.get(`${api_url}/api/elasticache/redis/serverless/cluster/gather/stats/`,{
                           params: { 
@@ -365,7 +338,7 @@ function App() {
         }
         
         
-        if (currentTabId.current == "tab02") {
+        if (currentTabId.current == "tab03") {
         
             var period = 1;
             switch(analyticsInterval.current) {
@@ -731,7 +704,7 @@ function App() {
                                                                         </td>
                                                                         <td valign="top" style={{"width":"10%", "padding-left": "1em", "text-align": "center"}}>  
                                                                                 <ChartRadialBar01 
-                                                                                    series={JSON.stringify([Math.round( ( (clusterStats['cluster']['BytesUsedForCache'] / ( clusterStats['cluster']['storage'] * 1024 * 1024 * 1024 )) * 100 )) || 0 ])} 
+                                                                                    series={JSON.stringify([ Math.round( ( (clusterStats['cluster']['BytesUsedForCache'] / ( clusterStats['cluster']['storage'] * 1024 * 1024 * 1024 )) * 100 )) || 0 ])} 
                                                                                     height="180px" 
                                                                                     title={"Memory"}
                                                                                 />
@@ -765,7 +738,7 @@ function App() {
                                                                                 <br />
                                                                                 <br />
                                                                                 <ChartProgressBar01 
-                                                                                    value={ (clusterStats['cluster']['CacheHitRate']) * 100 || 0 }
+                                                                                    value={ (clusterStats['cluster']['CacheHitRate']) || 0 }
                                                                                     valueSufix={"%"}
                                                                                     title={"CacheHitRate"}
                                                                                     precision={0}
@@ -1102,8 +1075,339 @@ function App() {
                                           
                                       },
                                       {
-                                        label: "Analytics",
+                                        label: "Performance Visualization",
                                         id: "tab02",
+                                        content: 
+                                         
+                                          <>
+                                                 
+                                              <table style={{"width":"100%",  "background-color ": "black"}}>
+                                                    <tr>  
+                                                        <td>
+                                                            <Container>
+                                                                    
+                                                                    
+                                                                    
+                                                                    <table style={{"width": "100%"}}>
+                                                                        <tr>  
+                                                                            <td style={{"width": "40%", "padding-left": "1em", "padding-right": "1em",}}>
+                                                                            </td>
+                                                                            <td style={{"width": "20%", "padding-left": "1em", "padding-right": "1em", "border-radius": "10px", "border":  "3px solid" + configuration.colors.lines.separator101, "text-align": "center" }}>
+                                                                                Request Routing Layer
+                                                                            </td>
+                                                                            <td style={{"width": "40%", "padding-left": "1em", "padding-right": "1em",}}>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <table style={{"width": "100%", "padding" : "0em" }}>
+                                                                        <tr>  
+                                                                            <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "right"}}>
+                                                                                    <CompMetric01 
+                                                                                        value={clusterStats['cluster']['NetworkBytesIn'] || 0}
+                                                                                        title={"NetworkBytesIn/sec"}
+                                                                                        precision={0}
+                                                                                        format={2}
+                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                        fontSizeValue={"20px"}
+                                                                                    />
+                                                                            </td>
+                                                                            <td style={{"width": "5%", "padding-left": "2px", "padding-right": "0em", "text-align": "left", }} >
+                                                                                    <Animation01 />
+                                                                            </td>
+                                                                            <td style={{"width": "5%", "padding-left": "0em", "padding-right": "2px", "text-align": "right",  }}>
+                                                                                    <Animation01 rotate="180deg" />
+                                                                            </td>
+                                                                            <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "left"}}>
+                                                                                    <CompMetric01 
+                                                                                        value={clusterStats['cluster']['NetworkBytesOut'] || 0}
+                                                                                        title={"NetworkBytesOut/sec"}
+                                                                                        precision={0}
+                                                                                        format={2}
+                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                        fontSizeValue={"20px"}
+                                                                                    />
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    
+                                                                    <table style={{"width": "100%"}}>
+                                                                        <tr>
+                                                                            <td style={{"width": "100%", "padding-left": "1em", "padding-right": "1em", "border-radius": "10px", "border":  "5px solid" + configuration.colors.lines.separator101 }}>
+                                                                                    
+                                                                                    <table style={{"width": "100%"}}>
+                                                                                        <tr>
+                                                                                            <td style={{"width": "50%", }}>
+                                                                                                <Box variant="h2" color="text-status-inactive" >Compute Layer</Box>
+                                                                                            </td>
+                                                                                            <td style={{"width": "50%", }}>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td colspan="2" style={{"width": "100%", "text-align": "center" }}>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td valign="top" style={{"width": "50%",  }}>
+                                                                                            
+                                                                                                <table style={{"width": "100%"}}>
+                                                                                                    <tr>
+                                                                                                        <td style={{"width": "70%", }}>
+                                                                                                            <ChartProgressBar01 
+                                                                                                                    value={ Math.round( ( (clusterStats['cluster']['ElastiCacheProcessingUnits'] / clusterStats['cluster']['ecpu']) * 100 ) ) || 0 }
+                                                                                                                    valueSufix={"%"}
+                                                                                                                    title={""}
+                                                                                                                    precision={0}
+                                                                                                                    format={1}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                                    height={"30px"}
+                                                                                                                />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "30%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['ElastiCacheProcessingUnits'] || 0}
+                                                                                                                    title={"ElastiCacheProcessingUnits/sec"}
+                                                                                                                    precision={0}
+                                                                                                                    format={3}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                    <tr>
+                                                                                                        <td colspan="2" style={{"width": "100%" }}>
+                                                                                                            <ChartBar01 series={JSON.stringify([
+                                                                                                                                { name : "ElastiCacheProcessingUnits", data : clusterStats['cluster']['history']['ElastiCacheProcessingUnits'] }
+                                                                                                                            ])}
+                                                                                                                        title={""} height="150px" 
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </table>
+                                                                                                
+                                                                                            </td>
+                                                                                            <td valign="top" style={{"width": "50%", }}>
+                                                                                                <table style={{"width": "100%"}}>
+                                                                                                    <tr>
+                                                                                                        <td style={{"width": "33%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['TotalCmdsCount'] || 0}
+                                                                                                                    title={"TotalCmdsCount/sec"}
+                                                                                                                    precision={0}
+                                                                                                                    format={3}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "33%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['CurrConnections'] || 0}
+                                                                                                                    title={"CurrConnections"}
+                                                                                                                    precision={0}
+                                                                                                                    format={3}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "33%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['NewConnections'] || 0}
+                                                                                                                    title={"NewConnections/sec"}
+                                                                                                                    precision={0}
+                                                                                                                    format={3}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "33%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['ThrottledCmds'] || 0}
+                                                                                                                    title={"ThrottledCmds/sec"}
+                                                                                                                    precision={0}
+                                                                                                                    format={3}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                    <tr>
+                                                                                                        <td colspan="4">
+                                                                                                                <ChartLine04 
+                                                                                                                            series={JSON.stringify([
+                                                                                                                                                        { name : "TotalCmdsCount", data : clusterStats['cluster']['history']['TotalCmdsCount'] },
+                                                                                                                                                    ])}
+                                                                                                                            title={""} height="170px" 
+                                                                                                                />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </table>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    
+                                                                    <table style={{"width": "100%", "padding" : "0em" }}>
+                                                                        <tr>  
+                                                                            <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "right"}}>
+                                                                                    <CompMetric01 
+                                                                                        value={clusterStats['cluster']['SuccessfulWriteRequestLatency'] || 0}
+                                                                                        title={"WriteLatency(us)"}
+                                                                                        precision={0}
+                                                                                        format={3}
+                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                        fontSizeValue={"20px"}
+                                                                                    />
+                                                                            </td>
+                                                                            <td style={{"width": "5%", "padding-left": "2px", "padding-right": "0em", "text-align": "left", }} >
+                                                                                    <Animation01 />
+                                                                            </td>
+                                                                            <td style={{"width": "5%", "padding-left": "0em", "padding-right": "2px", "text-align": "right",  }}>
+                                                                                    <Animation01 rotate="180deg" />
+                                                                            </td>
+                                                                            <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "left"}}>
+                                                                                    <CompMetric01 
+                                                                                        value={clusterStats['cluster']['SuccessfulReadRequestLatency'] || 0}
+                                                                                        title={"ReadLatency(us)"}
+                                                                                        precision={0}
+                                                                                        format={3}
+                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                        fontSizeValue={"20px"}
+                                                                                    />
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    <table style={{"width": "100%"}}>
+                                                                        <tr>
+                                                                            <td style={{"width": "100%", "padding-left": "1em", "padding-right": "1em", "border-radius": "10px", "border":  "5px solid" + configuration.colors.lines.separator101 }}>
+                                                                                    <table style={{"width": "100%"}}>
+                                                                                        <tr>
+                                                                                            <td style={{"width": "50%" }}>
+                                                                                                <Box variant="h2" color="text-status-inactive" >Memory Layer</Box>
+                                                                                            </td>
+                                                                                            <td style={{"width": "50%" }}>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td valign="top" style={{"width": "50%", }}>
+                                                                                                <table style={{"width": "100%"}}>
+                                                                                                    <tr>
+                                                                                                        <td style={{"width": "70%", }}>
+                                                                                                            <ChartProgressBar01 
+                                                                                                                value={ Math.round( ( (clusterStats['cluster']['BytesUsedForCache'] / ( clusterStats['cluster']['storage'] * 1024 * 1024 * 1024 )) * 100 )) || 0 }
+                                                                                                                valueSufix={"%"}
+                                                                                                                title={""}
+                                                                                                                precision={0}
+                                                                                                                format={1}
+                                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                fontSizeValue={"20px"}
+                                                                                                                height={"30px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "30%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                value={clusterStats['cluster']['BytesUsedForCache'] || 0}
+                                                                                                                title={"BytesUsedForCache"}
+                                                                                                                precision={0}
+                                                                                                                format={2}
+                                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                    <tr>
+                                                                                                        <td colspan="2" style={{"width": "100%" }}>
+                                                                                                            <ChartBar01 series={JSON.stringify([
+                                                                                                                        { name : "BytesUsedForCache", data : clusterStats['cluster']['history']['BytesUsedForCache'] }
+                                                                                                                    ])}
+                                                                                                                title={""} height="150px" 
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </table>
+                                                                                            </td>
+                                                                                            <td valign="top" style={{"width": "50%", "text-align": "center" }}>
+                                                                                                <table style={{"width": "100%"}}>
+                                                                                                    <tr>
+                                                                                                        <td style={{"width": "25%", "text-align": "left", "padding-left": "2em","padding-right": "2em", }}>
+                                                                                                            <ChartProgressBar01 
+                                                                                                                value={ (clusterStats['cluster']['CacheHitRate']) || 0 }
+                                                                                                                valueSufix={"%"}
+                                                                                                                title={"CacheHitRate"}
+                                                                                                                precision={0}
+                                                                                                                format={1}
+                                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "25%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['CurrItems'] || 0}
+                                                                                                                    title={"CurrItems"}
+                                                                                                                    precision={0}
+                                                                                                                    format={3}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "25%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                value={clusterStats['cluster']['CurrVolatileItems'] || 0}
+                                                                                                                title={"CurrVolatileItems"}
+                                                                                                                precision={0}
+                                                                                                                format={3}
+                                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "25%", "text-align": "center" }}>
+                                                                                                            <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['Evictions'] || 0}
+                                                                                                                    title={"Evictions/sec"}
+                                                                                                                    precision={0}
+                                                                                                                    format={3}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                            />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                    <tr>
+                                                                                                        <td colspan="4">
+                                                                                                                <ChartLine04 
+                                                                                                                            series={JSON.stringify([
+                                                                                                                                                        { name : "SuccessfulWriteRequestLatency", data : clusterStats['cluster']['history']['SuccessfulWriteRequestLatency'] },
+                                                                                                                                                        { name : "SuccessfulReadRequestLatency", data : clusterStats['cluster']['history']['SuccessfulReadRequestLatency'] }
+                                                                                                                                                    ])}
+                                                                                                                            title={""} height="200px" 
+                                                                                                                />
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </table>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                    
+                                                                    
+                                                                    
+                                                                    
+                                                                    
+                                                            </Container>
+                                                                    
+                                                
+                                                        </td>
+                                                    </tr>
+                                                </table> 
+                                                
+                                          </>
+                                          
+                                      },
+                                      {
+                                        label: "Analytics Insight",
+                                        id: "tab03",
                                         content: 
                                           
                                           <>    
@@ -1294,7 +1598,7 @@ function App() {
                                       },
                                       {
                                         label: "Cluster Information",
-                                        id: "tab03",
+                                        id: "tab04",
                                         content: 
                                          
                                           <>
@@ -1367,3 +1671,20 @@ function App() {
 }
 
 export default App;
+
+
+/*
+<div class="wrapper">
+    <div class="loading-bars">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </div>
+    <h1>
+        LOADING
+    </h1>
+</div>
+*/

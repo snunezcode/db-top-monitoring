@@ -3558,6 +3558,7 @@ class classElasticacheServerlessCluster {
         #objLog = new classLogging({ name : "classElasticacheServerlessCluster", instance : "generic" });
         
         //-- Shard Metrics
+        /*
         #metricCatalog = {
                         'BytesUsedForCache' : { factor : 1 },
                         'CacheHitRate' : { factor : 1 },
@@ -3591,6 +3592,64 @@ class classElasticacheServerlessCluster {
                         'ThrottledCmds' : { factor : 60 },
                         'TotalCmdsCount' : { factor : 60 },
         }; 
+        */
+        #metricCatalog = {
+                        'AuthenticationFailures' : { factor : 60 },
+                        'BytesUsedForCache' : { factor : 1 },
+                        'CacheHitRate' : { factor : ( 1 / 100 ) },
+                        'CacheHits' : { factor : 60 },
+                        'CommandAuthorizationFailures' : { factor : 60 },
+                        'CurrConnections' : { factor : 1 },
+                        'CurrItems' : { factor : 1 },
+                        'CurrVolatileItems' : { factor : 1 },
+                        'ElastiCacheProcessingUnits' : { factor : 60 },
+                        'Evictions' : { factor : 60 },
+                        'IamAuthenticationExpirations' : { factor : 60 },
+                        'IamAuthenticationThrottling' : { factor : 60 },
+                        'KeyAuthorizationFailures' : { factor : 60 },
+                        'NetworkBytesIn' : { factor : 60 },
+                        'NetworkBytesOut' : { factor : 60 },
+                        'NewConnections' : { factor : 60 },
+                        'SuccessfulReadRequestLatency' : { factor : 0.000001 },
+                        'SuccessfulWriteRequestLatency' : { factor : 0.000001 },
+                        'ThrottledCmds' : { factor : 60 },
+                        'TotalCmdsCount' : { factor : 60 },
+                        //--Commands
+                        'EvalBasedCmds' : { factor : 60 },
+                        'EvalBasedCmdsECPUs' : { factor : 60 },
+                        'GeoSpatialBasedCmds' : { factor : 60 },
+                        'GeoSpatialBasedCmdsECPUs' : { factor : 60 },
+                        'GetTypeCmds' : { factor : 60 },
+                        'GetTypeCmdsECPUs' : { factor : 60 },
+                        'HashBasedCmds' : { factor : 60 },
+                        'HashBasedCmdsECPUs' : { factor : 60 },
+                        'HyperLogLogBasedCmds' : { factor : 60 },
+                        'HyperLogLogBasedCmdsECPUs' : { factor : 60 },
+                        'JsonBasedCmds' : { factor : 60 },
+                        'JsonBasedCmdsECPUs' : { factor : 60 },
+                        'JsonBasedGetCmds' : { factor : 60 },
+                        'JsonBasedGetCmdsECPUs' : { factor : 60 },
+                        'JsonBasedSetCmds' : { factor : 60 },
+                        'JsonBasedSetCmdsECPUs' : { factor : 60 },
+                        'KeyBasedCmds' : { factor : 60 },
+                        'KeyBasedCmdsECPUs' : { factor : 60 },
+                        'ListBasedCmds' : { factor : 60 },
+                        'ListBasedCmdsECPUs' : { factor : 60 },
+                        'NonKeyTypeCmds' : { factor : 60 },
+                        'NonKeyTypeCmdsECPUs' : { factor : 60 },
+                        'PubSubBasedCmds' : { factor : 60 },
+                        'PubSubBasedCmdsECPUs' : { factor : 60 },
+                        'SetBasedCmds' : { factor : 60 },
+                        'SetBasedCmdsECPUs' : { factor : 60 },
+                        'SetTypeCmds' : { factor : 60 },
+                        'SetTypeCmdsECPUs' : { factor : 60 },
+                        'SortedSetBasedCmds' : { factor : 60 },
+                        'SortedSetBasedCmdsECPUs' : { factor : 60 },
+                        'StreamBasedCmds' : { factor : 60 },
+                        'StreamBasedCmdsECPUs' : { factor : 60 },
+                        'StringBasedCmds' : { factor : 60 },
+                        'StringBasedCmdsECPUs' : { factor : 60 },
+        };
         #dimension;
         #metrics = {};
         #metricList = [];
