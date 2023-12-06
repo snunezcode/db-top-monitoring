@@ -10,34 +10,22 @@ import ColumnLayout from "@awsui/components-react/column-layout";
 import { SplitPanel } from '@awsui/components-react';
 
 import Flashbar from "@awsui/components-react/flashbar";
-import Icon from "@awsui/components-react/icon";
 import StatusIndicator from "@awsui/components-react/status-indicator";
 import Spinner from "@awsui/components-react/spinner";
-
 
 import FormField from "@awsui/components-react/form-field";
 import Select from "@awsui/components-react/select";
 import SpaceBetween from "@awsui/components-react/space-between";
-import Pagination from "@awsui/components-react/pagination";
-import Link from "@awsui/components-react/link";
-import Header from "@awsui/components-react/header";
 import Container from "@awsui/components-react/container";
-import ElasticNode  from '../components/CompElasticNode01';
 import CompMetric01  from '../components/Metric01';
-import ChartLine02  from '../components/ChartLine02';
 import ChartLine04  from '../components/ChartLine04';
 import ChartLine05  from '../components/ChartLine05';
-import CLWChart  from '../components/ChartCLW03';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
-import ChartColumn01 from '../components/ChartColumn01';
 import ChartProgressBar01 from '../components/ChartProgressBar-01';
 import ChartBar01 from '../components/ChartBar01';
 import ChartBar02 from '../components/ChartBar02';
 import Animation01 from '../components/Animation01';
-
-import Card01 from '../components/Card01';
-import "../styles/css/arrow.css";
-
+import ChartPolar01 from '../components/ChartPolar-01';
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -100,88 +88,134 @@ function App() {
     const [splitPanelShow,setsplitPanelShow] = useState(false);
     const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
     
-    
-    //-- Variable for Paging
-    const [currentPageIndex,setCurrentPageIndex] = useState(1);
-    var pageId = useRef(1);
-    var itemsPerPage = configuration["apps-settings"]["items-per-page"];
-    var totalPages = Math.trunc( parameter_object_values['rds_nodes'] / itemsPerPage) + (  parameter_object_values['rds_nodes'] % itemsPerPage != 0 ? 1 : 0 ) 
-    
-    
+
     //-- Variable for Cluster Stats
-    var timeNow = new Date();
-    const nodeList = useRef("");
     const [clusterStats,setClusterStats] = useState({ 
                                 cluster : {
                                             status : "pending",
                                             ecpu : "0",
                                             storage : "-",
+                                            AuthenticationFailures : 0,
                                             BytesUsedForCache : 0,
                                             CacheHitRate : 0,
                                             CacheHits : 0,
-                                            CacheMisses : 0,
-                                            ChannelAuthorizationFailures : 0,
                                             CommandAuthorizationFailures : 0,
                                             CurrConnections : 0,
                                             CurrItems : 0,
                                             CurrVolatileItems : 0,
-                                            DB0AverageTTL : 0,
                                             ElastiCacheProcessingUnits : 0,
                                             Evictions : 0,
-                                            GetTypeCmds : 0,
-                                            GetTypeCmdsECPUs : 0,
                                             IamAuthenticationExpirations : 0,
                                             IamAuthenticationThrottling : 0,
                                             KeyAuthorizationFailures : 0,
                                             NetworkBytesIn : 0,
                                             NetworkBytesOut : 0,
                                             NewConnections : 0,
-                                            NonKeyTypeCmds : 0,
-                                            NonKeyTypeCmdsECPUs : 0,
-                                            Reclaimed : 0,
-                                            SetTypeCmds : 0,
-                                            SetTypeCmdsECPUs : 0,
-                                            StringBasedCmds : 0,
-                                            StringBasedCmdsECPUs : 0,
                                             SuccessfulReadRequestLatency : 0,
                                             SuccessfulWriteRequestLatency : 0,
                                             ThrottledCmds : 0,
                                             TotalCmdsCount : 0,
+                                            //--Commands
+                                            EvalBasedCmds : 0,
+                                            EvalBasedCmdsECPUs : 0,
+                                            GeoSpatialBasedCmds : 0,
+                                            GeoSpatialBasedCmdsECPUs : 0,
+                                            GetTypeCmds : 0,
+                                            GetTypeCmdsECPUs : 0,
+                                            HashBasedCmds : 0,
+                                            HashBasedCmdsECPUs : 0,
+                                            HyperLogLogBasedCmds : 0,
+                                            HyperLogLogBasedCmdsECPUs : 0,
+                                            JsonBasedCmds : 0,
+                                            JsonBasedCmdsECPUs : 0,
+                                            JsonBasedGetCmds : 0,
+                                            JsonBasedGetCmdsECPUs : 0,
+                                            JsonBasedSetCmds : 0,
+                                            JsonBasedSetCmdsECPUs : 0,
+                                            KeyBasedCmds : 0,
+                                            KeyBasedCmdsECPUs : 0,
+                                            ListBasedCmds : 0,
+                                            ListBasedCmdsECPUs : 0,
+                                            NonKeyTypeCmds : 0,
+                                            NonKeyTypeCmdsECPUs : 0,
+                                            PubSubBasedCmds : 0,
+                                            PubSubBasedCmdsECPUs : 0,
+                                            SetBasedCmds : 0,
+                                            SetBasedCmdsECPUs : 0,
+                                            SetTypeCmds : 0,
+                                            SetTypeCmdsECPUs : 0,
+                                            SortedSetBasedCmds : 0,
+                                            SortedSetBasedCmdsECPUs : 0,
+                                            StreamBasedCmds : 0,
+                                            StreamBasedCmdsECPUs : 0,
+                                            StringBasedCmds : 0,
+                                            StringBasedCmdsECPUs : 0,
                                             lastUpdate : "-",
                                             connectionId : "-",
                                             history : {
-                                                    BytesUsedForCache : [], 
-                                                    CacheHitRate : [], 
-                                                    CacheHits : [], 
-                                                    CacheMisses : [], 
-                                                    ChannelAuthorizationFailures : [], 
-                                                    CommandAuthorizationFailures : [], 
-                                                    CurrConnections : [], 
-                                                    CurrItems : [], 
-                                                    CurrVolatileItems : [], 
-                                                    DB0AverageTTL : [], 
-                                                    ElastiCacheProcessingUnits : [], 
-                                                    Evictions : [], 
-                                                    GetTypeCmds : [], 
-                                                    GetTypeCmdsECPUs : [], 
-                                                    IamAuthenticationExpirations : [], 
-                                                    IamAuthenticationThrottling : [], 
-                                                    KeyAuthorizationFailures : [], 
-                                                    NetworkBytesIn : [], 
-                                                    NetworkBytesOut : [], 
-                                                    NewConnections : [], 
-                                                    NonKeyTypeCmds : [], 
-                                                    NonKeyTypeCmdsECPUs : [], 
-                                                    Reclaimed : [], 
-                                                    SetTypeCmds : [], 
-                                                    SetTypeCmdsECPUs : [], 
-                                                    StringBasedCmds : [], 
-                                                    StringBasedCmdsECPUs : [], 
-                                                    SuccessfulReadRequestLatency : [], 
-                                                    SuccessfulWriteRequestLatency : [], 
-                                                    ThrottledCmds : [], 
-                                                    TotalCmdsCount : [], 
-                                            }
+                                                    AuthenticationFailures : [],
+                                                    BytesUsedForCache : [],
+                                                    CacheHitRate : [],
+                                                    CacheHits : [],
+                                                    CommandAuthorizationFailures : [],
+                                                    CurrConnections : [],
+                                                    CurrItems : [],
+                                                    CurrVolatileItems : [],
+                                                    ElastiCacheProcessingUnits : [],
+                                                    Evictions : [],
+                                                    IamAuthenticationExpirations : [],
+                                                    IamAuthenticationThrottling : [],
+                                                    KeyAuthorizationFailures : [],
+                                                    NetworkBytesIn : [],
+                                                    NetworkBytesOut : [],
+                                                    NewConnections : [],
+                                                    SuccessfulReadRequestLatency : [],
+                                                    SuccessfulWriteRequestLatency : [],
+                                                    ThrottledCmds : [],
+                                                    TotalCmdsCount : [],
+                                                    //-- Commands
+                                                    EvalBasedCmds : [],
+                                                    EvalBasedCmdsECPUs : [],
+                                                    GeoSpatialBasedCmds : [],
+                                                    GeoSpatialBasedCmdsECPUs : [],
+                                                    GetTypeCmds : [],
+                                                    GetTypeCmdsECPUs : [],
+                                                    HashBasedCmds : [],
+                                                    HashBasedCmdsECPUs : [],
+                                                    HyperLogLogBasedCmds : [],
+                                                    HyperLogLogBasedCmdsECPUs : [],
+                                                    JsonBasedCmds : [],
+                                                    JsonBasedCmdsECPUs : [],
+                                                    JsonBasedGetCmds : [],
+                                                    JsonBasedGetCmdsECPUs : [],
+                                                    JsonBasedSetCmds : [],
+                                                    JsonBasedSetCmdsECPUs : [],
+                                                    KeyBasedCmds : [],
+                                                    KeyBasedCmdsECPUs : [],
+                                                    ListBasedCmds : [],
+                                                    ListBasedCmdsECPUs : [],
+                                                    NonKeyTypeCmds : [],
+                                                    NonKeyTypeCmdsECPUs : [],
+                                                    PubSubBasedCmds : [],
+                                                    PubSubBasedCmdsECPUs : [],
+                                                    SetBasedCmds : [],
+                                                    SetBasedCmdsECPUs : [],
+                                                    SetTypeCmds : [],
+                                                    SetTypeCmdsECPUs : [],
+                                                    SortedSetBasedCmds : [],
+                                                    SortedSetBasedCmdsECPUs : [],
+                                                    StreamBasedCmds : [],
+                                                    StreamBasedCmdsECPUs : [],
+                                                    StringBasedCmds : [],
+                                                    StringBasedCmdsECPUs : [],
+                                            },
+                                            analytics : {
+                                                labels : [],
+                                                series : [],
+                                                data : []
+                                            },
+                                            commandTypesTotal : [],
+                                            commandTypesECPU : [],
                                 },
                 });
     
@@ -266,6 +300,19 @@ function App() {
                             
                             
     
+    //-- Variable for Command Analytics
+    
+    const [selectedCommandAnalytics,setSelectedCommandAnalytics] = useState({
+                                                                            label: "ECPUs used by commands per second",
+                                                                            value: "CmdsECPUs"
+    });
+    const analyticsCommandName = useRef("CmdsECPUs");
+    const analyticsCommands = [
+                                { label : 'Total commands received per second', value : 'Cmds' },
+                                { label : 'ECPUs used by commands per second', value : 'CmdsECPUs' },
+                            ];
+    
+  
     
     //-- Function Gather Metrics
     async function openClusterConnection() {
@@ -276,6 +323,7 @@ function App() {
                       params: { 
                                 connectionId : cnf_connection_id,
                                 clusterId : cnf_identifier,
+                                host : parameter_object_values['rds_host'],
                                 username : cnf_username,
                                 password : cnf_password,
                                 auth : cnf_auth,
@@ -313,21 +361,63 @@ function App() {
         
         var api_url = configuration["apps-settings"]["api_url"];
         
-        if ( currentTabId.current == "tab01" || currentTabId.current == "tab02") {
+        if ( currentTabId.current == "tab01" || currentTabId.current == "tab02" || currentTabId.current == "tab04") {
             
             Axios.get(`${api_url}/api/elasticache/redis/serverless/cluster/gather/stats/`,{
                           params: { 
                                     connectionId : cnf_connection_id, 
                                     clusterId : cnf_identifier, 
-                                    beginItem : ( (pageId.current-1) * itemsPerPage), 
-                                    endItem : (( (pageId.current-1) * itemsPerPage) + itemsPerPage),
                                     engineType : "elasticache:serverless"
                               
                           }
                       }).then((data)=>{
                        
-                       console.log(data.data.cluster);
-                       setClusterStats({ cluster : {...data.data.cluster} });
+                        var commandTypesTotal = [];
+                        var analytics = { labels : [], series : [], data : [] };
+                        console.log(data.data.cluster);
+                       
+                       
+                        if (currentTabId.current == "tab01"){
+                            
+                            var commandType = "Cmds";
+                            for (let metric of Object.keys(data.data.cluster.history)) {
+                                if (metric.substr(metric.length - commandType.length ) == commandType && metric != "ThrottledCmds"  /*"CmdsECPUs"*/ ) {
+                                    var total = data.data.cluster.history[metric].reduce((a,b) => a + b[1], 0);
+                                    if ( total > 0 ){
+                                        commandTypesTotal.push({ name : metric, data : data.data.cluster.history[metric] });
+                                    }
+                                }
+                           }
+                        }
+                        
+                        
+                        if (currentTabId.current == "tab04"){
+                            
+                            var commandType = analyticsCommandName.current;
+                            var serieList = [];
+                            var labelList = [];
+                            var dataList = [];
+                            
+                            for (let metric of Object.keys(data.data.cluster.history)) {
+                                if (metric.substr(metric.length - commandType.length ) == commandType && metric != "ThrottledCmds"  /*"CmdsECPUs"*/ ) {
+                                    var dataset  = data.data.cluster.history[metric];
+                                    var total = dataset.reduce((a,b) => a + b[1], 0);
+                                    if( total > 0 ) {
+                                        labelList.push(metric);
+                                        serieList.push( (total / dataset.length) || 0 );
+                                        dataList.push({ name : metric, data : dataset });
+                                    }
+                                }
+                               
+                           }
+                            
+                           analytics = { labels : labelList, series : serieList, data : dataList }; 
+                           
+                        }
+                       
+                       
+                       setClusterStats({ cluster : {...data.data.cluster, analytics : analytics, commandTypesTotal : commandTypesTotal } });
+                       
     
                   })
                   .catch((err) => {
@@ -401,38 +491,6 @@ function App() {
                   });
             
         }
-
-    }
-
-
-    //-- Function Cluster Gather Stats
-    async function gatherAnalyticsStats() {
-        
-        
-        var api_url = configuration["apps-settings"]["api_url"];
-        
-        
-        Axios.get(`${api_url}/api/elasticache/redis/serverless/cluster/gather/analytics/`,{
-                      params: { 
-                                connectionId : cnf_connection_id, 
-                                clusterId : cnf_identifier, 
-                                metricName : analyticsMetricName.current.name,
-                                period : 1,
-                                interval : 180,
-                                factor : analyticsMetricName.current.factor,
-                                engineType : "elasticache:serverless"
-                          
-                      }
-                  }).then((data)=>{
-                   
-                   console.log(data.data.metric);
-                   setDatadAnalytics({ name : analyticsMetricName.current.name , dataset : data.data.metric });
-              })
-              .catch((err) => {
-                  console.log('Timeout API Call : /api/elasticache/redis/serverless/cluster/gather/analytics/' );
-                  console.log(err);
-                  
-              });
 
     }
 
@@ -518,7 +576,7 @@ function App() {
                    
     }
     
-    
+    function onClickPolarChart(object) {}
  
 
   return (
@@ -680,9 +738,7 @@ function App() {
                                             <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                 <tr>  
                                                    <td> 
-                                                        <Container
-                                                                 
-                                                        >
+                                                        <Container>
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>  
                                                                         <td valign="top" style={{"width":"10%", "padding-left": "1em", "text-align": "center"}}>  
@@ -861,23 +917,11 @@ function App() {
                                                                                 />
                                                                             </a>
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('StringBasedCmds','StringBasedCmds/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={clusterStats['cluster']['StringBasedCmds'] || 0}
-                                                                                    title={"StringBasedCmds/sec"}
-                                                                                    precision={0}
-                                                                                    format={3}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                            </a>
-                                                                        </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('StringBasedCmdsECPUs','StringBasedCmdsECPUs/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CurrItems','CurrItems')}>
                                                                                 <CompMetric01 
-                                                                                    value={clusterStats['cluster']['StringBasedCmdsECPUs'] || 0}
-                                                                                    title={"StringBasedCmdsECPUs/sec"}
+                                                                                    value={clusterStats['cluster']['CurrItems'] || 0}
+                                                                                    title={"CurrItems"}
                                                                                     precision={0}
                                                                                     format={3}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -886,10 +930,10 @@ function App() {
                                                                             </a>
                                                                         </td>
                                                                         <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('NonKeyTypeCmds','NonKeyTypeCmds/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CurrVolatileItems','CurrVolatileItems')}>
                                                                                 <CompMetric01 
-                                                                                    value={clusterStats['cluster']['NonKeyTypeCmds'] || 0}
-                                                                                    title={"NonKeyTypeCmds/sec"}
+                                                                                    value={clusterStats['cluster']['CurrVolatileItems'] || 0}
+                                                                                    title={"CurrVolatileItems"}
                                                                                     precision={0}
                                                                                     format={3}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -897,19 +941,6 @@ function App() {
                                                                                 />
                                                                             </a>
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('NonKeyTypeCmdsECPUs','NonKeyTypeCmdsECPUs/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={clusterStats['cluster']['NonKeyTypeCmdsECPUs'] || 0}
-                                                                                    title={"NonKeyTypeCmdsECPUs/sec"}
-                                                                                    precision={0}
-                                                                                    format={3}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                            </a>
-                                                                        </td>
-                                                                        
                                                                     </tr>
                                                                     
                                                             </table>  
@@ -930,10 +961,10 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CacheMisses','CacheMisses/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('AuthenticationFailures','AuthenticationFailures/sec')}>
                                                                             <CompMetric01 
-                                                                                value={clusterStats['cluster']['CacheMisses'] || 0}
-                                                                                title={"CacheMisses/sec"}
+                                                                                value={clusterStats['cluster']['AuthenticationFailures'] || 0}
+                                                                                title={"AuthenticationFailures/sec"}
                                                                                 precision={0}
                                                                                 format={3}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
@@ -954,30 +985,6 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CurrItems','CurrItems')}>
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['CurrItems'] || 0}
-                                                                                title={"CurrItems"}
-                                                                                precision={0}
-                                                                                format={3}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </a>    
-                                                                    </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('Evictions','Evictions/sec')}>
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['Evictions'] || 0}
-                                                                                title={"Evictions/sec"}
-                                                                                precision={0}
-                                                                                format={3}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </a>
-                                                                    </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                         <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('NewConnections','NewConnections/sec')}>
                                                                             <CompMetric01 
                                                                                 value={clusterStats['cluster']['NewConnections'] || 0}
@@ -990,12 +997,12 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('Reclaimed','Reclaimed/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('Evictions','Evictions/sec')}>
                                                                             <CompMetric01 
-                                                                                value={clusterStats['cluster']['Reclaimed'] || 0}
-                                                                                title={"Reclaimed/sec"}
+                                                                                value={clusterStats['cluster']['Evictions'] || 0}
+                                                                                title={"Evictions/sec"}
                                                                                 precision={0}
-                                                                                format={1}
+                                                                                format={3}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
                                                                                 fontSizeValue={"16px"}
                                                                             />
@@ -1021,47 +1028,56 @@ function App() {
                                                             <br />
                                                             <br />
                                                               
-                                                              <table style={{"width":"100%"}}>
-                                                                  <tr>  
-                                                                    <td style={{"width":"50%","padding-left": "1em"}}> 
-                                                                            <ChartLine04 series={JSON.stringify([
-                                                                                                    { name : "ElastiCacheProcessingUnits", data : clusterStats['cluster']['history']['ElastiCacheProcessingUnits'] }
-                                                                                                ])}
-                                                                                            title={"ECPU (Count/sec)"} height="300px" 
-                                                                            />
-                                                                    </td>
-                                                                    
-                                                                    <td style={{"width":"50%","padding-left": "1em"}}> 
-                                                                            <ChartLine04 series={JSON.stringify([
-                                                                                                    { name : "BytesUsedForCache", data : clusterStats['cluster']['history']['BytesUsedForCache'] }
-                                                                                                ])}
-                                                                                            title={"Memory (Bytes)"} height="300px" 
-                                                                            />
-                                                                    </td>
-                                                                  </tr>
-                                                              </table>
-                                                              <br/>
-                                                              <br/>
-                                                              <table style={{"width":"100%"}}>
-                                                                  <tr>  
-                                                                    <td style={{"width":"50%","padding-left": "1em"}}> 
-                                                                            <ChartLine04 series={JSON.stringify([
-                                                                                                    { name : "SuccessfulWriteRequestLatency", data : clusterStats['cluster']['history']['SuccessfulWriteRequestLatency'] },
-                                                                                                    { name : "SuccessfulReadRequestLatency", data : clusterStats['cluster']['history']['SuccessfulReadRequestLatency'] }
-                                                                                                ])}
-                                                                                            title={"Latency (us)"} height="300px" 
-                                                                            />
-                                                                    </td>
-                                                                    <td style={{"width":"50%","padding-left": "1em"}}> 
-                                                                            <ChartLine04 series={JSON.stringify([
-                                                                                                    { name : "NetworkBytesOut", data : clusterStats['cluster']['history']['NetworkBytesOut'] },
-                                                                                                    { name : "NetworkBytesIn", data : clusterStats['cluster']['history']['NetworkBytesIn'] }
-                                                                                                ])}
-                                                                                            title={"Network (Bytes)"} height="300px" 
-                                                                            />
-                                                                    </td>
-                                                                  </tr>
-                                                              </table>
+                                                            <table style={{"width":"100%"}}>
+                                                              <tr>  
+                                                                <td style={{"width":"100%","padding-left": "1em"}}> 
+                                                                        <ChartLine04 series={JSON.stringify(clusterStats['cluster']['commandTypesTotal'])}
+                                                                                        title={"CommandTypes/sec"} height="300px" 
+                                                                        />
+                                                                </td>
+                                                              </tr>
+                                                            </table>
+                                                            <br/>
+                                                            <br/>
+                                                            <table style={{"width":"100%"}}>
+                                                              <tr>  
+                                                                <td style={{"width":"100%","padding-left": "1em"}}> 
+                                                                        <ChartLine04 series={JSON.stringify([
+                                                                                                { name : "ElastiCacheProcessingUnits", data : clusterStats['cluster']['history']['ElastiCacheProcessingUnits'] }
+                                                                                            ])}
+                                                                                        title={"ECPU/sec"} height="300px" 
+                                                                        />
+                                                                </td>
+                                                              </tr>
+                                                            </table>
+                                                            <br/>
+                                                            <br/>
+                                                            <table style={{"width":"100%"}}>
+                                                              <tr>  
+                                                                <td style={{"width":"100%","padding-left": "1em"}}> 
+                                                                        <ChartLine04 series={JSON.stringify([
+                                                                                                { name : "SuccessfulWriteRequestLatency", data : clusterStats['cluster']['history']['SuccessfulWriteRequestLatency'] },
+                                                                                                { name : "SuccessfulReadRequestLatency", data : clusterStats['cluster']['history']['SuccessfulReadRequestLatency'] }
+                                                                                            ])}
+                                                                                        title={"Latency (us)"} height="300px" 
+                                                                        />
+                                                                </td>
+                                                              </tr>
+                                                            </table>
+                                                            <br/>
+                                                            <br/>
+                                                            <table style={{"width":"100%"}}>
+                                                              <tr>  
+                                                                <td style={{"width":"100%","padding-left": "1em"}}> 
+                                                                        <ChartLine04 series={JSON.stringify([
+                                                                                                { name : "NetworkBytesOut", data : clusterStats['cluster']['history']['NetworkBytesOut'] },
+                                                                                                { name : "NetworkBytesIn", data : clusterStats['cluster']['history']['NetworkBytesIn'] }
+                                                                                            ])}
+                                                                                        title={"Network (Bytes)"} height="300px" 
+                                                                        />
+                                                                </td>
+                                                              </tr>
+                                                            </table>
                                                               
                                                         </Container>
                                                         <br/>
@@ -1102,6 +1118,7 @@ function App() {
                                                                     <table style={{"width": "100%", "padding" : "0em" }}>
                                                                         <tr>  
                                                                             <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "right"}}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('NetworkBytesIn','NetworkBytesIn/sec')}>
                                                                                     <CompMetric01 
                                                                                         value={clusterStats['cluster']['NetworkBytesIn'] || 0}
                                                                                         title={"NetworkBytesIn/sec"}
@@ -1110,6 +1127,7 @@ function App() {
                                                                                         fontColorValue={configuration.colors.fonts.metric100}
                                                                                         fontSizeValue={"20px"}
                                                                                     />
+                                                                                </a>
                                                                             </td>
                                                                             <td style={{"width": "5%", "padding-left": "2px", "padding-right": "0em", "text-align": "left", }} >
                                                                                     <Animation01 />
@@ -1118,6 +1136,7 @@ function App() {
                                                                                     <Animation01 rotate="180deg" />
                                                                             </td>
                                                                             <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "left"}}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('NetworkBytesOut','NetworkBytesOut/sec')}>
                                                                                     <CompMetric01 
                                                                                         value={clusterStats['cluster']['NetworkBytesOut'] || 0}
                                                                                         title={"NetworkBytesOut/sec"}
@@ -1126,6 +1145,7 @@ function App() {
                                                                                         fontColorValue={configuration.colors.fonts.metric100}
                                                                                         fontSizeValue={"20px"}
                                                                                     />
+                                                                                </a>
                                                                             </td>
                                                                         </tr>
                                                                     </table>
@@ -1164,14 +1184,16 @@ function App() {
                                                                                                                 />
                                                                                                         </td>
                                                                                                         <td style={{"width": "30%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                    value={clusterStats['cluster']['ElastiCacheProcessingUnits'] || 0}
-                                                                                                                    title={"ElastiCacheProcessingUnits/sec"}
-                                                                                                                    precision={0}
-                                                                                                                    format={3}
-                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                    fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                             <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ElastiCacheProcessingUnits','ElastiCacheProcessingUnits/sec')}>
+                                                                                                                <CompMetric01 
+                                                                                                                        value={clusterStats['cluster']['ElastiCacheProcessingUnits'] || 0}
+                                                                                                                        title={"ElastiCacheProcessingUnits/sec"}
+                                                                                                                        precision={0}
+                                                                                                                        format={3}
+                                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                        fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                     </tr>
                                                                                                     <tr>
@@ -1190,44 +1212,52 @@ function App() {
                                                                                                 <table style={{"width": "100%"}}>
                                                                                                     <tr>
                                                                                                         <td style={{"width": "33%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                    value={clusterStats['cluster']['TotalCmdsCount'] || 0}
-                                                                                                                    title={"TotalCmdsCount/sec"}
-                                                                                                                    precision={0}
-                                                                                                                    format={3}
-                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                    fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('TotalCmdsCount','TotalCmdsCount/sec')}>
+                                                                                                                <CompMetric01 
+                                                                                                                        value={clusterStats['cluster']['TotalCmdsCount'] || 0}
+                                                                                                                        title={"TotalCmdsCount/sec"}
+                                                                                                                        precision={0}
+                                                                                                                        format={3}
+                                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                        fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                         <td style={{"width": "33%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                    value={clusterStats['cluster']['CurrConnections'] || 0}
-                                                                                                                    title={"CurrConnections"}
-                                                                                                                    precision={0}
-                                                                                                                    format={3}
-                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                    fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CurrConnections','CurrConnections')}>
+                                                                                                                <CompMetric01 
+                                                                                                                        value={clusterStats['cluster']['CurrConnections'] || 0}
+                                                                                                                        title={"CurrConnections"}
+                                                                                                                        precision={0}
+                                                                                                                        format={3}
+                                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                        fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                         <td style={{"width": "33%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                    value={clusterStats['cluster']['NewConnections'] || 0}
-                                                                                                                    title={"NewConnections/sec"}
-                                                                                                                    precision={0}
-                                                                                                                    format={3}
-                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                    fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('NewConnections','NewConnections/sec')}>
+                                                                                                                <CompMetric01 
+                                                                                                                        value={clusterStats['cluster']['NewConnections'] || 0}
+                                                                                                                        title={"NewConnections/sec"}
+                                                                                                                        precision={0}
+                                                                                                                        format={3}
+                                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                        fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                         <td style={{"width": "33%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                    value={clusterStats['cluster']['ThrottledCmds'] || 0}
-                                                                                                                    title={"ThrottledCmds/sec"}
-                                                                                                                    precision={0}
-                                                                                                                    format={3}
-                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                    fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledCmds','ThrottledCmds/sec')}>
+                                                                                                                <CompMetric01 
+                                                                                                                        value={clusterStats['cluster']['ThrottledCmds'] || 0}
+                                                                                                                        title={"ThrottledCmds/sec"}
+                                                                                                                        precision={0}
+                                                                                                                        format={3}
+                                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                        fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                     </tr>
                                                                                                     <tr>
@@ -1251,6 +1281,7 @@ function App() {
                                                                     <table style={{"width": "100%", "padding" : "0em" }}>
                                                                         <tr>  
                                                                             <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "right"}}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulWriteRequestLatency','SuccessfulWriteRequestLatency(us)')}>
                                                                                     <CompMetric01 
                                                                                         value={clusterStats['cluster']['SuccessfulWriteRequestLatency'] || 0}
                                                                                         title={"WriteLatency(us)"}
@@ -1259,6 +1290,7 @@ function App() {
                                                                                         fontColorValue={configuration.colors.fonts.metric100}
                                                                                         fontSizeValue={"20px"}
                                                                                     />
+                                                                                </a>
                                                                             </td>
                                                                             <td style={{"width": "5%", "padding-left": "2px", "padding-right": "0em", "text-align": "left", }} >
                                                                                     <Animation01 />
@@ -1267,6 +1299,7 @@ function App() {
                                                                                     <Animation01 rotate="180deg" />
                                                                             </td>
                                                                             <td style={{"width": "45%", "padding-left": "1em", "padding-right": "1em", "text-align": "left"}}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulReadRequestLatency','SuccessfulReadRequestLatency(us)')}>
                                                                                     <CompMetric01 
                                                                                         value={clusterStats['cluster']['SuccessfulReadRequestLatency'] || 0}
                                                                                         title={"ReadLatency(us)"}
@@ -1275,6 +1308,7 @@ function App() {
                                                                                         fontColorValue={configuration.colors.fonts.metric100}
                                                                                         fontSizeValue={"20px"}
                                                                                     />
+                                                                                </a>
                                                                             </td>
                                                                         </tr>
                                                                     </table>
@@ -1306,14 +1340,16 @@ function App() {
                                                                                                             />
                                                                                                         </td>
                                                                                                         <td style={{"width": "30%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                value={clusterStats['cluster']['BytesUsedForCache'] || 0}
-                                                                                                                title={"BytesUsedForCache"}
-                                                                                                                precision={0}
-                                                                                                                format={2}
-                                                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('BytesUsedForCache','BytesUsedForCache')}>
+                                                                                                                <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['BytesUsedForCache'] || 0}
+                                                                                                                    title={"BytesUsedForCache"}
+                                                                                                                    precision={0}
+                                                                                                                    format={2}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                     </tr>
                                                                                                     <tr>
@@ -1331,45 +1367,53 @@ function App() {
                                                                                                 <table style={{"width": "100%"}}>
                                                                                                     <tr>
                                                                                                         <td style={{"width": "25%", "text-align": "left", "padding-left": "2em","padding-right": "2em", }}>
-                                                                                                            <ChartProgressBar01 
-                                                                                                                value={ (clusterStats['cluster']['CacheHitRate']) || 0 }
-                                                                                                                valueSufix={"%"}
-                                                                                                                title={"CacheHitRate"}
-                                                                                                                precision={0}
-                                                                                                                format={1}
-                                                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CacheHitRate','CacheHitRate')}>
+                                                                                                                <ChartProgressBar01 
+                                                                                                                    value={ (clusterStats['cluster']['CacheHitRate']) || 0 }
+                                                                                                                    valueSufix={"%"}
+                                                                                                                    title={"CacheHitRate"}
+                                                                                                                    precision={0}
+                                                                                                                    format={1}
+                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                    fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                         <td style={{"width": "25%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                    value={clusterStats['cluster']['CurrItems'] || 0}
-                                                                                                                    title={"CurrItems"}
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CurrItems','CurrItems')}>
+                                                                                                                <CompMetric01 
+                                                                                                                        value={clusterStats['cluster']['CurrItems'] || 0}
+                                                                                                                        title={"CurrItems"}
+                                                                                                                        precision={0}
+                                                                                                                        format={3}
+                                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                        fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
+                                                                                                        </td>
+                                                                                                        <td style={{"width": "25%", "text-align": "center" }}>
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('CurrVolatileItems','CurrVolatileItems')}>
+                                                                                                                <CompMetric01 
+                                                                                                                    value={clusterStats['cluster']['CurrVolatileItems'] || 0}
+                                                                                                                    title={"CurrVolatileItems"}
                                                                                                                     precision={0}
                                                                                                                     format={3}
                                                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                                                     fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                         <td style={{"width": "25%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                value={clusterStats['cluster']['CurrVolatileItems'] || 0}
-                                                                                                                title={"CurrVolatileItems"}
-                                                                                                                precision={0}
-                                                                                                                format={3}
-                                                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                fontSizeValue={"20px"}
-                                                                                                            />
-                                                                                                        </td>
-                                                                                                        <td style={{"width": "25%", "text-align": "center" }}>
-                                                                                                            <CompMetric01 
-                                                                                                                    value={clusterStats['cluster']['Evictions'] || 0}
-                                                                                                                    title={"Evictions/sec"}
-                                                                                                                    precision={0}
-                                                                                                                    format={3}
-                                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                                                    fontSizeValue={"20px"}
-                                                                                                            />
+                                                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('Evictions','Evictions/sec')}>
+                                                                                                                <CompMetric01 
+                                                                                                                        value={clusterStats['cluster']['Evictions'] || 0}
+                                                                                                                        title={"Evictions/sec"}
+                                                                                                                        precision={0}
+                                                                                                                        format={3}
+                                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                                        fontSizeValue={"20px"}
+                                                                                                                />
+                                                                                                            </a>
                                                                                                         </td>
                                                                                                     </tr>
                                                                                                     <tr>
@@ -1431,7 +1475,6 @@ function App() {
                                                                                           onChange={({ detail }) => {
                                                                                                  analyticsMetricName.current = { name : detail.selectedOption.value, factor : detail.selectedOption.factor, descriptions : detail.selectedOption.descriptions, unit : detail.selectedOption.unit };
                                                                                                  setSelectedMetricAnalytics(detail.selectedOption);
-                                                                                                 ///gatherAnalyticsStats();
                                                                                                  gatherClusterStats();
                                                                                           }
                                                                                           }
@@ -1597,8 +1640,86 @@ function App() {
                                           
                                       },
                                       {
-                                        label: "Cluster Information",
+                                        label: "Workload Analysis",
                                         id: "tab04",
+                                        content: 
+                                         
+                                          <>
+                                                
+                                                                        
+                                              <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
+                                                    <tr>  
+                                                        <td>
+                                                        
+                                                        
+                                                            <Container>
+                                                            
+                                                            <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
+                                                                <tr>  
+                                                                    <td valign="top" style={{ "width":"50%","padding-left": "1em"}}>
+                                                                        <table style={{"width":"100%","background-color ": "black"}}>
+                                                                            <tr>  
+                                                                                <td valign="top" style={{ "width":"80%"}}>
+                                                                                    <FormField
+                                                                                          description="Select a metric type to compare the performance for the different command types"
+                                                                                          label="Performance Metric"
+                                                                                        >
+                                                                                        
+                                                                                            <Select
+                                                                                                  selectedOption={selectedCommandAnalytics}
+                                                                                                  onChange={({ detail }) => {
+                                                                                                         analyticsCommandName.current = detail.selectedOption.value;
+                                                                                                         setSelectedCommandAnalytics(detail.selectedOption);
+                                                                                                         gatherClusterStats();
+                                                                                                  }
+                                                                                                  }
+                                                                                                  options={analyticsCommands}
+                                                                                                  filteringType="auto"
+                                                                                            />
+                                                                                          
+                                                                                    </FormField>
+                                                                                </td>
+                                                                                <td valign="top" style={{ "width":"20%","padding-left": "1em"}}>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                        <br/>
+                                                                        <ChartPolar01 
+                                                                                title={"Performance Analysis"} 
+                                                                                height="450px" 
+                                                                                width="100%" 
+                                                                                series = {clusterStats['cluster']['analytics']['series']}
+                                                                                labels = {clusterStats['cluster']['analytics']['labels']}
+                                                                                onClickEvent={onClickPolarChart}
+                                                                        />
+                                                                    </td>
+                                                                    <td valign="middle" style={{ "width":"50%","padding-left": "2em", "border-left": "1px solid " + configuration.colors.lines.separator100}}>
+                                                                        
+                                                                        <ChartLine04 
+                                                                            series={JSON.stringify( clusterStats['cluster']['analytics']['data'] )}
+                                                                            title={""} height="350px" 
+                                                                        />
+                                                                                    
+                                                                                    
+                                                                                
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            
+                                                            </Container>
+                                                        
+                                                        </td>
+                                                    </tr>
+                                                </table> 
+                                                
+                                                
+                                                
+                                          </>
+                                          
+                                      },
+                                      {
+                                        label: "Cluster Information",
+                                        id: "tab05",
                                         content: 
                                          
                                           <>
@@ -1631,10 +1752,6 @@ function App() {
                                                                         <div>
                                                                             <Box variant="awsui-key-label">Status</Box>
                                                                             <div>{clusterStats['cluster']['status']}</div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">ClusterEnabled</Box>
-                                                                            <div>{parameter_object_values['rds_mode']}</div>
                                                                         </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">AutheticationMode</Box>
@@ -1672,19 +1789,3 @@ function App() {
 
 export default App;
 
-
-/*
-<div class="wrapper">
-    <div class="loading-bars">
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-        <div class="bar"></div>
-    </div>
-    <h1>
-        LOADING
-    </h1>
-</div>
-*/

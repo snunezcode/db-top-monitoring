@@ -331,53 +331,18 @@ function Login() {
                                 
                 })
                                       
-                /*
-                "ServerlessCacheName": "cls-50-serverless",
-                "Description": " ",
-                "CreateTime": "2023-11-28T16:33:41.842000+00:00",
-                "Status": "available",
-                "Engine": "redis",
-                "MajorEngineVersion": "7",
-                "FullEngineVersion": "7.1",
-                "CacheUsageLimits": {
-                    "DataStorage": {
-                        "Maximum": 1,
-                        "Unit": "GB"
-                    },
-                    "ECPUPerSecond": {
-                        "Maximum": 1000
-                    }
-                },
-                "SecurityGroupIds": [
-                    "sg-0c86ade11c3c33805"
-                ],
-                "Endpoint": {
-                    "Address": "cls-50-serverless-9aldbm.serverless.use1.cache.amazonaws.com",
-                    "Port": 6379
-                },
-                "ReaderEndpoint": {
-                    "Address": "cls-50-serverless-9aldbm.serverless.use1.cache.amazonaws.com",
-                    "Port": 6380
-                },
-                "ARN": "arn:aws:elasticache:us-east-1:039783469744:serverlesscache:cls-50-serverless",
-                "SubnetIds": [
-                    "subnet-03bff4b2b43b0d393",
-                    "subnet-0e86aa3d88acae93b",
-                    "subnet-09b54b42883503db6"
-                ],
-                "SnapshotRetentionLimit": 0,
-                "DailySnapshotTime": "03:30"
-                */
-                
+               
                 //-- Serverless Cluster
                 data = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/region/elasticache/serverless/cluster/`);
                 console.log(data);
                 data.data.ServerlessCaches.forEach(function(item) {
                                 try{
-                                      var endPoint;
-                                      var port;
+                                      var authMode = "";
                                       
-                                          
+                                      if ( item.hasOwnProperty("UserGroupId") && String(item["UserGroupId"]) != "" )
+                                          authMode = "modeAcl";
+                                      else
+                                          authMode = "modeNonAuth";
                                       
                                       rdsItems.push({
                                                     identifier : item['ServerlessCacheName'],
@@ -391,8 +356,8 @@ function Login() {
                                                     port : item['Endpoint']['Port'],
                                                     multiaz : "true",
                                                     ssl : "required",
-                                                    auth : "modeNonAuth",
-                                                    authmode : "modeNonAuth",
+                                                    auth : authMode,
+                                                    authmode : authMode,
                                       });
                                       
                                       

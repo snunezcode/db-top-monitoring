@@ -3558,41 +3558,6 @@ class classElasticacheServerlessCluster {
         #objLog = new classLogging({ name : "classElasticacheServerlessCluster", instance : "generic" });
         
         //-- Shard Metrics
-        /*
-        #metricCatalog = {
-                        'BytesUsedForCache' : { factor : 1 },
-                        'CacheHitRate' : { factor : 1 },
-                        'CacheHits' : { factor : 60 },
-                        'CacheMisses' : { factor : 60 },
-                        'ChannelAuthorizationFailures' : { factor : 1 },
-                        'CommandAuthorizationFailures' : { factor : 1 },
-                        'CurrConnections' : { factor : 1 },
-                        'CurrItems' : { factor : 1 },
-                        'CurrVolatileItems' : { factor : 1 },
-                        'DB0AverageTTL' : { factor : 1 },
-                        'ElastiCacheProcessingUnits' : { factor : 60 },
-                        'Evictions' : { factor : 60 },
-                        'GetTypeCmds' : { factor : 60 },
-                        'GetTypeCmdsECPUs' : { factor : 60 },
-                        'IamAuthenticationExpirations' : { factor : 60 },
-                        'IamAuthenticationThrottling' : { factor : 60 },
-                        'KeyAuthorizationFailures' : { factor : 60 },
-                        'NetworkBytesIn' : { factor : 60 },
-                        'NetworkBytesOut' : { factor : 60 },
-                        'NewConnections' : { factor : 60 },
-                        'NonKeyTypeCmds' : { factor : 60 },
-                        'NonKeyTypeCmdsECPUs' : { factor : 60 },
-                        'Reclaimed' : { factor : 60 },
-                        'SetTypeCmds' : { factor : 60 },
-                        'SetTypeCmdsECPUs' : { factor : 60 },
-                        'StringBasedCmds' : { factor : 60 },
-                        'StringBasedCmdsECPUs' : { factor : 60 },
-                        'SuccessfulReadRequestLatency' : { factor : ( 1 / 1000 / 1000) },
-                        'SuccessfulWriteRequestLatency' : { factor : ( 1 / 1000 / 1000) },
-                        'ThrottledCmds' : { factor : 60 },
-                        'TotalCmdsCount' : { factor : 60 },
-        }; 
-        */
         #metricCatalog = {
                         'AuthenticationFailures' : { factor : 60 },
                         'BytesUsedForCache' : { factor : 1 },
@@ -3659,6 +3624,9 @@ class classElasticacheServerlessCluster {
         objectProperties;
         
         
+        //-- Object Connection
+        #connection;
+        
         //-- Constructor method
         constructor(object) { 
                 this.objectProperties = object.properties;
@@ -3687,6 +3655,144 @@ class classElasticacheServerlessCluster {
         }
           
         
+        //-- Open Connection
+        async #openConnection() { 
+            
+            
+                this.isAuthenticated = false;
+                var params = this.objectConnection;
+            
+                try {
+                    
+                        
+                                var options = {};
+                                var protocol = "redis://";
+                                
+                                if ( params.ssl == "required" )
+                                    protocol = "rediss://";
+                                
+                                
+                                
+                                switch (params.auth){
+                                    
+                                    case "modeIam" :
+                                    case "modeNonAuth":
+                                    case "modeOpen":
+                                            options = {
+                                                    url: protocol + params.host + ":" + params.port,
+                                                    socket : { reconnectStrategy : false},
+                                                    
+                                            };
+                                            break;
+                                            
+                                            
+                                    
+                                    case "modeAuth":
+                                    
+                                            options = {
+                                                    url: protocol + params.host + ":" + params.port,
+                                                    password : params.password,
+                                                    socket : { reconnectStrategy : false},
+                                                    
+                                            };
+                                            break;
+                            
+                                    case "modeRbac" :
+                                    case "modeAcl" :
+                                            
+                                            options = {
+                                                    url: protocol + params.username + ":" + params.password + "@" + params.host + ":" + params.port,
+                                                    socket : { reconnectStrategy : false},
+                                                    
+                                            };
+                                            break;
+                                    
+                                }
+                                
+                                this.#connection = redis.createClient(options);
+                                this.#connection.on('error', err => {       
+                                          this.#objLog.write("#openConnection","err","Error :" + err.message + ", host : " +  + params.host);
+                                });   
+                            
+                            
+                    
+                                this.#connection.connect()
+                                    .then(()=> {
+                                        this.#objLog.write("#openConnection","info","Redis Instance Connected : " + params.host);
+                                    })
+                                    .catch((err)=> {
+                                        this.#objLog.write("#openConnection","err","Redis Instance Connected with Errors : "  + params.host);
+                                        this.#objLog.write("#openConnection","err",err);
+                                        
+                                });
+                                
+                                
+                                
+                                var command = await this.#connection.ping();
+                                this.isAuthenticated = true;
+                                
+                               
+                }
+                catch(err){
+                    this.#objLog.write("#openConnection","err",err);
+                }
+            
+
+        }
+        
+        
+        connect() { 
+            this.#openConnection();
+        }
+        
+        
+        //-- Close Connection
+        async #closeConnection() { 
+            try {
+                this.#objLog.write("#closeConnection","info", "Disconnection completed : " + this.objectConnection.host );
+                if (this.#connection.isReady)
+                    this.#connection.quit();
+            }
+            catch(err){
+                    this.#objLog.write("#closeConnection","err", String(err) + "-" + this.objectConnection.host );
+            }
+            
+        }
+        
+        //-- Close Connection
+        disconnect() { 
+            this.#closeConnection();
+        }
+    
+        
+        //-- Verify connection
+        async isConnected() { 
+                try {
+                        
+                            var command = await this.#connection.ping();
+                            if (command =="PONG")
+                                return true;
+                            else
+                                return false;
+                }
+                catch(err){
+                    return false;
+                }
+            
+        }
+        
+        
+        //-- Authentication
+        async authentication() { 
+            try {
+                    await this.#openConnection();
+                    await this.#closeConnection();
+                    return this.isAuthenticated;
+            }
+            catch(err){
+                return this.isAuthenticated;;
+            }
+        }
         
         
         //-- Refresh metrics
@@ -3747,24 +3853,7 @@ class classElasticacheServerlessCluster {
         }
         
         
-        //-- Authentication
-        async authentication() { 
-            
-            try {
-                
-                    //await this.#openConnection();
-                    //await this.#closeConnection();
-                    //return this.isAuthenticated;
-            
-                
-            }
-            catch(err){
-                //return this.isAuthenticated;
-            }
-            
-            return true;
-            
-        }
+        
         
         
         //-- Get Shard Details
@@ -3797,10 +3886,7 @@ class classElasticacheServerlessCluster {
             
         }
         
-        //-- Disconnect 
-        disconnect(){
-            
-        }
+        
         
         #dateDiff(date){
             
