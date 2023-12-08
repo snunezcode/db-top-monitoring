@@ -292,7 +292,6 @@ function App() {
         
         if (currentTabId.current == "tab04") {
             
-            console.log(selectedMetricAnalytics.value);
             
             var api_url = configuration["apps-settings"]["api_url"];
             
