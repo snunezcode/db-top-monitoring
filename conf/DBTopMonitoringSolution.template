@@ -179,10 +179,15 @@ Resources:
                 			"Resource": "arn:aws:memorydb:${AWS::Region}:${AWS::AccountId}:cluster/*"
                 		},
                 		{
-                			"Effect": "Allow",
-                			"Action": ["docdb-elastic:ListClusters","docdb-elastic:GetCluster"],
-                			"Resource": "arn:aws:docdb-elastic:${AWS::Region}:${AWS::AccountId}:cluster/*"
-                		}
+                            "Effect": "Allow",
+                            "Action": "docdb-elastic:GetCluster",
+                            "Resource": "arn:aws:docdb-elastic:${AWS::Region}:${AWS::AccountId}:cluster/*"
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": "docdb-elastic:ListClusters",
+                            "Resource": "*"
+                        }
                     ]
                 }
         
