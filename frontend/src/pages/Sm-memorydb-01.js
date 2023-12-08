@@ -25,6 +25,7 @@ import ChartLine02  from '../components/ChartLine02';
 import CLWChart  from '../components/ChartCLW03';
 import ChartColumn01 from '../components/ChartColumn01';
 import ChartProgressBar01 from '../components/ChartProgressBar-01';
+import ChartBar03 from '../components/ChartBar03';
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -121,7 +122,7 @@ function App() {
                                             lastUpdate : "-",
                                             connectionId : "-",
                                             history : {
-                                                operations : [],
+                                                operations : [] ,
                                                 getCalls : [],
                                                 setCalls : [],
                                                 getLatency : [],
@@ -199,7 +200,6 @@ function App() {
                       }
                   }).then((data)=>{
                    var info = data.data.cluster;
-                   console.log(info);
                    setClusterStats({ cluster : {...info} });
                    
                      
@@ -540,11 +540,25 @@ function App() {
                                                                                     fontSizeValue={"16px"}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"30%", "border-left": "1px solid red", "padding-left": "1em"}}>  
-                                                                             <ChartLine02 series={JSON.stringify([
+                                                                        <td style={{"width":"30%", "padding-left": "1em"}}>  
+                                                                            
+                                                                            <ChartBar03 series={JSON.stringify([
                                                                                                     clusterStats['cluster']['history']['operations']
                                                                                                 ])} 
-                                                                                                title={"Operations/sec"} height="180px" />
+                                                                                                title={"Operations/sec"} height="200px" 
+                                                                            />
+                                                                            
+                                                                            {/*
+                                                                            
+                                                                            { name : "opers", data : [null,null,null,null,null] }
+                                                                            
+                                                                            <ChartBar03 series={JSON.stringify([
+                                                                                                    clusterStats['cluster']['history']['operations']
+                                                                                                ])} 
+                                                                                                title={"Operations/sec"} height="200px" 
+                                                                            />
+                                                                            */}
+                                                                            
                                                                         </td>
                                                                         
                                                                     </tr>

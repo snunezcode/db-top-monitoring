@@ -1552,29 +1552,6 @@ class classDocumentDBElasticShard {
                 this.objectProperties = object.properties;
                 this.#objLog.properties = {...this.#objLog.properties, shardId : this.objectProperties.shardId }
                 
-                /*
-                    [ "AWS/DocDB-Elastic", "ReadThroughput", "ShardId", "30f1462c-e5f7-4b7c-ac75-bb738bbb5081", "ClusterId", "139e74b3-97e6-464b-92a3-1b0f33aa194c", "ClusterName", "cls20" ]],
-                    BufferCacheHitRatio
-                    DatabaseCursorsMax
-                    DatabaseCursorsTimedOut
-                    DBInstanceReplicaLag
-                    DocumentsDeleted
-                    DocumentsInserted
-                    DocumentsReturned
-                    DocumentsUpdated
-                    PrimaryInstanceCPUUtilization
-                    PrimaryInstanceFreeableMemory
-                    ReadThroughput
-                    ReplicaInstanceCPUUtilization
-                    ReplicaInstanceFreeableMemory
-                    TTLDeletedDocuments
-                    VolumeBytesUsed
-                    VolumeReadIOPs
-                    VolumeWriteIOPs
-                    WriteThroughput
-
-                */
-                
                 //-- Create AWS Metric Catalog
                 this.#dimension = [ 
                                     { Name: "ShardId", Value: this.objectProperties.shardId }, 
@@ -1707,37 +1684,8 @@ class classDocumentDBElasticCluster {
                 this.isAuthenticated = false;
                 this.#objLog.properties = {...this.#objLog.properties, instance : object.connection.host }
                 
-                /*
-                    [ "AWS/DocDB-Elastic", "ReadThroughput", "ShardId", "30f1462c-e5f7-4b7c-ac75-bb738bbb5081", "ClusterId", "139e74b3-97e6-464b-92a3-1b0f33aa194c", "ClusterName", "cls20" ]],
-                    [ "AWS/DocDB-Elastic", "DatabaseConnections", "ClusterId", "139e74b3-97e6-464b-92a3-1b0f33aa194c", "ClusterName", "cls20" ]
-                    DatabaseConnections
-                    DatabaseCursorsMax
-                    DatabaseCursorsTimedOut
-                    DocumentsDeleted
-                    DocumentsInserted
-                    DocumentsReturned
-                    DocumentsUpdated
-                    OpcountersCommand
-                    OpcountersDelete
-                    OpcountersGetmore
-                    OpcountersInsert
-                    OpcountersQuery
-                    OpcountersUpdate
-                    PrimaryInstanceCPUUtilization
-                    PrimaryInstanceFreeableMemory
-                    ReadThroughput
-                    ReplicaInstanceCPUUtilization
-                    ReplicaInstanceFreeableMemory
-                    TTLDeletedDocuments
-                    VolumeBytesUsed
-                    VolumeReadIOPs
-                    VolumeWriteIOPs
-                    WriteThroughput
-
-                */
-                
-                
-                 //-- Create AWS Metric Catalog
+            
+                //-- Create AWS Metric Catalog
                 this.#dimension = [ 
                                     { Name: "ClusterId", Value: this.objectProperties.clusterUid }, 
                                     { Name: "ClusterName", Value: this.objectProperties.clusterId } 

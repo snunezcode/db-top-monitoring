@@ -213,38 +213,7 @@ function App() {
                 
     const [shardStats,setShardStats] = useState([]);
                 
-    /*
-    const columnsTableAnalytics = [
-                  {id: 'shardId',header: 'shardId',cell: item => item['shardId'],ariaLabel: createLabelFunction('shardId'),sortingField: 'shardId',},
-                  {id: 'BufferCacheHitRatio',header: 'BufferCacheHitRatio',cell: item => item['BufferCacheHitRatio'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('BufferCacheHitRatio'),sortingField: 'BufferCacheHitRatio',},
-                  {id: 'PrimaryInstanceCPUUtilization',header: 'PrimaryInstanceCPUUtilization',cell: item => item['PrimaryInstanceCPUUtilization'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('PrimaryInstanceCPUUtilization'),sortingField: 'OpsInsertCount',},
-                  {id: 'ReplicaInstanceCPUUtilization',header: 'ReplicaInstanceCPUUtilization',cell: item => item['ReplicaInstanceCPUUtilization'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('ReplicaInstanceCPUUtilization'),sortingField: 'OpsInsertCount',},
-                  {id: 'OpsTotalCount',header: 'OpsTotalCount',cell: item => item['OpsTotalCount'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsTotalCount'),sortingField: 'OpsTotalCount',},
-                  {id: 'OpsInsertCount',header: 'OpsInsertCount',cell: item => item['OpsInsertCount'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsInsertCount'),sortingField: 'OpsInsertCount',},
-                  {id: 'OpsQueriesCount',header: 'OpsQueriesCount',cell: item => item['OpsQueriesCount'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsQueriesCount'),sortingField: 'OpsQueriesCount',},
-                  {id: 'OpsUpdateCount',header: 'OpsUpdateCount',cell: item => item['OpsUpdateCount'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsUpdateCount'),sortingField: 'OpsUpdateCount',},
-                  {id: 'OpsRemoveCount',header: 'OpsRemoveCount',cell: item => item['OpsRemoveCount'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsRemoveCount'),sortingField: 'OpsRemoveCount',},
-                  {id: 'OpsCommandsCount',header: 'OpsCommandsCount',cell: item => item['OpsCommandsCount'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsCommandsCount'),sortingField: 'OpsCommandsCount',},
-                  {id: 'OpsGetmoreCount',header: 'OpsGetmoreCount',cell: item => item['OpsGetmoreCount'],ariaLabel: createLabelFunction('OpsGetmoreCount'),sortingField: 'OpsGetmoreCount',},
-                  {id: 'ReadThroughput',header: 'ReadThroughput',cell: item => item['ReadThroughput'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('ReadThroughput'),sortingField: 'ReadThroughput',},
-                  {id: 'WriteThroughput',header: 'WriteThroughput',cell: item => item['WriteThroughput'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('WriteThroughput'),sortingField: 'WriteThroughput',},
-                  {id: 'VolumeReadIOPs',header: 'VolumeReadIOPs',cell: item => item['VolumeReadIOPs'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('VolumeReadIOPs'),sortingField: 'VolumeReadIOPs',},
-                  {id: 'VolumeWriteIOPs',header: 'VolumeWriteIOPs',cell: item => item['VolumeWriteIOPs'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('VolumeWriteIOPs'),sortingField: 'VolumeWriteIOPs',},
-                  {id: 'VolumeBytesUsed',header: 'VolumeBytesUsed',cell: item => item['VolumeBytesUsed'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('VolumeBytesUsed'),sortingField: 'VolumeBytesUsed',},
-                  {id: 'PrimaryInstanceFreeableMemory',header: 'PrimaryInstanceFreeableMemory',cell: item => item['PrimaryInstanceFreeableMemory'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('PrimaryInstanceFreeableMemory'),sortingField: 'OpsInsertCount',},
-                  {id: 'ReplicaInstanceFreeableMemory',header: 'ReplicaInstanceFreeableMemory',cell: item => item['ReplicaInstanceFreeableMemory'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('ReplicaInstanceFreeableMemory'),sortingField: 'OpsInsertCount',},
-                  {id: 'DocumentsInserted',header: 'DocumentsInserted',cell: item => item['DocumentsInserted'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('DocumentsInserted'),sortingField: 'DocumentsInserted',},
-                  {id: 'DocumentsUpdated',header: 'DocumentsUpdated',cell: item => item['DocumentsUpdated'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('DocumentsUpdated'),sortingField: 'DocumentsUpdated',},
-                  {id: 'DocumentsReturned',header: 'DocumentsReturned',cell: item => item['DocumentsReturned'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('DocumentsReturned'),sortingField: 'DocumentsReturned',},
-                  {id: 'DocumentsDeleted',header: 'DocumentsDeleted',cell: item => item['DocumentsDeleted'],ariaLabel: createLabelFunction('DocumentsDeleted'),sortingField: 'DocumentsDeleted',},
-                  {id: 'OpsInsertLatency',header: 'OpsInsertLatency',cell: item => item['OpsInsertLatency'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsInsertLatency'),sortingField: 'OpsInsertLatency',},
-                  {id: 'OpsQueriesLatency',header: 'OpsQueriesLatency',cell: item => item['OpsQueriesLatency'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsQueriesLatency'),sortingField: 'OpsQueriesLatency',},
-                  {id: 'OpsRemoveLatency',header: 'OpsRemoveLatency',cell: item => item['OpsRemoveLatency'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsRemoveLatency'),sortingField: 'OpsRemoveLatency',},
-                  {id: 'OpsUpdateLatency',header: 'OpsUpdateLatency',cell: item => item['OpsUpdateLatency'].toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}),ariaLabel: createLabelFunction('OpsUpdateLatency'),sortingField: 'OpsUpdateLatency',}
-    ];
     
-    const visibleContentAnalytics = ['shardId', 'BufferCacheHitRatio', 'PrimaryInstanceCPUUtilization', 'OpsTotalCount',  'OpsInsertCount', 'OpsQueriesCount', 'OpsUpdateCount',  'OpsRemoveCount', 'ReadThroughput', 'WriteThroughput' ];
-    */
     
     //-- Function Gather Metrics
     async function openClusterConnection() {
@@ -611,6 +580,7 @@ function App() {
                             </table>
                             
                             <Tabs
+                                    disableContentPaddings
                                     onChange={({ detail }) => {
                                           setActiveTabId(detail.activeTabId);
                                           currentTabId.current=detail.activeTabId;
@@ -629,17 +599,7 @@ function App() {
                                                 <tr>  
                                                    <td> 
             
-                                                        <Container
-                                                        
-                                                            header={
-                                                                                <Header
-                                                                                  variant="h2"
-                                                                                >
-                                                                                  Performance Metrics
-                                                                                </Header>
-                                                                            }
-                                                                            
-                                                        >
+                                                        <Container>
                                 
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>  

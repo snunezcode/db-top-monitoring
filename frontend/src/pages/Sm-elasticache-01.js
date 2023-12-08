@@ -26,6 +26,7 @@ import CLWChart  from '../components/ChartCLW03';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
 import ChartColumn01 from '../components/ChartColumn01';
 import ChartProgressBar01 from '../components/ChartProgressBar-01';
+import ChartBar03 from '../components/ChartBar03';
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -535,11 +536,12 @@ function App() {
                                                                                     fontSizeValue={"16px"}
                                                                                 />
                                                                         </td>
-                                                                        <td style={{"width":"30%", "border-left": "1px solid red", "padding-left": "1em"}}>  
-                                                                             <ChartLine02 series={JSON.stringify([
+                                                                        <td style={{"width":"30%", "padding-left": "1em"}}>  
+                                                                            <ChartBar03 series={JSON.stringify([
                                                                                                     clusterStats['cluster']['history']['operations']
                                                                                                 ])} 
-                                                                                                title={"Operations/sec"} height="180px" />
+                                                                                                title={"Operations/sec"} height="200px" 
+                                                                            />
                                                                         </td>
                                                                         
                                                                     </tr>

@@ -3,7 +3,7 @@ import {memo} from 'react';
 const Metric = memo(({ value, valueSufix, title, precision, format=1, height="10px", fontSizeTitle = "11px", fontSizeValue = "22px", fontSizeValueSufix = "12px", fontColorTitle = "#2ea597", fontColorValue = "orange", chartColor="#8ea9ff" }) => {
 
     var counterValue = 0;
-    if (value >= 100){
+    if (value > 100){
       chartColor = "red";
     }
       

@@ -1,6 +1,7 @@
 import { useState, memo } from 'react'
 import ChartLine02 from './ChartLine02';
 import ChartProgressBar01 from './ChartProgressBar-01';
+import ChartBar03 from '../components/ChartBar03';
 
 import Container from "@awsui/components-react/container";
 import CompMetric01 from './Metric01';
@@ -251,7 +252,7 @@ const ComponentObject = memo(({ node }) => {
                                     />
                                 </td>
                                 <td style={{"width":"35%","padding-left": "1em"}}> 
-                                        <ChartLine02 series={JSON.stringify([
+                                        <ChartBar03 series={JSON.stringify([
                                                                 node.history.operations
                                                             ])} 
                                                             title={"Operations/sec"} height="180px" 
