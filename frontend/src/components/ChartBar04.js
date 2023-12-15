@@ -1,18 +1,19 @@
 import {memo} from 'react';
 import Chart from 'react-apexcharts';
 
-const ChartLine = memo(({series, categories,history, height, width="100%", title, border=2 }) => {
+
+const ChartBar = memo(({series,history, height, width="100%", title, colors=[], border=2, timestamp }) => {
 
     var options = {
               chart: {
                 height: height,
-                type: 'line',
-                foreColor: '#9e9b9a',
+                foreColor: '#2ea597',
                 zoom: {
                   enabled: false
                 },
                 animations: {
                     enabled: true,
+                    easing: 'easeinout',
                 },
                 dynamicAnimation :
                 {
@@ -20,35 +21,38 @@ const ChartLine = memo(({series, categories,history, height, width="100%", title
                 },
                  toolbar: {
                     show: false,
-                 },
-                 dropShadow: {
-                  enabled: false,
-                  top: 2,
-                  left: 2,
-                  blur: 4,
-                  opacity: 1,
                  }
 
-              },
-              markers: {
-                  size: 5,
-                  radius: 0,
-                  strokeWidth: 2,
-                  fillOpacity: 1,
-                  shape: "circle",
               },
               dataLabels: {
                 enabled: false
               },
-              legend: {
-                    show: true,
-                    showForSingleSeries: true,
-                    fontSize: '11px',
-                    fontFamily: 'Lato',
-              },
+              colors : colors,
               stroke: {
-                curve: 'straight',
-                 width: border
+                curve: 'smooth',
+                width: 1
+              },
+              markers: {
+                size: 15,
+                radius: 2,
+                strokeWidth: 5,
+                fillOpacity: 2,
+                shape: "circle",
+                hover: {
+                  size: 9
+                },
+              },
+              /*plotOptions: {
+                bar: {
+                  borderRadius: 2,
+                  
+                }
+              },*/
+              tooltip: {
+                    theme: "dark",
+                    x : { 
+                            format: 'HH:mm',
+                    }
               },
               title: {
                 text : title,
@@ -57,7 +61,8 @@ const ChartLine = memo(({series, categories,history, height, width="100%", title
                 style: {
                   fontSize:  '14px',
                   fontWeight:  'bold',
-                  fontFamily: 'Lato',
+                  fontFamily:  "Lato",
+                  color : "#2ea597"
                 }
                 
               },
@@ -73,12 +78,6 @@ const ChartLine = memo(({series, categories,history, height, width="100%", title
                                 show: false
                             }
                         }
-              },
-              tooltip: {
-                    theme: "dark",
-                    x : { 
-                            format: 'HH:mm',
-                    }
               },
               xaxis: {
                 type: 'datetime',
@@ -126,9 +125,9 @@ const ChartLine = memo(({series, categories,history, height, width="100%", title
     
     return (
             <div>
-                <Chart options={options} series={JSON.parse(series)} type="line" width={width} height={height} />
+                <Chart options={options} series={JSON.parse(series)} width={width} height={height} />
             </div>
            );
 });
 
-export default ChartLine;
+export default ChartBar;
