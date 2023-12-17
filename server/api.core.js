@@ -2455,6 +2455,33 @@ async function gatherStatsDynamoDB(req, res) {
 }
 
 
+//--++ DYNAMODB - Gather Information
+app.get("/api/dynamodb/gather/index/stats/", gatherIndexStatsDynamoDB);
+async function gatherIndexStatsDynamoDB(req, res) {
+    
+        // Token Validation
+        var standardToken = verifyToken(req.headers['x-token']);
+        var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+        if (standardToken.isValid === false || cognitoToken.isValid === false)
+            return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+        try
+            {
+                var params = req.query;
+                
+                var index = await dynamoDBObjectContainer[params.engineType + ":" + params.tableName].getIndexhData({ indexName : params.indexName });
+                res.status(200).send({ 
+                                        index : {...index }
+                                    });
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+
 //--++ DYNAMODB - Close Connection
 app.get("/api/dynamodb/close/connection/", closeConnectionDynamoDB);
 async function closeConnectionDynamoDB(req, res) {

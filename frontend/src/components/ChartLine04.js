@@ -46,6 +46,9 @@ const ChartLine = memo(({series, categories,history, height, width="100%", title
                     fontSize: '11px',
                     fontFamily: 'Lato',
               },
+              theme: {
+                palette : "palette2"
+              },
               stroke: {
                 curve: 'straight',
                  width: border

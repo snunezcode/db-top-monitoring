@@ -1,24 +1,15 @@
 import {memo} from 'react';
 import Chart from 'react-apexcharts';
 
-const ChartComponent = memo(({ series, labels, title, height="350px", width="100%", onClickEvent }) => {
+const ChartComponent = memo(({ series, labels, title, height="350px", width="100%" }) => {
       
-            function onClickChart(object){
-                onClickEvent(object);
-            }
-    
+          
             var options = {
               chart: {
                 type: 'donut',
                 foreColor: '#9e9b9a',
                 zoom: {
                     enabled: true,
-                },
-                events: {
-                    dataPointSelection: function(event, chartContext, config) {
-                        onClickChart({ selectedItem : config.dataPointIndex } );
-                    }
-      
                 },
               },
               labels: labels,
@@ -27,6 +18,11 @@ const ChartComponent = memo(({ series, labels, title, height="350px", width="100
               },
               fill: {
                 opacity: 0.8
+              },
+              theme: {
+                monochrome: {
+                  enabled: true
+                }
               },
               legend: {
                     show: true,

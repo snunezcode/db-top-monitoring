@@ -10,7 +10,7 @@ import Tabs from "@awsui/components-react/tabs";
 import ColumnLayout from "@awsui/components-react/column-layout";
 import { SplitPanel } from '@awsui/components-react';
 
-import Select from "@awsui/components-react/select";
+
 import Flashbar from "@awsui/components-react/flashbar";
 import StatusIndicator from "@awsui/components-react/status-indicator";
 import Spinner from "@awsui/components-react/spinner";
@@ -52,8 +52,8 @@ function App() {
     //--######## Global Settings
     
     //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("tab02");
-    const currentTabId = useRef("tab02");
+    const [activeTabId, setActiveTabId] = useState("tab01");
+    const currentTabId = useRef("tab01");
     
     
     const parameter_code_id=params.get("code_id");  
@@ -80,7 +80,7 @@ function App() {
     const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
     
 
-    //-- Variable for Table  Stats
+    //-- Variable for Cluster Stats
     const [tableStats,setTableStats] = useState({ 
                                 table : {
                                             name : "",
@@ -92,7 +92,6 @@ function App() {
                                             rcu : 0, 
                                             wcu : 0, 
                                             metadata : {},
-                                            indexList : [],
                                             ConsumedReadCapacityUnits : 0,
                                             ConsumedWriteCapacityUnits : 0,
                                             ReadThrottleEvents : 0,
@@ -141,36 +140,6 @@ function App() {
                                 },
                 });
     
-    
-    //-- Variable for Index  Stats
-    const [indexStats,setIndexStats] = useState({ 
-                                index : {
-                                            name : "",
-                                            rcu : 0, 
-                                            wcu : 0, 
-                                            metadata : {},
-                                            ConsumedReadCapacityUnits : 0,
-                                            ConsumedWriteCapacityUnits : 0,
-                                            ReadThrottleEvents : 0,
-                                            WriteThrottleEvents : 0,
-                                            ProvisionedWriteCapacityUnits : 0,
-                                            ProvisionedReadCapacityUnits : 0,
-                                            lastUpdate : "-",
-                                            history : {
-                                                    ConsumedReadCapacityUnits : [],
-                                                    ConsumedWriteCapacityUnits : [],
-                                                    ReadThrottleEvents : [],
-                                                    WriteThrottleEvents : [],
-                                                    ProvisionedWriteCapacityUnits : [],
-                                                    ProvisionedReadCapacityUnits : [],
-                                            },
-                                            
-                                },
-                });
-    
-    const [selectedIndex,setSelectedIndex] = useState({});
-    const indexName = useRef("code-index");
-    const [indexList,setIndexList] = useState([]);
     
     //-- Function Open Connection
     async function openTableConnection() {
@@ -228,43 +197,7 @@ function App() {
                       }).then((data)=>{
                        
                        console.log(data); 
-                      
-                        if ( data.data.table.indexList.length > 0){
-                            
-                            var indexes = [];
-                            data.data.table.indexList.forEach(function(index) {
-                                indexes.push({ label : index, value : index });
-                            });
-                            indexName.current = data.data.table.indexList[0];
-                            setIndexList(indexes);
-                            setSelectedIndex({ label : data.data.table.indexList[0], value : data.data.table.indexList[0] });
-                        }
-    
                        setTableStats({ table : {...data.data.table } });
-                       
-    
-                  })
-                  .catch((err) => {
-                      console.log('Timeout API Call : /api/dynamodb/gather/stats/' );
-                      console.log(err);
-                      
-                  });
-        }
-        
-         if ( currentTabId.current == "tab02") {
-            
-            Axios.get(`${api_url}/api/dynamodb/gather/index/stats/`,{
-                          params: { 
-                                    connectionId : cnf_connection_id, 
-                                    tableName : cnf_identifier, 
-                                    indexName : indexName.current, 
-                                    engineType : "dynamodb"
-                              
-                          }
-                      }).then((data)=>{
-                       
-                       console.log(data); 
-                       setIndexStats({ index : {...data.data.index } });
                        
     
                   })
@@ -963,290 +896,6 @@ function App() {
                                             </table>  
                                                 
                                                 
-                                          </>
-                                          
-                                      },
-                                      {
-                                        label: "Global Secondary Index",
-                                        id: "tab02",
-                                        content: 
-                                         
-                                          <>
-                                          <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
-                                                <tr>  
-                                                   <td>
-                                                        <Container>
-                                                        
-                                                            <table style={{"width":"100%"}}>
-                                                                <tr>  
-                                                                    <td style={{"width":"20%","padding-left": "1em", "border-left": "10px solid " + configuration.colors.lines.separator100,}}>  
-                                                                        
-                                                                        <Select
-                                                                              selectedOption={selectedIndex}
-                                                                              onChange={({ detail }) => {
-                                                                                     indexName.current = detail.selectedOption.value;
-                                                                                     setSelectedIndex(detail.selectedOption);
-                                                                                     gatherTableStats();
-                                                                              }
-                                                                              }
-                                                                              options={indexList}
-                                                                              filteringType="auto"
-                                                                        />
-                                                                    </td>
-                                                                    <td style={{"width":"20%","padding-left": "1em", }}>  
-                                                                    </td>
-                                                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                                                        <StatusIndicator type={indexStats['index']['status'] === 'active' ? 'success' : 'pending'}> {indexStats['index']['status']} </StatusIndicator>
-                                                                        <Box variant="awsui-key-label">Status</Box>
-                                                                    </td>
-                                                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                                                        { ( parseFloat(indexStats['index']['wcu']) != -1  ) &&
-                                                                            <div>{ (parseFloat(indexStats['index']['wcu']).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) ) || 0 }</div>
-                                                                        }
-                                                                        { ( parseFloat(indexStats['index']['wcu']) == -1  ) &&
-                                                                            <div>On-Demand</div>
-                                                                        }
-                                                                        <Box variant="awsui-key-label">WCU</Box>
-                                                                    </td>
-                                                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                                                        { ( parseFloat(indexStats['index']['rcu']) != -1  ) &&
-                                                                            <div>{ (parseFloat(indexStats['index']['rcu']).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) ) || 0 }</div>
-                                                                        }
-                                                                        { ( parseFloat(indexStats['index']['rcu']) == -1  ) &&
-                                                                            <div>On-Demand</div>
-                                                                        }
-                                                                        <Box variant="awsui-key-label">RCU</Box>
-                                                                    </td>
-                                                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                                                        <div>{ (parseFloat(indexStats['index']['items']).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) ) || 0 }</div>
-                                                                        <Box variant="awsui-key-label">Items</Box>
-                                                                    </td>
-                                                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                                                        <div>{ customFormatNumber(parseFloat(indexStats['index']['size']) || 0, 0 ) }</div>
-                                                                        <Box variant="awsui-key-label">Size</Box>
-                                                                    </td>
-                                                                </tr>
-                                                            </table>
-                                                            
-                                                            
-                                                            <Box variant="h2" color="text-status-inactive" >Capacity Usage</Box>
-                                                            
-                                                            {/*##################|- PROVISONED MODE  -|#################*/}
-                                                            
-                                                            { ( parameter_object_values["mode"] == "provisioned"  ) &&
-                                                            <div>
-                                                            <table style={{"width":"100%"}}>
-                                                                <tr>  
-                                                                    <td valign="middle" style={{"width":"25%", "padding-left": "1em", "text-align": "center"}} rowspan="2">  
-                                                                            <ChartPie01 
-                                                                                    title={"Performance Analysis"} 
-                                                                                    height="350px" 
-                                                                                    width="100%" 
-                                                                                    series = {[indexStats['index']['ConsumedWriteCapacityUnits'],indexStats['index']['ConsumedReadCapacityUnits']]}
-                                                                                    labels = {["WriteCapacityUnits/sec","ReadCapacityUnits/sec"]}
-                                                                                    onClickEvent={() => {}}
-                                                                            />
-                                                                            <br />
-                                                                            <br />
-                                                                            <CompMetric01 
-                                                                                    value={ (indexStats['index']['ConsumedWriteCapacityUnits'] + indexStats['index']['ConsumedReadCapacityUnits'] ) || 0 }
-                                                                                    title={"TotalCapacityUnitsConsumed/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                            />
-                                                                    </td>    
-                                                                    <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            
-                                                                            <ChartRadialBar01 
-                                                                                    series={JSON.stringify([Math.round( ( ( indexStats['index']['ConsumedWriteCapacityUnits'] / indexStats['index']['wcu'] ) * 100 ) ) || 0 ])} 
-                                                                                    height="180px" 
-                                                                                    title={"WCU"}
-                                                                            />
-                                                                        
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','WriteCapacityUnitsConsumed/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['ConsumedWriteCapacityUnits'] || 0}
-                                                                                    title={"WriteCapacityUnitsConsumed/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                            
-                                                                    </td>
-                                                                    <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['WriteThrottleEvents'] || 0}
-                                                                                    title={"WriteThrottleEvents/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                    </td>
-                                                                    <td valign="top"  style={{"width":"61%"}}>  
-                                                                        <ChartBar04 series={JSON.stringify([
-                                                                                                { name : "WriteCapacityUnitsConsumed", data : indexStats['index']['history']['ConsumedWriteCapacityUnits'], type: "bar"},
-                                                                                                { name : "WriteCapacityUnitsProvisioned", data : indexStats['index']['history']['ProvisionedWriteCapacityUnits'], type: "line" }
-                                                                                            ])}
-                                                                                        title={"WriteCapacityUnits/sec"} height="220px" 
-                                                                        />
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>  
-                                                                    <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <ChartRadialBar01 
-                                                                                    series={JSON.stringify([Math.round( ( ( indexStats['index']['ConsumedReadCapacityUnits'] / indexStats['index']['rcu'] ) * 100 ) ) || 0 ])} 
-                                                                                    height="180px" 
-                                                                                    title={"RCU"}
-                                                                            />  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','CapacityUnitsConsumed/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['ConsumedReadCapacityUnits'] || 0}
-                                                                                    title={"ReadCapacityUnitsConsumed/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                            
-                                                                    </td>
-                                                                    <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['ReadThrottleEvents'] || 0}
-                                                                                    title={"ReadThrottleEvents/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                    </td>
-                                                                    <td valign="top"  style={{"width":"61%"}}>  
-                                                                        <br/>
-                                                                        <br/>
-                                                                        <ChartBar04 series={JSON.stringify([
-                                                                                                { name : "ReadCapacityUnitsConsumed", data : indexStats['index']['history']['ConsumedReadCapacityUnits'], type: "bar" },
-                                                                                                { name : "ReadCapacityUnitsProvisioned", data : indexStats['index']['history']['ProvisionedReadCapacityUnits'], type: "line" }
-                                                                                            ])}
-                                                                                        title={"ReadCapacityUnits/sec"} height="220px" 
-                                                                        />
-                                                                    </td>
-                                                                </tr>
-                                                            </table> 
-                                                            </div>
-                                                            }
-                                                            
-                                                            
-                                                            {/*##################|- ON DEMAND MODE  -|#################*/}
-                                                            
-                                                            { ( parameter_object_values["mode"] == "on-demand"  ) &&
-                                                            <div>
-                                                            <table style={{"width":"100%"}}>
-                                                                <tr>  
-                                                                    <td valign="middle" style={{"width":"25%", "padding-left": "1em", "text-align": "center"}} rowspan="2">  
-                                                                            <ChartPie01 
-                                                                                    title={"Performance Analysis"} 
-                                                                                    height="350px" 
-                                                                                    width="100%" 
-                                                                                    series = {[indexStats['index']['ConsumedWriteCapacityUnits'],indexStats['index']['ConsumedReadCapacityUnits']]}
-                                                                                    labels = {["WriteCapacityUnits/sec","ReadCapacityUnits/sec"]}
-                                                                                    onClickEvent={() => {}}
-                                                                            />
-                                                                            <br />
-                                                                            <br />
-                                                                            <CompMetric01 
-                                                                                    value={ (indexStats['index']['ConsumedWriteCapacityUnits'] + indexStats['index']['ConsumedReadCapacityUnits'] ) || 0 }
-                                                                                    title={"TotalCapacityUnitsConsumed/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                            />
-                                                                    </td>            
-                                                                    <td valign="middle" style={{"width":"15%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','ConsumedWriteCapacityUnits/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['ConsumedWriteCapacityUnits'] || 0}
-                                                                                    title={"WriteCapacityUnitsConsumed/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                            <br />
-                                                                            <br />
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['WriteThrottleEvents'] || 0}
-                                                                                    title={"WriteThrottleEvents/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                            
-                                                                    </td>
-                                                                    <td valign="top"  style={{"width":"60%"}}>  
-                                                                        <ChartBar04 series={JSON.stringify([
-                                                                                                { name : "ConsumedWriteCapacityUnits", data : indexStats['index']['history']['ConsumedWriteCapacityUnits'], type: "bar" },
-                                                                                            ])}
-                                                                                        title={"WriteCapacityUnits/sec"} height="220px" 
-                                                                        />
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>  
-                                                                    <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','ConsumedReadCapacityUnits/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['ConsumedReadCapacityUnits'] || 0}
-                                                                                    title={"ReadCapacityUnitsConsumed/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                            <br />
-                                                                            <br />
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec')}>
-                                                                                <CompMetric01 
-                                                                                    value={indexStats['index']['ReadThrottleEvents'] || 0}
-                                                                                    title={"ReadThrottleEvents/sec"}
-                                                                                    precision={2}
-                                                                                    format={4}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                            </a>
-                                                                            
-                                                                    </td>
-                                                                    <td valign="top"  style={{"width":"61%"}}>  
-                                                                        <ChartBar04 series={JSON.stringify([
-                                                                                                { name : "ConsumedReadCapacityUnits", data : indexStats['index']['history']['ConsumedReadCapacityUnits'], type: "bar" },
-                                                                                            ])}
-                                                                                        title={"ReadCapacityUnits/sec"} height="220px" 
-                                                                        />
-                                                                    </td>
-                                                                </tr>
-                                                            </table> 
-                                                            </div>
-                                                            }
-                                                                            
-                                                                            
-                                                        </Container>    
-                                                    </td>
-                                                </tr>
-                                            </table>                                                                
                                           </>
                                           
                                       },

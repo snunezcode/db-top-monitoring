@@ -48,6 +48,12 @@ const ChartBar = memo(({series,history, height, width="100%", title, colors=[], 
                   
                 }
               },*/
+              theme: {
+                monochrome: {
+                  enabled: true
+                },
+                
+              },
               tooltip: {
                     theme: "dark",
                     x : { 

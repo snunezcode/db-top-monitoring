@@ -4080,10 +4080,122 @@ class classDynamoDB {
             
             date.setMinutes(date.getMinutes() + minutes);
             return date;
+        }
         
+        
+        
+        //-- Get GSI metrics
+        async getIndexhData(object) {
+            
+            /*
+            "GlobalSecondaryIndexes": [
+            {
+                "IndexName": "code-index",
+                "KeySchema": [
+                    {
+                        "AttributeName": "code",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "Projection": {
+                    "ProjectionType": "ALL"
+                },
+                "IndexStatus": "ACTIVE",
+                "ProvisionedThroughput": {
+                    "LastIncreaseDateTime": "2023-12-17T07:40:40-06:00",
+                    "LastDecreaseDateTime": "2023-12-17T00:40:33.445000-06:00",
+                    "NumberOfDecreasesToday": 4,
+                    "ReadCapacityUnits": 10,
+                    "WriteCapacityUnits": 10
+                },
+                "IndexSizeBytes": 1714170,
+                "ItemCount": 15605,
+                "IndexArn": "arn:aws:dynamodb:us-east-1:039783469744:table/table1/index/code-index"
+            }
+        ],
+        */
+            const indexInfo = await AWSObject.getDynamoDBIndexInfo(this.objectProperties.tableName, object.indexName);
+            
+            var metricList = [];
+            var metricCatalog = {
+                        'ConsumedReadCapacityUnits' : { metric : 'ConsumedReadCapacityUnits', factor : 60, stat : "Sum", dimension : [{ Name: "TableName", Value: this.objectProperties.tableName }, { Name: "GlobalSecondaryIndexName", Value: object.indexName } ]  },
+                        'ConsumedWriteCapacityUnits' : { metric : 'ConsumedWriteCapacityUnits', factor : 60, stat : "Sum", dimension : [{ Name: "TableName", Value: this.objectProperties.tableName }, { Name: "GlobalSecondaryIndexName", Value: object.indexName } ]  },
+                        'ReadThrottleEvents' : { metric : 'ReadThrottleEvents', factor : 60, stat : "Sum", dimension : [{ Name: "TableName", Value: this.objectProperties.tableName }, { Name: "GlobalSecondaryIndexName", Value: object.indexName } ]  },
+                        'WriteThrottleEvents' : { metric : 'WriteThrottleEvents', factor : 60, stat : "Sum", dimension : [{ Name: "TableName", Value: this.objectProperties.tableName }, { Name: "GlobalSecondaryIndexName", Value: object.indexName } ]  },
+                        'ProvisionedWriteCapacityUnits' : { metric : 'ProvisionedWriteCapacityUnits', factor : 1, stat : "Average", dimension : [{ Name: "TableName", Value: this.objectProperties.tableName }, { Name: "GlobalSecondaryIndexName", Value: object.indexName }]  },
+                        'ProvisionedReadCapacityUnits' : { metric : 'ProvisionedReadCapacityUnits', factor : 1, stat : "Average", dimension : [{ Name: "TableName", Value: this.objectProperties.tableName }, { Name: "GlobalSecondaryIndexName", Value: object.indexName }]  },
+            };
+            
+            for (let metric of Object.keys(metricCatalog)) {
+                        metricList.push({
+                            namespace : "AWS/DynamoDB",
+                            label : metric,
+                            metric : metricCatalog[metric].metric,
+                            dimension : metricCatalog[metric].dimension,
+                            stat : metricCatalog[metric].stat
+                        });
+                };
+            
+            //-- Get index metrics - AWS CloudWatch
+       
+            const indexMetrics = await AWSObject.getGenericMetricsDataset({ metrics : metricList, interval : 60, period : (1 / 60) });
+            var history = [];
+            var value = 0;
+            var delay = 0;
+            var metrics = {...indexInfo};
+            indexMetrics.forEach(item => {
+                    try {
+                                
+                            if ( item.Timestamps.length > 0 ) {
+                                
+                                item.Timestamps.shift();
+                                item.Values.shift();
+                                
+                                delay = this.#dateDiff(item.Timestamps[0]);
+                                if ( delay <= 5 ) {
+                                    if ( metricCatalog[item.Label].factor == 1)
+                                        value = item.Values[0];
+                                    else
+                                        value = item.Values[0] / metricCatalog[item.Label].factor;
+                                }
+                                else    
+                                    if (item.Label == "ProvisionedWriteCapacityUnits" || item.Label == "ProvisionedReadCapacityUnits")
+                                        value = item.Values[0];
+                                    else
+                                        value = 0;
+                                    
+                                history = item.Timestamps.map((value, index) => {
+                                 
+                                  if ( this.#metricCatalog[item.Label].factor == 1)
+                                    return [item.Timestamps[index], item.Values[index] ];
+                                  else
+                                    return [item.Timestamps[index], item.Values[index] / metricCatalog[item.Label].factor ];
+                                    
+                                });
+                                
+                                
+                                for (let iMinutes=1; iMinutes <= delay ; iMinutes++){
+                                    history.push([this.#addMinutes(new Date(item.Timestamps[0]),iMinutes), null ]);         
+                                }
+                                
+                            }
+                            else {
+                                history = [];
+                                value = 0;
+                            }
+                            
+                            metrics = {...metrics, [item.Label] : value, history : { ...metrics.history, [item.Label] : history } };
+                            
+                    }
+                    catch(err){
+                        this.#objLog.write("getIndexhData","err",err);
+                    }
+            });
+            
+            return metrics;
             
         }
-
+        
         
 }
 
