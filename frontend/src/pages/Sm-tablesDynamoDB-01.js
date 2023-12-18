@@ -2,7 +2,7 @@ import {useState,useEffect} from 'react'
 import { createSearchParams } from "react-router-dom";
 import Axios from 'axios'
 import { configuration, SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } from './Configs';
-import { applicationVersionUpdate, getMatchesCountText, formatDate, createLabelFunction, paginationLabels, pageSizePreference, collectionPreferencesProps, EmptyState } from '../components/Functions';
+import { applicationVersionUpdate, getMatchesCountText, createLabelFunction, paginationLabels, pageSizePreference, collectionPreferencesProps, EmptyState } from '../components/Functions';
 
 import { useCollection } from '@cloudscape-design/collection-hooks';
 import {CollectionPreferences,Pagination } from '@awsui/components-react';
@@ -14,11 +14,8 @@ import SideNavigation from '@awsui/components-react/side-navigation';
 
 import Flashbar from "@awsui/components-react/flashbar";
 import { StatusIndicator } from '@awsui/components-react';
-import Modal from "@awsui/components-react/modal";
 import SpaceBetween from "@awsui/components-react/space-between";
 import Button from "@awsui/components-react/button";
-import FormField from "@awsui/components-react/form-field";
-import Input from "@awsui/components-react/input";
 import Table from "@awsui/components-react/table";
 import Header from "@awsui/components-react/header";
 import Box from "@awsui/components-react/box";
@@ -114,11 +111,6 @@ function Login() {
   
     
     
-    //-- Variable for textbox components
-    const [txtUser, settxtUser] = useState('');
-    const [txtPassword, settxtPassword] = useState('');
-  
-    const [modalConnectVisible, setModalConnectVisible] = useState(false);
 
     //-- Add Header Cognito Token
     Axios.defaults.headers.common['x-token-cognito'] = sessionStorage.getItem("x-token-cognito");
@@ -138,7 +130,6 @@ function Login() {
                           engineType : "dynamodb"
                 }
             }).then((data)=>{
-                console.log(data);
                 if (data.data.result === "auth1") {
                      sessionStorage.setItem(data.data.session_id, data.data.session_token );
                      var session_id = CryptoJS.AES.encrypt(JSON.stringify({
@@ -154,9 +145,7 @@ function Login() {
                                                             
                                                             
                      
-                    setModalConnectVisible(false);
-                    settxtUser('');
-                    settxtPassword('');
+                    
                     window.open( '/sm-dynamodb-01' + '?' + createSearchParams({
                                 session_id: session_id,
                                 code_id: data.data.session_id
@@ -216,7 +205,6 @@ function Login() {
         
             const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/region/dynamodb/tables/details/`);
             sessionStorage.setItem("x-csrf-token", data.csrfToken );
-            console.log(data);
             data.tables.forEach(function(item) {
                            
                             try{
@@ -253,19 +241,9 @@ function Login() {
     }
     
     
-    //-- Handle Object Events KeyDown
-    const handleKeyDowntxtLogin= (event) => {
-      if (event.detail.key === 'Enter') {
-        handleClickLogin();
-      }
-    }
-    
-    
-    
     
     
     //-- Init Function
-      
     // eslint-disable-next-line
     useEffect(() => {
         //gatherTables();
@@ -285,7 +263,7 @@ function Login() {
         <AppLayout
             headerSelector="#h"
             breadCrumbs={breadCrumbs}
-            navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/dynamodb/tables/"} />}
+            navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/tables/dynamodb/"} />}
             splitPanelOpen={splitPanelShow}
             onSplitPanelToggle={() => setsplitPanelShow(false)}
             splitPanelSize={350}

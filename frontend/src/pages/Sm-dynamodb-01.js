@@ -10,6 +10,7 @@ import Tabs from "@awsui/components-react/tabs";
 import ColumnLayout from "@awsui/components-react/column-layout";
 import { SplitPanel } from '@awsui/components-react';
 
+import FormField from "@awsui/components-react/form-field";
 import Select from "@awsui/components-react/select";
 import Flashbar from "@awsui/components-react/flashbar";
 import StatusIndicator from "@awsui/components-react/status-indicator";
@@ -52,8 +53,8 @@ function App() {
     //--######## Global Settings
     
     //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("tab02");
-    const currentTabId = useRef("tab02");
+    const [activeTabId, setActiveTabId] = useState("tab01");
+    const currentTabId = useRef("tab01");
     
     
     const parameter_code_id=params.get("code_id");  
@@ -77,7 +78,7 @@ function App() {
     
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
-    const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
+    const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : '', title : '' });
     
 
     //-- Variable for Table  Stats
@@ -227,8 +228,6 @@ function App() {
                           }
                       }).then((data)=>{
                        
-                       console.log(data); 
-                      
                         if ( data.data.table.indexList.length > 0){
                             
                             var indexes = [];
@@ -262,11 +261,9 @@ function App() {
                               
                           }
                       }).then((data)=>{
-                       
-                       console.log(data); 
+           
                        setIndexStats({ index : {...data.data.index } });
-                       
-    
+           
                   })
                   .catch((err) => {
                       console.log('Timeout API Call : /api/dynamodb/gather/stats/' );
@@ -339,10 +336,10 @@ function App() {
 
 
 
-    function onClickMetric(metricId,metricTitle) {
+    function onClickMetric(metricId,metricTitle,data) {
 
-        var dataset = tableStats['table']['history'][metricId].map((value, index) => {
-            return tableStats['table']['history'][metricId][index][1];
+        var dataset = data['history'][metricId].map((value, index) => {
+            return data['history'][metricId][index][1];
         });
         
         dataset = dataset.filter(elements => {
@@ -354,7 +351,7 @@ function App() {
         var avg = dataset.reduce((a,b) => a + b, 0) / dataset.length;
         var stats = percentile([50,90,95], dataset);
         
-        setMetricDetailsIndex ({ index : metricId, title : metricTitle, p50 : stats[0], p90 : stats[1], p95 : stats[2], max : max, min : min, avg : avg });
+        setMetricDetailsIndex ({ index : metricId, title : metricTitle, p50 : stats[0], p90 : stats[1], p95 : stats[2], max : max, min : min, avg : avg, data : data });
         setsplitPanelShow(true);
                    
     }
@@ -392,7 +389,7 @@ function App() {
                         <tr>
                             <td valign="top" style={{"width":"80%", "padding-left": "1em"}}>  
                                 <ChartLine05 series={JSON.stringify([
-                                                        { name : metricDetailsIndex.index, data : tableStats['table']['history'][metricDetailsIndex.index] }
+                                                        { name : metricDetailsIndex.index, data : metricDetailsIndex['data']['history'][metricDetailsIndex.index] }
                                                     ])}
                                                     p50={metricDetailsIndex.p50}
                                                     p90={metricDetailsIndex.p90}
@@ -575,7 +572,7 @@ function App() {
                                                                                         title={"WCU"}
                                                                                 />
                                                                             
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','WriteCapacityUnitsConsumed/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','WriteCapacityUnitsConsumed/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['ConsumedWriteCapacityUnits'] || 0}
                                                                                         title={"WriteCapacityUnitsConsumed/sec"}
@@ -588,7 +585,7 @@ function App() {
                                                                                 
                                                                         </td>
                                                                         <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['WriteThrottleEvents'] || 0}
                                                                                         title={"WriteThrottleEvents/sec"}
@@ -615,7 +612,7 @@ function App() {
                                                                                         height="180px" 
                                                                                         title={"RCU"}
                                                                                 />  
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','CapacityUnitsConsumed/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','CapacityUnitsConsumed/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['ConsumedReadCapacityUnits'] || 0}
                                                                                         title={"ReadCapacityUnitsConsumed/sec"}
@@ -628,7 +625,7 @@ function App() {
                                                                                 
                                                                         </td>
                                                                         <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['ReadThrottleEvents'] || 0}
                                                                                         title={"ReadThrottleEvents/sec"}
@@ -682,7 +679,7 @@ function App() {
                                                                                 />
                                                                         </td>            
                                                                         <td valign="middle" style={{"width":"15%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','ConsumedWriteCapacityUnits/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','ConsumedWriteCapacityUnits/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['ConsumedWriteCapacityUnits'] || 0}
                                                                                         title={"WriteCapacityUnitsConsumed/sec"}
@@ -694,7 +691,7 @@ function App() {
                                                                                 </a>
                                                                                 <br />
                                                                                 <br />
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['WriteThrottleEvents'] || 0}
                                                                                         title={"WriteThrottleEvents/sec"}
@@ -716,7 +713,7 @@ function App() {
                                                                     </tr>
                                                                     <tr>  
                                                                         <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','ConsumedReadCapacityUnits/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','ConsumedReadCapacityUnits/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['ConsumedReadCapacityUnits'] || 0}
                                                                                         title={"ReadCapacityUnitsConsumed/sec"}
@@ -728,7 +725,7 @@ function App() {
                                                                                 </a>
                                                                                 <br />
                                                                                 <br />
-                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec')}>
+                                                                                <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec',tableStats['table'])}>
                                                                                     <CompMetric01 
                                                                                         value={tableStats['table']['ReadThrottleEvents'] || 0}
                                                                                         title={"ReadThrottleEvents/sec"}
@@ -780,7 +777,7 @@ function App() {
                                                                         <td style={{"width":"3%",  "padding-left": "1em"}}>  
                                                                         </td>
                                                                         <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyGetItem','GetItemLatency(us)')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyGetItem','GetItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyGetItem'] || 0}
                                                                                     title={"GetItemLatency(us)"}
@@ -792,7 +789,7 @@ function App() {
                                                                             </a>
                                                                         </td>
                                                                         <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyPutItem','PutItemLatency(us)')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyPutItem','PutItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyPutItem'] || 0}
                                                                                     title={"PutItemLatency(us)"}
@@ -804,7 +801,7 @@ function App() {
                                                                             </a>
                                                                         </td>
                                                                         <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyScan','ScanLatency(us)')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyScan','ScanLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyScan'] || 0}
                                                                                     title={"ScanLatency(us)"}
@@ -816,7 +813,7 @@ function App() {
                                                                             </a>
                                                                         </td>
                                                                         <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyQuery','QueryLatency(us)')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyQuery','QueryLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyQuery'] || 0}
                                                                                     title={"QueryLatency(us)"}
@@ -828,7 +825,7 @@ function App() {
                                                                             </a>
                                                                         </td>
                                                                         <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyBatchGetItem','BatchGetItemLatency(us)')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyBatchGetItem','BatchGetItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyBatchGetItem'] || 0}
                                                                                     title={"BatchGetItemLatency(us)"}
@@ -840,7 +837,7 @@ function App() {
                                                                             </a>
                                                                         </td>
                                                                         <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyBatchWriteItem','BatchWriteItemLatency(us)')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyBatchWriteItem','BatchWriteItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyBatchWriteItem'] || 0}
                                                                                     title={"BatchWriteItemLatency(us)"}
@@ -881,7 +878,7 @@ function App() {
                                                                     <td style={{"width":"3%",  "padding-left": "1em"}}>  
                                                                     </td>
                                                                     <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsGetItem','ThrottledRequestsGetItem/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsGetItem','ThrottledRequestsGetItem/sec',tableStats['table'])}>
                                                                             <CompMetric01 
                                                                                 value={tableStats['table']['ThrottledRequestsGetItem'] || 0}
                                                                                 title={"ThrottledRequestsGetItem/sec"}
@@ -893,7 +890,7 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsPutItem','ThrottledRequestsPutItem/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsPutItem','ThrottledRequestsPutItem/sec',tableStats['table'])}>
                                                                             <CompMetric01 
                                                                                 value={tableStats['table']['ThrottledRequestsPutItem'] || 0}
                                                                                 title={"ThrottledRequestsPutItem/sec"}
@@ -905,7 +902,7 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsScan','ThrottledRequestsScan/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsScan','ThrottledRequestsScan/sec',tableStats['table'])}>
                                                                             <CompMetric01 
                                                                                 value={tableStats['table']['ThrottledRequestsScan'] || 0}
                                                                                 title={"ThrottledRequestsScan/sec"}
@@ -917,7 +914,7 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsQuery','ThrottledRequestsQuery/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsQuery','ThrottledRequestsQuery/sec',tableStats['table'])}>
                                                                             <CompMetric01 
                                                                                 value={tableStats['table']['ThrottledRequestsQuery'] || 0}
                                                                                 title={"ThrottledRequestsQuery/sec"}
@@ -929,7 +926,7 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsUpdateItem','ThrottledRequestsUpdateItem/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsUpdateItem','ThrottledRequestsUpdateItem/sec',tableStats['table'])}>
                                                                             <CompMetric01 
                                                                                 value={tableStats['table']['ThrottledRequestsUpdateItem'] || 0}
                                                                                 title={"ThrottledRequestsUpdateItem/sec"}
@@ -941,7 +938,7 @@ function App() {
                                                                         </a>
                                                                     </td>
                                                                     <td style={{"width":"15%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsDeleteItem','ThrottledRequestsDeleteItem/sec')}>
+                                                                        <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ThrottledRequestsDeleteItem','ThrottledRequestsDeleteItem/sec',tableStats['table'])}>
                                                                             <CompMetric01 
                                                                                 value={tableStats['table']['ThrottledRequestsDeleteItem'] || 0}
                                                                                 title={"ThrottledRequestsDeleteItem/sec"}
@@ -967,8 +964,9 @@ function App() {
                                           
                                       },
                                       {
-                                        label: "Global Secondary Index",
+                                        label: "Global Secondary Indexes",
                                         id: "tab02",
+                                        disabled : ( tableStats['table']['indexList'].length > 0 ? false : true ),
                                         content: 
                                          
                                           <>
@@ -979,19 +977,21 @@ function App() {
                                                         
                                                             <table style={{"width":"100%"}}>
                                                                 <tr>  
-                                                                    <td style={{"width":"20%","padding-left": "1em", "border-left": "10px solid " + configuration.colors.lines.separator100,}}>  
-                                                                        
-                                                                        <Select
-                                                                              selectedOption={selectedIndex}
-                                                                              onChange={({ detail }) => {
-                                                                                     indexName.current = detail.selectedOption.value;
-                                                                                     setSelectedIndex(detail.selectedOption);
-                                                                                     gatherTableStats();
-                                                                              }
-                                                                              }
-                                                                              options={indexList}
-                                                                              filteringType="auto"
-                                                                        />
+                                                                    <td valign="top" style={{"width":"20%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
+                                                                        <FormField label="Index name">
+                                                                                    
+                                                                                        <Select
+                                                                                              selectedOption={selectedIndex}
+                                                                                              onChange={({ detail }) => {
+                                                                                                     indexName.current = detail.selectedOption.value;
+                                                                                                     setSelectedIndex(detail.selectedOption);
+                                                                                                     gatherTableStats();
+                                                                                              }
+                                                                                              }
+                                                                                              options={indexList}
+                                                                                              filteringType="auto"
+                                                                                        />
+                                                                        </FormField>
                                                                     </td>
                                                                     <td style={{"width":"20%","padding-left": "1em", }}>  
                                                                     </td>
@@ -1028,9 +1028,9 @@ function App() {
                                                                 </tr>
                                                             </table>
                                                             
-                                                            
+                                                            <br />
                                                             <Box variant="h2" color="text-status-inactive" >Capacity Usage</Box>
-                                                            
+                                                            <br />
                                                             {/*##################|- PROVISONED MODE  -|#################*/}
                                                             
                                                             { ( parameter_object_values["mode"] == "provisioned"  ) &&
@@ -1065,7 +1065,7 @@ function App() {
                                                                                     title={"WCU"}
                                                                             />
                                                                         
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','WriteCapacityUnitsConsumed/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','WriteCapacityUnitsConsumed/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['ConsumedWriteCapacityUnits'] || 0}
                                                                                     title={"WriteCapacityUnitsConsumed/sec"}
@@ -1078,7 +1078,7 @@ function App() {
                                                                             
                                                                     </td>
                                                                     <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['WriteThrottleEvents'] || 0}
                                                                                     title={"WriteThrottleEvents/sec"}
@@ -1105,7 +1105,7 @@ function App() {
                                                                                     height="180px" 
                                                                                     title={"RCU"}
                                                                             />  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','CapacityUnitsConsumed/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','CapacityUnitsConsumed/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['ConsumedReadCapacityUnits'] || 0}
                                                                                     title={"ReadCapacityUnitsConsumed/sec"}
@@ -1118,7 +1118,7 @@ function App() {
                                                                             
                                                                     </td>
                                                                     <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['ReadThrottleEvents'] || 0}
                                                                                     title={"ReadThrottleEvents/sec"}
@@ -1172,7 +1172,7 @@ function App() {
                                                                             />
                                                                     </td>            
                                                                     <td valign="middle" style={{"width":"15%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','ConsumedWriteCapacityUnits/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedWriteCapacityUnits','ConsumedWriteCapacityUnits/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['ConsumedWriteCapacityUnits'] || 0}
                                                                                     title={"WriteCapacityUnitsConsumed/sec"}
@@ -1184,7 +1184,7 @@ function App() {
                                                                             </a>
                                                                             <br />
                                                                             <br />
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('WriteThrottleEvents','WriteThrottleEvents/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['WriteThrottleEvents'] || 0}
                                                                                     title={"WriteThrottleEvents/sec"}
@@ -1206,7 +1206,7 @@ function App() {
                                                                 </tr>
                                                                 <tr>  
                                                                     <td valign="middle" style={{"width":"13%", "padding-left": "1em", "text-align": "center"}}>  
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','ConsumedReadCapacityUnits/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ConsumedReadCapacityUnits','ConsumedReadCapacityUnits/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['ConsumedReadCapacityUnits'] || 0}
                                                                                     title={"ReadCapacityUnitsConsumed/sec"}
@@ -1218,7 +1218,7 @@ function App() {
                                                                             </a>
                                                                             <br />
                                                                             <br />
-                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec')}>
+                                                                            <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('ReadThrottleEvents','ReadThrottleEvents/sec',indexStats['index'])}>
                                                                                 <CompMetric01 
                                                                                     value={indexStats['index']['ReadThrottleEvents'] || 0}
                                                                                     title={"ReadThrottleEvents/sec"}
@@ -1241,7 +1241,25 @@ function App() {
                                                             </table> 
                                                             </div>
                                                             }
-                                                                            
+                                                            
+                                                            <br />
+                                                            <br />
+                                                            <br />
+                                                            <Box variant="h2" color="text-status-inactive" >Throttled Requests</Box>
+                                                            <br />
+                                                            <table style={{"width":"100%"}}>
+                                                              <tr>  
+                                                                <td style={{"width":"100%","padding-left": "1em"}}> 
+                                                                        <ChartLine04 series={JSON.stringify([
+                                                                                                { name : "ReadThrottleEvents", data : indexStats['index']['history']['ReadThrottleEvents'] },
+                                                                                                { name : "WriteThrottleEvents", data : indexStats['index']['history']['WriteThrottleEvents'] },
+                                                                                            ])}
+                                                                                        title={"Events/sec"} height="300px" 
+                                                                        />
+                                                                        
+                                                                </td>
+                                                              </tr>
+                                                            </table>         
                                                                             
                                                         </Container>    
                                                     </td>

@@ -4087,33 +4087,6 @@ class classDynamoDB {
         //-- Get GSI metrics
         async getIndexhData(object) {
             
-            /*
-            "GlobalSecondaryIndexes": [
-            {
-                "IndexName": "code-index",
-                "KeySchema": [
-                    {
-                        "AttributeName": "code",
-                        "KeyType": "HASH"
-                    }
-                ],
-                "Projection": {
-                    "ProjectionType": "ALL"
-                },
-                "IndexStatus": "ACTIVE",
-                "ProvisionedThroughput": {
-                    "LastIncreaseDateTime": "2023-12-17T07:40:40-06:00",
-                    "LastDecreaseDateTime": "2023-12-17T00:40:33.445000-06:00",
-                    "NumberOfDecreasesToday": 4,
-                    "ReadCapacityUnits": 10,
-                    "WriteCapacityUnits": 10
-                },
-                "IndexSizeBytes": 1714170,
-                "ItemCount": 15605,
-                "IndexArn": "arn:aws:dynamodb:us-east-1:039783469744:table/table1/index/code-index"
-            }
-        ],
-        */
             const indexInfo = await AWSObject.getDynamoDBIndexInfo(this.objectProperties.tableName, object.indexName);
             
             var metricList = [];
