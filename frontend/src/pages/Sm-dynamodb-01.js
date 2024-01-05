@@ -4,20 +4,20 @@ import { configuration } from './Configs';
 import { customFormatNumber } from '../components/Functions';
 import { useSearchParams } from 'react-router-dom';
 import CustomHeader from "../components/Header";
-import AppLayout from "@awsui/components-react/app-layout";
-import Box from "@awsui/components-react/box";
-import Tabs from "@awsui/components-react/tabs";
-import ColumnLayout from "@awsui/components-react/column-layout";
-import { SplitPanel } from '@awsui/components-react';
+import AppLayout from "@cloudscape-design/components/app-layout";
+import Box from "@cloudscape-design/components/box";
+import Tabs from "@cloudscape-design/components/tabs";
+import ColumnLayout from "@cloudscape-design/components/column-layout";
+import { SplitPanel } from '@cloudscape-design/components';
 
-import FormField from "@awsui/components-react/form-field";
-import Select from "@awsui/components-react/select";
-import Flashbar from "@awsui/components-react/flashbar";
-import StatusIndicator from "@awsui/components-react/status-indicator";
-import Spinner from "@awsui/components-react/spinner";
+import FormField from "@cloudscape-design/components/form-field";
+import Select from "@cloudscape-design/components/select";
+import Flashbar from "@cloudscape-design/components/flashbar";
+import StatusIndicator from "@cloudscape-design/components/status-indicator";
+import Spinner from "@cloudscape-design/components/spinner";
 
-import SpaceBetween from "@awsui/components-react/space-between";
-import Container from "@awsui/components-react/container";
+import SpaceBetween from "@cloudscape-design/components/space-between";
+import Container from "@cloudscape-design/components/container";
 import CompMetric01  from '../components/Metric01';
 import ChartLine04  from '../components/ChartLine04';
 import ChartLine05  from '../components/ChartLine05';
@@ -474,7 +474,7 @@ function App() {
                                             { tableStats['table']['status'] != 'active' &&
                                                 <Spinner size="big" />
                                             }
-                                            <Box variant="h2" color="text-status-inactive" >{parameter_object_values['rds_id']} ({tableStats['table']['tableId']})</Box>
+                                            <Box variant="h3" color="text-status-inactive" >{parameter_object_values['rds_id']} ({tableStats['table']['tableId']})</Box>
                                         </SpaceBetween>
                                     </td>
                                     <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  

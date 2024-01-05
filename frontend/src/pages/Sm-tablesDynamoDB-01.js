@@ -5,24 +5,24 @@ import { configuration, SideMainLayoutHeader,SideMainLayoutMenu, breadCrumbs } f
 import { applicationVersionUpdate, getMatchesCountText, createLabelFunction, paginationLabels, pageSizePreference, collectionPreferencesProps, EmptyState } from '../components/Functions';
 
 import { useCollection } from '@cloudscape-design/collection-hooks';
-import {CollectionPreferences,Pagination } from '@awsui/components-react';
-import TextFilter from "@awsui/components-react/text-filter";
+import {CollectionPreferences,Pagination } from '@cloudscape-design/components';
+import TextFilter from "@cloudscape-design/components/text-filter";
 
 import CustomHeader from "../components/HeaderApp";
-import AppLayout from "@awsui/components-react/app-layout";
-import SideNavigation from '@awsui/components-react/side-navigation';
+import AppLayout from "@cloudscape-design/components/app-layout";
+import SideNavigation from '@cloudscape-design/components/side-navigation';
 
-import Flashbar from "@awsui/components-react/flashbar";
-import { StatusIndicator } from '@awsui/components-react';
-import SpaceBetween from "@awsui/components-react/space-between";
-import Button from "@awsui/components-react/button";
-import Table from "@awsui/components-react/table";
-import Header from "@awsui/components-react/header";
-import Box from "@awsui/components-react/box";
-import ColumnLayout from "@awsui/components-react/column-layout";
+import Flashbar from "@cloudscape-design/components/flashbar";
+import { StatusIndicator } from '@cloudscape-design/components';
+import SpaceBetween from "@cloudscape-design/components/space-between";
+import Button from "@cloudscape-design/components/button";
+import Table from "@cloudscape-design/components/table";
+import Header from "@cloudscape-design/components/header";
+import Box from "@cloudscape-design/components/box";
+import ColumnLayout from "@cloudscape-design/components/column-layout";
 import '@aws-amplify/ui-react/styles.css';
 
-import { SplitPanel } from '@awsui/components-react';
+import { SplitPanel } from '@cloudscape-design/components';
 
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
@@ -262,6 +262,7 @@ function Login() {
         <CustomHeader/>
         <AppLayout
             headerSelector="#h"
+            disableContentPaddings={true}
             breadCrumbs={breadCrumbs}
             navigation={<SideNavigation items={SideMainLayoutMenu} header={SideMainLayoutHeader} activeHref={"/tables/dynamodb/"} />}
             splitPanelOpen={splitPanelShow}
@@ -336,57 +337,62 @@ function Login() {
             contentType="table"
             content={
                 <>
-                      <Flashbar items={versionMessage} />
-                      <br/>
-                      <Table
-                        {...collectionProps}
-                        selectionType="single"
-                        header={
-                          <Header
-                            variant="h2"
-                            counter= {"(" + itemsTable.length + ")"} 
-                            actions={
-                                              <SpaceBetween
-                                                direction="horizontal"
-                                                size="xs"
-                                              >
-                                                <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={handleClickLogin}>Connect</Button>
-                                                <Button variant="primary" onClick={() => { gatherTablesDetails(); }}>Refresh</Button>
-                                              </SpaceBetween>
+                      <table style={{"width":"100%","padding" : "1em"}}>
+                          <tr>  
+                              <td style={{"width":"100%"}}>  
+                                  <Flashbar items={versionMessage} />
+                                  <Table
+                                    {...collectionProps}
+                                    selectionType="single"
+                                    variant="borderless"
+                                    header={
+                                      <Header
+                                        variant="h2"
+                                        counter= {"(" + itemsTable.length + ")"} 
+                                        actions={
+                                                          <SpaceBetween
+                                                            direction="horizontal"
+                                                            size="xs"
+                                                          >
+                                                            <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={handleClickLogin}>Connect</Button>
+                                                            <Button variant="primary" onClick={() => { gatherTablesDetails(); }}>Refresh</Button>
+                                                          </SpaceBetween>
+                                                  }
+                                      >
+                                        DynamoDB Tables
+                                      </Header>
+                                    }
+                                    columnDefinitions={columnsTable}
+                                    visibleColumns={preferences.visibleContent}
+                                    items={items}
+                                    pagination={<Pagination {...paginationProps} ariaLabels={paginationLabels} />}
+                                    filter={
+                                      <TextFilter
+                                        {...filterProps}
+                                        countText={getMatchesCountText(filteredItemsCount)}
+                                        filteringAriaLabel="Filter instances"
+                                      />
+                                    }
+                                    preferences={
+                                      <CollectionPreferences
+                                        {...collectionPreferencesProps}
+                                        preferences={preferences}
+                                        onConfirm={({ detail }) => setPreferences(detail)}
+                                      />
+                                    }
+                                    onSelectionChange={({ detail }) => {
+                                        setSelectedItems(detail.selectedItems);
+                                        setsplitPanelShow(true);
+                                        }
                                       }
-                          >
-                            DynamoDB Tables
-                          </Header>
-                        }
-                        columnDefinitions={columnsTable}
-                        visibleColumns={preferences.visibleContent}
-                        items={items}
-                        pagination={<Pagination {...paginationProps} ariaLabels={paginationLabels} />}
-                        filter={
-                          <TextFilter
-                            {...filterProps}
-                            countText={getMatchesCountText(filteredItemsCount)}
-                            filteringAriaLabel="Filter instances"
-                          />
-                        }
-                        preferences={
-                          <CollectionPreferences
-                            {...collectionPreferencesProps}
-                            preferences={preferences}
-                            onConfirm={({ detail }) => setPreferences(detail)}
-                          />
-                        }
-                        onSelectionChange={({ detail }) => {
-                            setSelectedItems(detail.selectedItems);
-                            setsplitPanelShow(true);
-                            }
-                          }
-                        selectedItems={selectedItems}
-                        resizableColumns
-                        stickyHeader
-                        loadingText="Loading records"
-                      />
-                  
+                                    selectedItems={selectedItems}
+                                    resizableColumns
+                                    stickyHeader
+                                    loadingText="Loading records"
+                                  />
+                              </td>
+                          </tr>
+                      </table>
                 </>
                 
             }
