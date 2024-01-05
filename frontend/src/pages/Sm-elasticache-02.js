@@ -465,7 +465,6 @@ function App() {
                           }
                       }).then((data)=>{
                        
-                            
                             var dataset = data.data.metric.map((value, index) => {
                                     return data.data.metric[index][1];
                                 });

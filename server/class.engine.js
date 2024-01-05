@@ -3865,12 +3865,13 @@ class classElasticacheServerlessCluster {
                                                                                                 {
                                                                                                     namespace : "AWS/ElastiCache",
                                                                                                     metric : object.metricName,
-                                                                                                    dimension : [{ Name: "clusterId", Value: this.objectProperties.clusterId }]
+                                                                                                    dimension : [{ Name: "clusterId", Value: this.objectProperties.clusterId }],
+                                                                                                    stat : "Average",
+                                                                                                    label : object.metricName,
                                                                                                 }
                                                                                             ], 
                                                                                     interval : object.interval, 
-                                                                                    period : object.period,
-                                                                                    stat : "Average"
+                                                                                    period : object.period
                 });
                 
                 
@@ -4085,7 +4086,7 @@ class classDynamoDB {
         
         
         //-- Get GSI metrics
-        async getIndexhData(object) {
+        async getIndexData(object) {
             
             const indexInfo = await AWSObject.getDynamoDBIndexInfo(this.objectProperties.tableName, object.indexName);
             
@@ -4161,7 +4162,7 @@ class classDynamoDB {
                             
                     }
                     catch(err){
-                        this.#objLog.write("getIndexhData","err",err);
+                        this.#objLog.write("getIndexData","err",err);
                     }
             });
             

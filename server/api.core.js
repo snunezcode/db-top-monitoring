@@ -2470,7 +2470,7 @@ async function gatherIndexStatsDynamoDB(req, res) {
             {
                 var params = req.query;
                 
-                var index = await dynamoDBObjectContainer[params.engineType + ":" + params.tableName].getIndexhData({ indexName : params.indexName });
+                var index = await dynamoDBObjectContainer[params.engineType + ":" + params.tableName].getIndexData({ indexName : params.indexName });
                 res.status(200).send({ 
                                         index : {...index }
                                     });

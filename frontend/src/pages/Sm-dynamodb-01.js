@@ -766,7 +766,7 @@ function App() {
                                                                                                     { name : "BatchGetItem", data : tableStats['table']['history']['SuccessfulRequestLatencyBatchGetItem'] } ,
                                                                                                     { name : "BatchWriteItem", data : tableStats['table']['history']['SuccessfulRequestLatencyBatchWriteItem'] }
                                                                                                 ])}
-                                                                                            title={"Latency(us)"} height="300px" 
+                                                                                            title={"Latency(ms)"} height="300px" 
                                                                             />
                                                                             
                                                                     </td>
@@ -780,7 +780,7 @@ function App() {
                                                                             <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyGetItem','GetItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyGetItem'] || 0}
-                                                                                    title={"GetItemLatency(us)"}
+                                                                                    title={"GetItemLatency(ms)"}
                                                                                     precision={2}
                                                                                     format={4}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -792,7 +792,7 @@ function App() {
                                                                             <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyPutItem','PutItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyPutItem'] || 0}
-                                                                                    title={"PutItemLatency(us)"}
+                                                                                    title={"PutItemLatency(ms)"}
                                                                                     precision={2}
                                                                                     format={4}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -804,7 +804,7 @@ function App() {
                                                                             <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyScan','ScanLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyScan'] || 0}
-                                                                                    title={"ScanLatency(us)"}
+                                                                                    title={"ScanLatency(ms)"}
                                                                                     precision={2}
                                                                                     format={4}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -816,7 +816,7 @@ function App() {
                                                                             <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyQuery','QueryLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyQuery'] || 0}
-                                                                                    title={"QueryLatency(us)"}
+                                                                                    title={"QueryLatency(ms)"}
                                                                                     precision={2}
                                                                                     format={4}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -828,7 +828,7 @@ function App() {
                                                                             <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyBatchGetItem','BatchGetItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyBatchGetItem'] || 0}
-                                                                                    title={"BatchGetItemLatency(us)"}
+                                                                                    title={"BatchGetItemLatency(ms)"}
                                                                                     precision={2}
                                                                                     format={4}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
@@ -840,7 +840,7 @@ function App() {
                                                                             <a href='#;' style={{ "text-decoration" : "none", "color": "inherit" }}  onClick={() => onClickMetric('SuccessfulRequestLatencyBatchWriteItem','BatchWriteItemLatency(us)',tableStats['table'])}>
                                                                                 <CompMetric01 
                                                                                     value={tableStats['table']['SuccessfulRequestLatencyBatchWriteItem'] || 0}
-                                                                                    title={"BatchWriteItemLatency(us)"}
+                                                                                    title={"BatchWriteItemLatency(ms)"}
                                                                                     precision={2}
                                                                                     format={4}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
