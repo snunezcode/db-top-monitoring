@@ -502,179 +502,172 @@ function Login() {
             }
             contentType="table"
             content={
-                <>
-                      <table style={{"width":"100%","padding" : "1em"}}>
-                          <tr>  
-                              <td style={{"width":"100%"}}>  
-                                  <Flashbar items={versionMessage} />
-                                  <Table
-                                    {...collectionProps}
-                                    selectionType="single"
-                                    variant="borderless"
-                                    header={
+                      <div style={{"padding" : "1em"}}>
+                          <Flashbar items={versionMessage} />
+                          <Table
+                            {...collectionProps}
+                            selectionType="single"
+                            variant="borderless"
+                            header={
+                              <Header
+                                variant="h2"
+                                counter= {"(" + itemsTable.length + ")"} 
+                                actions={
+                                                  <SpaceBetween
+                                                    direction="horizontal"
+                                                    size="xs"
+                                                  >
+                                                    <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);}}>Connect</Button>
+                                                    <Button variant="primary" onClick={() => {gatherClusters();}}>Refresh</Button>
+                                                  </SpaceBetween>
+                                          }
+                              >
+                                ElastiCache Clusters
+                              </Header>
+                            }
+                            columnDefinitions={columnsTable}
+                            visibleColumns={preferences.visibleContent}
+                            items={items}
+                            pagination={<Pagination {...paginationProps} ariaLabels={paginationLabels} />}
+                            filter={
+                              <TextFilter
+                                {...filterProps}
+                                countText={getMatchesCountText(filteredItemsCount)}
+                                filteringAriaLabel="Filter instances"
+                              />
+                            }
+                            preferences={
+                              <CollectionPreferences
+                                {...collectionPreferencesProps}
+                                preferences={preferences}
+                                onConfirm={({ detail }) => setPreferences(detail)}
+                              />
+                            }
+                            onSelectionChange={({ detail }) => {
+                                setSelectedItems(detail.selectedItems);
+                                setsplitPanelShow(true);
+                                setActiveTabId(detail.selectedItems[0]['authmode']);
+                                currentTabId.current=detail.selectedItems[0]['authmode'];
+                                }
+                              }
+                            selectedItems={selectedItems}
+                            resizableColumns
+                            loadingText="Loading records"
+                          />
+                          
+                          <Modal
+                                onDismiss={() => setModalConnectVisible(false)}
+                                visible={modalConnectVisible}
+                                closeAriaLabel="Close modal"
+                                size="large"
+                                footer={
+                                  <Box float="right">
+                                    <SpaceBetween direction="horizontal" size="xs">
+                                      <Button variant="primary" onClick={() => setModalConnectVisible(false)}>Cancel</Button>
+                                      <Button variant="primary" onClick={handleClickLogin}>Connect</Button>
+                                    </SpaceBetween>
+                                  </Box>
+                                }
+                                header={
                                       <Header
-                                        variant="h2"
-                                        counter= {"(" + itemsTable.length + ")"} 
-                                        actions={
-                                                          <SpaceBetween
-                                                            direction="horizontal"
-                                                            size="xs"
-                                                          >
-                                                            <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);}}>Connect</Button>
-                                                            <Button variant="primary" onClick={() => {gatherClusters();}}>Refresh</Button>
-                                                          </SpaceBetween>
-                                                  }
-                                      >
-                                        ElastiCache Clusters
-                                      </Header>
-                                    }
-                                    columnDefinitions={columnsTable}
-                                    visibleColumns={preferences.visibleContent}
-                                    items={items}
-                                    pagination={<Pagination {...paginationProps} ariaLabels={paginationLabels} />}
-                                    filter={
-                                      <TextFilter
-                                        {...filterProps}
-                                        countText={getMatchesCountText(filteredItemsCount)}
-                                        filteringAriaLabel="Filter instances"
-                                      />
-                                    }
-                                    preferences={
-                                      <CollectionPreferences
-                                        {...collectionPreferencesProps}
-                                        preferences={preferences}
-                                        onConfirm={({ detail }) => setPreferences(detail)}
-                                      />
-                                    }
-                                    onSelectionChange={({ detail }) => {
-                                        setSelectedItems(detail.selectedItems);
-                                        setsplitPanelShow(true);
-                                        setActiveTabId(detail.selectedItems[0]['authmode']);
-                                        currentTabId.current=detail.selectedItems[0]['authmode'];
-                                        }
-                                      }
-                                    selectedItems={selectedItems}
-                                    resizableColumns
-                                    loadingText="Loading records"
-                                  />
+                                          variant="h3"
+                                      >  
+                                             {"Instance : " + selectedItems[0].identifier }
+                                      </Header> 
                                   
-                                  <Modal
-                                        onDismiss={() => setModalConnectVisible(false)}
-                                        visible={modalConnectVisible}
-                                        closeAriaLabel="Close modal"
-                                        size="large"
-                                        footer={
-                                          <Box float="right">
-                                            <SpaceBetween direction="horizontal" size="xs">
-                                              <Button variant="primary" onClick={() => setModalConnectVisible(false)}>Cancel</Button>
-                                              <Button variant="primary" onClick={handleClickLogin}>Connect</Button>
-                                            </SpaceBetween>
-                                          </Box>
+                                }
+                              >
+                                    
+                                    { activeTabId === "modeAcl" &&
+                                    <Tabs
+                                        onChange={({ detail }) => {
+                                              setActiveTabId(detail.activeTabId);
+                                              currentTabId.current=detail.activeTabId;
+                                          }
                                         }
-                                        header={
-                                              <Header
-                                                  variant="h3"
-                                              >  
-                                                     {"Instance : " + selectedItems[0].identifier }
-                                              </Header> 
-                                          
+                                        activeTabId={activeTabId}
+                                        tabs={[
+                                                    {
+                                                      label: "ACL Mode - Password Auth",
+                                                      id: "modeAcl",
+                                                      content: 
+                                                              <>
+                                                                    
+                                                                    <FormField label="Username">
+                                                                      <Input value={txtUser} onChange={event =>settxtUser(event.detail.value)}
+                                                                    />
+                                                                    </FormField>
+                                                                    
+                                                                    <FormField label="Password">
+                                                                      <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
+                                                                             type="password"
+                                                                      />
+                                                                    </FormField>
+                                                                    
+                                                              </>
+                                                    },
+                                                    
+                                          ]}
+                                    />
+                                    }
+                                    
+                                    { activeTabId === "modeNonAuth" &&
+                                    <Tabs
+                                        onChange={({ detail }) => {
+                                              setActiveTabId(detail.activeTabId);
+                                              currentTabId.current=detail.activeTabId;
+                                          }
                                         }
-                                      >
-                                            
-                                            { activeTabId === "modeAcl" &&
-                                            <Tabs
-                                                onChange={({ detail }) => {
-                                                      setActiveTabId(detail.activeTabId);
-                                                      currentTabId.current=detail.activeTabId;
-                                                  }
-                                                }
-                                                activeTabId={activeTabId}
-                                                tabs={[
-                                                            {
-                                                              label: "ACL Mode - Password Auth",
-                                                              id: "modeAcl",
-                                                              content: 
-                                                                      <>
-                                                                            
-                                                                            <FormField label="Username">
-                                                                              <Input value={txtUser} onChange={event =>settxtUser(event.detail.value)}
-                                                                            />
-                                                                            </FormField>
-                                                                            
-                                                                            <FormField label="Password">
-                                                                              <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
-                                                                                     type="password"
-                                                                              />
-                                                                            </FormField>
-                                                                            
-                                                                      </>
-                                                            },
-                                                            
-                                                  ]}
-                                            />
-                                            }
-                                            
-                                            { activeTabId === "modeNonAuth" &&
-                                            <Tabs
-                                                onChange={({ detail }) => {
-                                                      setActiveTabId(detail.activeTabId);
-                                                      currentTabId.current=detail.activeTabId;
-                                                  }
-                                                }
-                                                activeTabId={activeTabId}
-                                                tabs={[
-                                                            
-                                                            {
-                                                              label: "NON-AUTH Mode",
-                                                              id: "modeNonAuth",
-                                                              content: 
-                                                                      <>
-                                                                            With NON-AUTH Mode you can connect without authenticate a connection to ElastiCache for Redis.
-                                                                      </>
-                                                            }
-                                                            
-                                                  ]}
-                                            />
-                                            }
-                                            
-                                            
-                                            
-                                            
-                                            { activeTabId === "modeAuth" &&
-                                            <Tabs
-                                                onChange={({ detail }) => {
-                                                      setActiveTabId(detail.activeTabId);
-                                                      currentTabId.current=detail.activeTabId;
-                                                  }
-                                                }
-                                                activeTabId={activeTabId}
-                                                tabs={[
-                                                            {
-                                                              label: "AUTH Mode",
-                                                              id: "modeAuth",
-                                                              content: 
-                                                                      <>
-                                                                            
-                                                                            <FormField label="Auth Token">
-                                                                              <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
-                                                                                     type="password"
-                                                                              />
-                                                                            </FormField>
-                                                                            
-                                                                      </>
-                                                            }
-                                                            
-                                                  ]}
-                                            />
-                                            }
-                                            
-                                            
-                                      </Modal>
-                          </td>
-                        </tr>
-                      </table>  
-
-                </>
+                                        activeTabId={activeTabId}
+                                        tabs={[
+                                                    
+                                                    {
+                                                      label: "NON-AUTH Mode",
+                                                      id: "modeNonAuth",
+                                                      content: 
+                                                              <>
+                                                                    With NON-AUTH Mode you can connect without authenticate a connection to ElastiCache for Redis.
+                                                              </>
+                                                    }
+                                                    
+                                          ]}
+                                    />
+                                    }
+                                    
+                                    
+                                    
+                                    
+                                    { activeTabId === "modeAuth" &&
+                                    <Tabs
+                                        onChange={({ detail }) => {
+                                              setActiveTabId(detail.activeTabId);
+                                              currentTabId.current=detail.activeTabId;
+                                          }
+                                        }
+                                        activeTabId={activeTabId}
+                                        tabs={[
+                                                    {
+                                                      label: "AUTH Mode",
+                                                      id: "modeAuth",
+                                                      content: 
+                                                              <>
+                                                                    
+                                                                    <FormField label="Auth Token">
+                                                                      <Input value={txtPassword} onChange={event =>settxtPassword(event.detail.value)} onKeyDown={handleKeyDowntxtLogin}
+                                                                             type="password"
+                                                                      />
+                                                                    </FormField>
+                                                                    
+                                                              </>
+                                                    }
+                                                    
+                                          ]}
+                                    />
+                                    }
+                                    
+                                    
+                              </Modal>
+                    </div>
                 
             }
           />
