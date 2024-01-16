@@ -295,7 +295,6 @@ function App() {
                 
                 nodeList.current = data.data.nodes;
                 clusterList.current = (cnf_resource_id.split("/"))[1] + "|" + cnf_identifier;
-                console.log(nodeList.current);
                 if (data.data.newObject==false) {
                     setConnectionMessage([
                                   {
@@ -336,10 +335,8 @@ function App() {
                                     includeSessions : ( currentTabId.current == "tab02" ? 1 : 0)
                           }
                       }).then((data)=>{
-                        
                        var info = data.data.cluster;
                        setClusterStats({ cluster : {...info} });
-                         
                   })
                   .catch((err) => {
                       console.log('Timeout API Call : /api/documentdb/elastic/cluster/gather/stats/' );
