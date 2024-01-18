@@ -37,7 +37,7 @@ export const SideMainLayoutHeader = { text: 'Database Services', href: '#/' };
 export const SideMainLayoutMenu = [
     { type: "link", text: "Home", href: "/" },
     {
-      text: 'Relational Databases',
+      text: 'Relational Engines',
       type: 'section',
       defaultExpanded: true,
       items: [
@@ -47,7 +47,7 @@ export const SideMainLayoutMenu = [
     },
     { type: "divider" },
     {
-      text: 'NON-SQL Databases',
+      text: 'NON-Relational Engines',
       type: 'section',
       defaultExpanded: true,
       items: [

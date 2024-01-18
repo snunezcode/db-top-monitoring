@@ -1422,7 +1422,6 @@ function App() {
                                                         description={"Top 10 database active sessions"}
                                                         pageSize={20}
                                                         onSelectionItem={( item ) => {
-                                                            console.log(item[0]);
                                                             setQueryDetails(item[0]);
                                                             setsplitPanelShow(true);
                                                           }
