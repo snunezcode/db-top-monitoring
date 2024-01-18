@@ -13,7 +13,7 @@ export const configuration =
         "items-per-page-aurora": 16,
         "items-per-page-documentdb": 64,
         "api_url": "",
-        "release" : "0.1.2",
+        "release" : "0.1.3",
         "release-enforcement" : false,
         "application-title": "DBTop Monitoring",
         "version-code-url" : "https://version.code.ds.wwcs.aws.dev/",

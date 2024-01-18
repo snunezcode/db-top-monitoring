@@ -897,7 +897,7 @@ function App() {
                             <tr>  
                                 <td valign="top" style={{ "width":"30%", "padding": "1em"}}>
                                     <FormField
-                                          description="Select a metric to compare instance performance."
+                                          description="Select a metric to compare shard performance."
                                           label="Performance Metric"
                                         >
                                         

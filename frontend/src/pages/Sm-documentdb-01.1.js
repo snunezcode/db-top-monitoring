@@ -13,7 +13,6 @@ import { createLabelFunction, customFormatNumberLong, customFormatNumber } from 
 import CustomTable from "../components/Table01";
 import CustomTable02 from "../components/Table02";
 
-import Textarea from "@cloudscape-design/components/textarea";
 import FormField from "@cloudscape-design/components/form-field";
 import Select from "@cloudscape-design/components/select";
 import Flashbar from "@cloudscape-design/components/flashbar";
@@ -181,10 +180,8 @@ function App() {
     const columnsTable = [
                   {id: 'instanceId',header: 'InstanceId',cell: item => item['instanceId'],ariaLabel: createLabelFunction('instanceId'),sortingField: 'instanceId',},
                   {id: 'opid',header: 'PID',cell: item => item['opid'],ariaLabel: createLabelFunction('opid'),sortingField: 'opid',},
-                  {id: 'threadId',header: 'ThreadId',cell: item => item['threadId'],ariaLabel: createLabelFunction('threadId'),sortingField: 'threadId',},
                   {id: 'db',header: 'Database',cell: item => item['$db'] || "-",ariaLabel: createLabelFunction('db'),sortingField: 'db',},
                   {id: 'client',header: 'Host',cell: item => item['client'],ariaLabel: createLabelFunction('client'),sortingField: 'client',},
-                  {id: 'active',header: 'IsActive',cell: item => String(item['active']),ariaLabel: createLabelFunction('active'),sortingField: 'active',},
                   {id: 'WaitState',header: 'WaitType',cell: item => item['WaitState'] || "-",ariaLabel: createLabelFunction('WaitState'),sortingField: 'WaitState',},
                   {id: 'secs_running',header: 'ElapsedTime(sec)',cell: item => item['secs_running'],ariaLabel: createLabelFunction('secs_running'),sortingField: 'secs_running',},
                   {id: 'ns',header: 'Namespace',cell: item => item['ns'],ariaLabel: createLabelFunction('ns'),sortingField: 'ns',},
@@ -193,9 +190,8 @@ function App() {
                   
     ];
     
-    const visibleContent = ['instanceId', 'opid', 'threadId', 'db', 'client', 'WaitState', 'secs_running', 'ns', 'command'];
-    const sessionDetails = useRef({});
-    const [queryDetails,setQueryDetails] = useState({});
+    const visibleContent = ['instanceId', 'opid', 'db', 'client', 'WaitState', 'secs_running', 'ns', 'command'];
+    
     
     
     
@@ -521,13 +517,10 @@ function App() {
         splitPanelSize={splitPanelSize}
         splitPanel={
                   <SplitPanel  
-                                header={ ( currentTabId.current == "tab01" ?
-                                                ( comparativeMode.current == "single" ?
-                                                        (clusterStats['cluster']['nodes'].length > 0 ? "Instance Mode : " + clusterStats['cluster']['nodes'][instanceIdActive.current].instanceId : "Instance Mode : " ) :
-                                                        "Comparative Mode : " + analyticsMetricName.current.descriptions + " ( " + analyticsMetricName.current.unit + " )" 
-                                                )
-                                                :
-                                                ("Session (PID) : " + queryDetails['opid'])
+                                header={ 
+                                        ( comparativeMode.current == "single" ?
+                                                (clusterStats['cluster']['nodes'].length > 0 ? "Instance Mode : " + clusterStats['cluster']['nodes'][instanceIdActive.current].instanceId : "Instance Mode : " ) :
+                                                "Comparative Mode : " + analyticsMetricName.current.descriptions + " ( " + analyticsMetricName.current.unit + " )" 
                                         )
                       
                                 } 
@@ -925,61 +918,25 @@ function App() {
                     <div>
                          
                          
-                        <table style={{"width":"100%"}}>
+                         <table style={{"width":"100%"}}>
                             <tr>
                                 
                                 <td style={{"width":"15%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                    <div>{queryDetails['opid']}</div>
-                                    <Box variant="awsui-key-label">PID</Box>
+                                    <StatusIndicator type={clusterStats['cluster']['status'] === 'available' ? 'success' : 'pending'}> {clusterStats['cluster']['status']} </StatusIndicator>
+                                    <Box variant="awsui-key-label">Status</Box>
                                 </td>
                                 <td style={{"width":"15%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                    <div>{queryDetails['instanceId']}</div>
-                                    <Box variant="awsui-key-label">InstanceId</Box>
+                                    <div>{clusterStats['cluster']['totalNodes']}</div>
+                                    <Box variant="awsui-key-label">Nodes</Box>
                                 </td>
                                 <td style={{"width":"15%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                    <div>{queryDetails['$db']}</div>
-                                    <Box variant="awsui-key-label">Database</Box>
+                                    <div>{clusterStats['cluster']['lastUpdate']}</div>
+                                    <Box variant="awsui-key-label">LastUpdate</Box>
                                 </td>
-                                <td style={{"width":"15%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                    <div>{queryDetails['client']}</div>
-                                    <Box variant="awsui-key-label">Host</Box>
-                                </td>
-                                <td style={{"width":"15%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                    <div>{queryDetails['WaitState']}</div>
-                                    <Box variant="awsui-key-label">WaitType</Box>
-                                </td>
-                                <td style={{"width":"15%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                    <div>{queryDetails['ns']}</div>
-                                    <Box variant="awsui-key-label">Namespace</Box>
-                                </td>
-                                <td style={{"width":"15%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                    <div>{queryDetails['op']}</div>
-                                    <Box variant="awsui-key-label">Operation</Box>
-                                </td>
+                                
                             </tr>
                         </table>
-                        <br/>
-                        <br/>
-                        <table style={{"width":"100%"}}>
-                            <tr>
-                                <td style={{"width":"50%"}}>  
-                                        <Box variant="awsui-key-label">Command</Box>
-                                        <Textarea
-                                          rows = {20}
-                                          value={JSON.stringify(queryDetails['command'],undefined,4)}
-                                        />
-                                </td>
-                                <td style={{"width":"50%", "padding-left": "1em",}}>  
-                                        <Box variant="awsui-key-label">Originating Command</Box>
-                                        <Textarea
-                                          rows = {20}
-                                          value={JSON.stringify(queryDetails['originatingCommand'],undefined,4)}
-                                        />
-                                </td>
-                            </tr>
-                        </table>
-                        
-
+                         
                             
                     </div>  
                     }
@@ -1368,6 +1325,7 @@ function App() {
                                                         description={""}
                                                         pageSize={20}
                                                         onSelectionItem={( item ) => {
+                                                            console.log(item);
                                                             var iPosition = 0;
                                                             for (let iNode = 0 ; iNode < clusterStats.cluster.nodes.length; iNode ++){
                                                                 if(clusterStats.cluster.nodes[iNode].instanceId == item[0].instanceId)
@@ -1390,6 +1348,7 @@ function App() {
                                                                     >
                                                                       <Button variant="primary" 
                                                                               onClick={() => {
+                                                                                console.log("Comparative");
                                                                                 comparativeMode.current = "multi";
                                                                                 setsplitPanelShow(true);
                                                                                 gatherClusterStats();
@@ -1414,6 +1373,13 @@ function App() {
                                         id: "tab02",
                                         content: 
                                             <div style={{"padding": "1em"}}>
+                                                <CustomTable
+                                                  columnsTable={columnsTable}
+                                                  visibleContent={visibleContent}
+                                                  dataset={clusterStats['cluster']['sessions']}
+                                                  title={"Active Sessions"}
+                                                  description={"Top 10 database active sessions"}
+                                                />
                                                 <CustomTable02
                                                         columnsTable={columnsTable}
                                                         visibleContent={visibleContent}
@@ -1422,8 +1388,7 @@ function App() {
                                                         description={"Top 10 database active sessions"}
                                                         pageSize={20}
                                                         onSelectionItem={( item ) => {
-                                                            console.log(item[0]);
-                                                            setQueryDetails(item[0]);
+                                                            console.log(item);
                                                             setsplitPanelShow(true);
                                                           }
                                                         }
