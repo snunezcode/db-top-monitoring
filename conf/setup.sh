@@ -34,7 +34,7 @@ cd /aws/apps/server/; wget https://truststore.pki.rds.amazonaws.com/global/globa
 
 
 #NodeJS Installation
-curl https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh --output install.sh
+curl https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh --output install.sh
 sh install.sh
 . ~/.nvm/nvm.sh
 nvm install 20.11
