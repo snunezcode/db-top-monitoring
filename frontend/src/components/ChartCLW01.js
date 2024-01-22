@@ -126,9 +126,15 @@ const ChartCLW = memo(({title,subtitle,height,color,namespace,dimension_name,dim
                 "StartTime": d_start_time,
                 "EndTime": d_end_time
             };
-              
+             
+             var customConfig = {
+                headers: {
+                'Content-Type': 'application/json'
+                }
+            };
             return Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/clw/region/query/`,{
-             params: queryclw
+            headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+             params : queryclw
             }).then((data)=>{
             
                     var currentData = [];
