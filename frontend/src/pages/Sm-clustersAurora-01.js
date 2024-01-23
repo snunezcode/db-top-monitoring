@@ -12,6 +12,7 @@ import CustomHeader from "../components/HeaderApp";
 import AppLayout from "@cloudscape-design/components/app-layout";
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 
+import Alert from "@cloudscape-design/components/alert";
 import Flashbar from "@cloudscape-design/components/flashbar";
 import { StatusIndicator } from '@cloudscape-design/components';
 import Modal from "@cloudscape-design/components/modal";
@@ -52,6 +53,9 @@ function Login() {
     //-- Application Version
     const [versionMessage, setVersionMessage] = useState([]);
   
+    //-- Auth Message
+    const [messageVisible, setMessageVisible] = useState(false);
+    
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
@@ -205,8 +209,7 @@ function Login() {
     
                 }
                 else {
-                 
-
+                      setMessageVisible(true);
                 }
                   
 
@@ -352,7 +355,7 @@ function Login() {
                                                 direction="horizontal"
                                                 size="xs"
                                               >
-                                                <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);}}>Connect</Button>
+                                                <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true); setMessageVisible(false); }}>Connect</Button>
                                               </SpaceBetween>
                                       }
                                       
@@ -442,7 +445,7 @@ function Login() {
                                                   direction="horizontal"
                                                   size="xs"
                                                 >
-                                                  <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);}}>Connect</Button>
+                                                  <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);setMessageVisible(false);}}>Connect</Button>
                                                   <Button variant="primary" onClick={() => {gatherInstances();}}>Refresh</Button>
                                                 </SpaceBetween>
                                         }
@@ -481,7 +484,10 @@ function Login() {
   
                           
                           <Modal
-                              onDismiss={() => setModalConnectVisible(false)}
+                              onDismiss={() => { 
+                                  setModalConnectVisible(false);
+                                  setMessageVisible(false);   
+                              }}
                               visible={modalConnectVisible}
                               closeAriaLabel="Close modal"
                               footer={
@@ -516,6 +522,14 @@ function Login() {
                                            type="password"
                                     />
                                   </FormField>
+                                  <br/>
+                                  <Alert
+                                      statusIconAriaLabel="Error"
+                                      type="error"
+                                      visible={messageVisible}
+                                    >
+                                      Authentication process failed, review access credentials.
+                                    </Alert>
                                   
                                   
                             </Modal>

@@ -48,22 +48,6 @@ app.use(cookieParser());
 app.use(csrfProtection);
 
 
-
-// AWS Variables
-/*DECOMM
-var AWS = require('aws-sdk');
-AWS.config.update({region: configData.aws_region});
-
-var cloudwatch = new AWS.CloudWatch({region: configData.aws_region, apiVersion: '2010-08-01'});
-var cloudwatchlogs = new AWS.CloudWatchLogs();
-var docDB = new AWS.DocDB({region: configData.aws_region});
-var docDBElastic = new AWS.DocDBElastic({region: configData.aws_region});
-var elasticache = new AWS.ElastiCache();
-var memorydb = new AWS.MemoryDB();
-var sts = new AWS.STS();
-var dynamodb = new AWS.DynamoDB();
-*/
-
 // Security Variables
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
@@ -283,11 +267,14 @@ async function authenticationElasticacheRedisCluster(req, res) {
     var params = req.body.params;
     var session_id=uuid.v4();
     var token = generateToken({ session_id: session_id});
-            
+    
+    console.log(params);
+    
     try {
             
             var objConnection = new classRedisEngine({...params});
-            if (await objConnection.authentication()==true){
+            var authenticated = await objConnection.authentication();
+            if ( authenticated == true ){
                 res.status(200).send( {"result":"auth1", "session_id": session_id, "session_token": token });
             }
             else {
@@ -2775,7 +2762,6 @@ app.get("/api/aws/region/elasticache/serverless/cluster/", async (req,res)=>{
 
 
 //--## AWS : MemoryDB Clusters
-
 app.get("/api/aws/region/memorydb/cluster/nodes/", async (req,res)=>{
     
     

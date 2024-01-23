@@ -13,6 +13,7 @@ import CustomHeader from "../components/HeaderApp";
 import AppLayout from "@cloudscape-design/components/app-layout";
 import SideNavigation from '@cloudscape-design/components/side-navigation';
 
+import Alert from "@cloudscape-design/components/alert";
 import Flashbar from "@cloudscape-design/components/flashbar";
 import { StatusIndicator } from '@cloudscape-design/components';
 import Modal from "@cloudscape-design/components/modal";
@@ -56,6 +57,9 @@ function Login() {
     //-- Application Version
     const [versionMessage, setVersionMessage] = useState([]);
   
+    //-- Auth Message
+    const [messageVisible, setMessageVisible] = useState(false);
+    
     //-- Variable for Active Tabs
     const [activeTabId, setActiveTabId] = useState("modeIam");
     const currentTabId = useRef("modeIam");
@@ -156,7 +160,7 @@ function Login() {
                   
                 }
             }).then((data)=>{
-                
+                console.log(data);
                 if (data.data.result === "auth1") {
                      sessionStorage.setItem(data.data.session_id, data.data.session_token );
                      var userId;
@@ -222,8 +226,7 @@ function Login() {
     
                 }
                 else {
-                 
-
+                    setMessageVisible(true);
                 }
                   
 
@@ -290,7 +293,6 @@ function Login() {
                                           port = item['NodeGroups'][0]['PrimaryEndpoint']['Port'];
                                         
                                       }
-                                      
                                       var authMode = "";
                                       
                                       if ( String(item['AuthTokenEnabled']) == "true")
@@ -298,7 +300,7 @@ function Login() {
                                       
                                       if ( String(item['AuthTokenEnabled']) == "false")
                                       {
-                                          if ( String(item["UserGroupIds"]) != "" )
+                                          if ( item.hasOwnProperty("UserGroupIds") )
                                               authMode = "modeAcl";
                                           else
                                               authMode = "modeNonAuth";
@@ -334,7 +336,6 @@ function Login() {
                
                 //-- Serverless Cluster
                 data = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/region/elasticache/serverless/cluster/`);
-                console.log(data);
                 data.data.ServerlessCaches.forEach(function(item) {
                                 try{
                                       var authMode = "";
@@ -439,7 +440,14 @@ function Login() {
                                                 direction="horizontal"
                                                 size="xs"
                                               >
-                                                <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);}}>Connect</Button>
+                                                <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} 
+                                                onClick={() => {
+                                                      setModalConnectVisible(true);
+                                                      setMessageVisible(false);
+                                                }}
+                                                >
+                                                    Connect
+                                                </Button>
                                               </SpaceBetween>
                                       }
                                       
@@ -517,7 +525,7 @@ function Login() {
                                                     direction="horizontal"
                                                     size="xs"
                                                   >
-                                                    <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);}}>Connect</Button>
+                                                    <Button variant="primary" disabled={selectedItems[0].identifier === "" ? true : false} onClick={() => {setModalConnectVisible(true);setMessageVisible(false);}}>Connect</Button>
                                                     <Button variant="primary" onClick={() => {gatherClusters();}}>Refresh</Button>
                                                   </SpaceBetween>
                                           }
@@ -556,7 +564,10 @@ function Login() {
                           />
                           
                           <Modal
-                                onDismiss={() => setModalConnectVisible(false)}
+                                onDismiss={() => {
+                                    setModalConnectVisible(false);
+                                    setMessageVisible(false);
+                                }}
                                 visible={modalConnectVisible}
                                 closeAriaLabel="Close modal"
                                 size="large"
@@ -664,7 +675,15 @@ function Login() {
                                           ]}
                                     />
                                     }
-                                    
+                                
+                                <br/>
+                                <Alert
+                                    statusIconAriaLabel="Error"
+                                    type="error"
+                                    visible={messageVisible}
+                                  >
+                                    Authentication process failed, review access credentials.
+                                  </Alert>
                                     
                               </Modal>
                     </div>

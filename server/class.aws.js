@@ -29,24 +29,6 @@ const docdbelastic = new DocDBElasticClient(awsConfig);
 const dynamodb = new DynamoDBClient(awsConfig);
 const sts = new STSClient(awsConfig);
 
-//--## AWS Variables - DECOMM
-//var AWS = require('aws-sdk');
-//AWS.config.update({region: configData.aws_region});
-
-//var elasticache = new AWS.ElastiCache();
-//var memorydb = new AWS.MemoryDB();
-//var rds = new AWS.RDS({region: configData.aws_region});
-//var documentDB = new AWS.DocDB({region: configData.aws_region});
-//var cloudwatch = new AWS.CloudWatch({region: configData.aws_region, apiVersion: '2010-08-01'});
-//var cloudwatchlogs = new AWS.CloudWatchLogs({region: configData.aws_region });
-//var docdbelastic = new AWS.DocDBElastic({region: configData.aws_region });
-//var dynamodb = new AWS.DynamoDB({region: configData.aws_region });
-
-
-
-
-
-
 
 class classAWS {
 
@@ -65,8 +47,6 @@ class classAWS {
                           ReplicationGroupId: clusterId
                         };
                         
-                //var data = await elasticache.describeReplicationGroups(parameter).promise();
-                
                 const command = new DescribeReplicationGroupsCommand(parameter);
                 var data = await elasticache.send(command);
                         
@@ -92,8 +72,6 @@ class classAWS {
                         
                         const command = new DescribeReplicationGroupsCommand(parameter);
                         var clusterInfo = await elasticache.send(command);
-                        
-                        //var clusterInfo = await elasticache.describeReplicationGroups(parameter).promise();
                         
                         if (clusterInfo.ReplicationGroups.length> 0) 
                             result = { status : clusterInfo.ReplicationGroups[0]["Status"], size : clusterInfo.ReplicationGroups[0]["CacheNodeType"], totalShards : clusterInfo.ReplicationGroups[0]["NodeGroups"].length, totalNodes : clusterInfo.ReplicationGroups[0]["MemberClusters"].length };
@@ -123,8 +101,6 @@ class classAWS {
                               ReplicationGroupId: clusterId
                             };
                             
-                    //var data = await elasticache.describeReplicationGroups(parameter).promise();
-                    
                     const command = new DescribeReplicationGroupsCommand(parameter);
                     var data= await elasticache.send(command);
                         
@@ -227,8 +203,6 @@ class classAWS {
                     const command = new DescribeServerlessCachesCommand(params);
                     var clusterData = await elasticache.send(command);
                         
-                    //var clusterData = await elasticache.describeServerlessCaches(params).promise();;
-
                     clusterInfo.status = clusterData.ServerlessCaches[0]['Status'];
                     clusterInfo.ecpu = clusterData.ServerlessCaches[0]['CacheUsageLimits']['ECPUPerSecond']['Maximum'];
                     clusterInfo.storage = clusterData.ServerlessCaches[0]['CacheUsageLimits']['DataStorage']['Maximum'];
@@ -254,7 +228,6 @@ class classAWS {
                           ShowShardDetails: true
                     };
                     
-                    //var data = await memorydb.describeClusters(parameter).promise();
                     const command = new DescribeClustersCommand(parameter);
                     const data = await memorydb.send(command);
 
@@ -278,7 +251,6 @@ class classAWS {
                               ShowShardDetails: true
                         };
             
-                        //var clusterInfo = await memorydb.describeClusters(parameter).promise();
                         const command = new DescribeClustersCommand(parameter);
                         const clusterInfo = await memorydb.send(command);
                         
@@ -315,7 +287,6 @@ class classAWS {
                               ShowShardDetails: true
                         };
                         
-                        //var data = await memorydb.describeClusters(parameter).promise();
                         const command = new DescribeClustersCommand(parameter);
                         const data = await memorydb.send(command);
                         
@@ -381,7 +352,6 @@ class classAWS {
                         MaxRecords: 100
                     };
         
-                    //var data = await documentDB.describeDBClusters(parameterCluster).promise();
                     const command = new DescribeDBClustersCommand(parameterCluster);
                     const data = await documentDB.send(command);
                     return data;
@@ -404,7 +374,6 @@ class classAWS {
                             MaxRecords: 100
                         };
             
-                        //var clusterData = await documentDB.describeDBClusters(parameterCluster).promise();
                         const command = new DescribeDBClustersCommand(parameterCluster);
                         const clusterData = await documentDB.send(command);
                         result = { status : clusterData['DBClusters'][0]['Status'], size : "", totalNodes : clusterData['DBClusters'][0]['DBClusterMembers'].length };
@@ -434,7 +403,6 @@ class classAWS {
                         MaxRecords: 100
                     };
         
-                    //var clusterData = await documentDB.describeDBClusters(parameterCluster).promise();
                     var command = new DescribeDBClustersCommand(parameterCluster);
                     const clusterData = await documentDB.send(command);
                     
@@ -457,7 +425,6 @@ class classAWS {
                     };
         
                     
-                    //var Instancedata = await rds.describeDBInstances(parameterInstances).promise();
                     command = new DescribeDBInstancesCommand(parameterInstances);
                     const Instancedata = await rds.send(command);
 
@@ -514,7 +481,6 @@ class classAWS {
                         MaxRecords: 100
                     };
         
-                    //var data = await rds.describeDBClusters(parameterCluster).promise();
                     var command = new DescribeDBClustersCommand(parameterCluster);
                     const data = await rds.send(command);
                     
@@ -538,7 +504,6 @@ class classAWS {
                             MaxRecords: 100
                         };
             
-                        //var clusterData = await rds.describeDBClusters(parameterCluster).promise();
                         var command = new DescribeDBClustersCommand(parameterCluster);
                         const clusterData = await rds.send(command);
                     
@@ -568,7 +533,6 @@ class classAWS {
                         MaxRecords: 100
                     };
         
-                    //var clusterData = await rds.describeDBClusters(parameterCluster).promise();
                     var command = new DescribeDBClustersCommand(parameterCluster);
                     const clusterData = await rds.send(command);
                         
@@ -591,7 +555,6 @@ class classAWS {
                     };
         
                     
-                    //var Instancedata = await rds.describeDBInstances(parameterInstances).promise();
                     command = new DescribeDBInstancesCommand(parameterInstances);
                     const Instancedata = await rds.send(command);
                     
@@ -651,7 +614,6 @@ class classAWS {
                     };
         
                     
-                    //var Instancedata = await rds.describeDBInstances(parameterInstances).promise();
                     var command = new DescribeDBInstancesCommand(parameterInstances);
                     const Instancedata = await rds.send(command);
                     
@@ -698,7 +660,6 @@ class classAWS {
                         DBInstanceIdentifier : instanceId
                     };
                     
-                    //var instanceData = await rds.describeDBInstances(parameterInstances).promise();
                     var command = new DescribeDBInstancesCommand(parameterInstances);
                     const instanceData = await rds.send(command);
                     
@@ -734,7 +695,7 @@ class classAWS {
                     var params = {
                       clusterArn: clusterId
                     };
-                    //var clusterData = await docdbelastic.getCluster(params).promise();;
+        
                     const command = new GetClusterCommand(params);
                     const clusterData = await docdbelastic.send(command);
 
@@ -763,7 +724,7 @@ class classAWS {
                     var params = {
                       TableName: tableName
                     };
-                    //var tableData = await dynamodb.describeTable(params).promise();
+        
                     const command = new DescribeTableCommand(params);
                     const tableData = await dynamodb.send(command);
 
@@ -787,12 +748,13 @@ class classAWS {
                         tableInfo.wcu = tableData.Table.ProvisionedThroughput.WriteCapacityUnits;
                     }
                     
-                    tableData.Table.GlobalSecondaryIndexes.forEach(function(index) {
-                                    
-                        tableInfo.indexList.push(index['IndexName']);
+                   if (Array.isArray(tableData?.Table?.GlobalSecondaryIndexes)){
+                        tableData.Table.GlobalSecondaryIndexes.forEach(function(index) {
                                         
-                    });
-                    
+                            tableInfo.indexList.push(index['IndexName']);
+                                            
+                        });
+                   }
                     
                 }
                 catch (error) {
@@ -813,7 +775,7 @@ class classAWS {
                     var params = {
                       TableName: tableName
                     };
-                    //var tableData = await dynamodb.describeTable(params).promise();
+        
                     const command = new DescribeTableCommand(params);
                     const tableData = await dynamodb.send(command);
 
@@ -891,7 +853,6 @@ class classAWS {
                                 startFromHead: false
                             };
                         
-                            //var data = await cloudwatchlogs.getLogEvents(params_logs).promise();
                             const command = new GetLogEventsCommand(params_logs);
                             const data = await cloudwatchlogs.send(command);
 
@@ -960,7 +921,6 @@ class classAWS {
                                 "EndTime": d_end_time
                             };
                            
-                            //var data = await cloudwatch.getMetricData(queryClw).promise();
                             const command = new GetMetricDataCommand(queryClw);
                             const data = await cloudwatch.send(command);
                             
@@ -1083,7 +1043,6 @@ class classAWS {
                                 startFromHead: false
                             };
                         
-                            //var data = await cloudwatchlogs.getLogEvents(params_logs).promise();
                             const command = new GetLogEventsCommand(params_logs);
                             const data = await cloudwatchlogs.send(command);
                             
@@ -1149,8 +1108,6 @@ class classAWS {
                                 
                             }
                             
-                            //nodeMetrics.tps = parseFloat(message.diskIO[0].tps) + parseFloat(message.diskIO[1].tps);
-                            //nodeMetrics.ioqueue = parseFloat(message.diskIO[0].avgQueueLen) + parseFloat(message.diskIO[1].avgQueueLen);
                             nodeProcessList = message.processList;
                             timestamp = message.timestamp;
                             
@@ -1226,7 +1183,6 @@ class classAWS {
                         "EndTime": d_end_time
                     };
                    
-                    //var data = await cloudwatch.getMetricData(queryClw).promise();
                     const command = new GetMetricDataCommand(queryClw);
                     const data = await cloudwatch.send(command);
                             
@@ -1293,7 +1249,6 @@ class classAWS {
                         "EndTime": d_end_time
                     };
                    
-                    //var data = await cloudwatch.getMetricData(queryClw).promise();
                     const command = new GetMetricDataCommand(queryClw);
                     const data = await cloudwatch.send(command);
                             
@@ -1336,7 +1291,6 @@ class classAWS {
                     "EndTime": d_end_time
                 };
                 
-                //var data = await cloudwatch.getMetricData(queryClw).promise();
                 const command = new GetMetricDataCommand(queryClw);
                 const data = await cloudwatch.send(command);
                             
@@ -1561,21 +1515,6 @@ class classAWS {
             }
 
         }
-        
-        
-        
-        
-        
-        
-        
-        
-                    
-                    
-        
-        
-        
-        
-        
         
         
 }

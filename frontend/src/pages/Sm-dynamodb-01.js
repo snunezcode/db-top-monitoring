@@ -1291,11 +1291,11 @@ function App() {
                                                                       </div>
                                                                       <div>
                                                                             <Box variant="awsui-key-label">WCU</Box>
-                                                                            <div>{tableStats['table']['wcu']}</div>
+                                                                            <div>{(tableStats['table']['wcu'] == "-1" ? "On-Demand" : tableStats['table']['wcu'] )}</div>
                                                                       </div>
                                                                       <div>
                                                                             <Box variant="awsui-key-label">RCU</Box>
-                                                                            <div>{tableStats['table']['rcu']}</div>
+                                                                            <div>{(tableStats['table']['rcu'] == "-1" ? "On-Demand" : tableStats['table']['rcu'] )}</div>
                                                                       </div>
                                                                     </ColumnLayout>
                                                                     <br/>
