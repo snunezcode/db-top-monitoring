@@ -3,26 +3,10 @@
 version="$(curl https://version.code.ds.wwcs.aws.dev/?codeId=dbtop'&'moduleId=deploy)"
 
 #Install Software Packages
-#sudo yum install -y openssl
-#sudo yum install -y nginx
-
-max_attempts=10
-attempt_num=1
-success=false
-while [ $success = false ] && [ $attempt_num -le $max_attempts ]; do
-  echo "Trying yum install"
-  sudo yum install -y openssl nginx
-  # Check the exit code of the command
-  if [ $? -eq 0 ]; then
-    echo "Yum install succeeded"
-    success=true
-  else
-    echo "Attempt $attempt_num failed. Sleeping for 3 seconds and trying again..."
-    sleep 3
-    ((attempt_num++))
-  fi
+# Bug : https://github.com/amazonlinux/amazon-linux-2023/issues/397
+while true; do
+sudo yum install -y openssl nginx && break
 done
-
 
 
 #Create Certificates
