@@ -101,7 +101,7 @@ Parameters:
   ApplicationUpdateUrl:
       Type: String
       Description: URL
-      Default: https://raw.githubusercontent.com/snunezcode/db-top-monitoring/master/frontend/public/version.json
+      Default: https://version.code.ds.wwcs.aws.dev/
       
   ApplicationUpdateEnabled:
       Type: String
