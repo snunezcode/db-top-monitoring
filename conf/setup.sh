@@ -4,6 +4,7 @@
 
 #Install Software Packages
 sudo yum install -y openssl
+
 sudo yum install -y nginx
 
 #Create Certificates
