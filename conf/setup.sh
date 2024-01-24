@@ -5,7 +5,8 @@ version="$(curl https://version.code.ds.wwcs.aws.dev/?codeId=dbtop'&'moduleId=de
 #Install Software Packages
 # Bug : https://github.com/amazonlinux/amazon-linux-2023/issues/397
 while true; do
-sudo yum install -y openssl nginx && break
+    echo "Trying to install rpm packages ..."
+    sudo yum install -y openssl nginx && break
 done
 
 
