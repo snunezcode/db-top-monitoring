@@ -2895,7 +2895,22 @@ app.get("/api/aws/region/dynamodb/tables/details/", async (req,res)=>{
                                   
         }
         
-        res.status(200).send({ csrfToken: req.csrfToken(), tables : tableResult })
+        var tableMetrics = await AWSObject.getDynamoDBTablesMetrics();
+        var tableMetricsSingle = await AWSObject.getDynamoDBTablesMetricsSingle();
+        
+        let tableMerged = [];
+
+        for(let i=0; i<tableResult.length; i++) {
+          tableMerged.push({
+           ...tableResult[i], 
+           ...(tableMetricsSingle.find((itmInner) => itmInner.tableName === tableResult[i].tableName))}
+          );
+        }
+        
+        //console.log(tableMetricsSingle);
+        //console.log(tableMerged);
+        
+        res.status(200).send({ csrfToken: req.csrfToken(), tables : tableMerged, metrics : tableMetrics });
         
     }
     catch{
