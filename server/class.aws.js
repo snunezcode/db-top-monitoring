@@ -15,6 +15,7 @@ const { CloudWatchLogsClient, GetLogEventsCommand } = require("@aws-sdk/client-c
 const { DocDBElasticClient, GetClusterCommand, ListClustersCommand  } = require("@aws-sdk/client-docdb-elastic");
 const { DynamoDBClient, DescribeTableCommand, ListTablesCommand } = require("@aws-sdk/client-dynamodb");
 const { STSClient, GetCallerIdentityCommand } = require("@aws-sdk/client-sts"); 
+const {  BedrockRuntimeClient,  InvokeModelCommand,} = require("@aws-sdk/client-bedrock-runtime");
 
 
 //--## AWS Variables
@@ -28,7 +29,7 @@ const cloudwatchlogs = new CloudWatchLogsClient(awsConfig);
 const docdbelastic = new DocDBElasticClient(awsConfig);
 const dynamodb = new DynamoDBClient(awsConfig);
 const sts = new STSClient(awsConfig);
-
+const bedrock = new BedrockRuntimeClient(awsConfig);
 
 class classAWS {
 
@@ -1665,7 +1666,24 @@ class classAWS {
 }
 
 
-module.exports = { classAWS };
+//--############# CLASS : classGenerativeIA                                                                                               
+class classGenerativeIA {
+
+        properties;
+        constructor(object) { 
+            this.properties = {...object};
+        }
+          
+          
+        //-- Open Connection
+        async getRecommendations(object) { 
+            
+            return {};
+        }
+}
+
+
+module.exports = { classAWS, classGenerativeIA };
 
 
 

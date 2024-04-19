@@ -57,6 +57,7 @@ function Login() {
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
     const [selectedItems,setSelectedItems] = useState([{ identifier: "" }]);
+    const [recommendations,setRecommendations] = useState([]);
     
     // Metrics
     const [globalMetrics, setGlobalMetrics] = useState({ 
@@ -81,8 +82,8 @@ function Login() {
                   {id: 'indexes',header: 'Indexes',cell: item => item.indexes,ariaLabel: createLabelFunction('Indexes'),sortingField: 'indexes',},
                   {id: 'items',header: 'Items',cell: item => customFormatNumberLong(parseFloat(item.items) || 0,0),ariaLabel: createLabelFunction('Items'),sortingField: 'items',},
                   {id: 'size',header: 'Size',cell: item => customFormatNumber(parseFloat(item.items) || 0 , 0) ,ariaLabel: createLabelFunction('Size'),sortingField: 'size',},
+                  {id: 'wcu',header: 'Write Capacity',cell: item => item.wcu,ariaLabel: createLabelFunction('Write Capacity'),sortingField: 'wcu',},
                   {id: 'rcu',header: 'Read Capacity',cell: item => item.rcu,ariaLabel: createLabelFunction('Read Capacity'),sortingField: 'rcu',},
-                  {id: 'wcu',header: 'Write Capacity',cell: item => item.wcu,ariaLabel: createLabelFunction('Write Capacity'),sortingField: 'wcu',}
     ];
 
 
@@ -267,7 +268,25 @@ function Login() {
     }
     
     
-    
+    //-- Call API to gather recommendations
+   async function handleClickGetRecommendations (){
+        
+        //--- GATHER Recommendations
+        var rdsItems=[];
+        try{
+        
+            const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/application/recommendation/get/`);
+            sessionStorage.setItem("x-csrf-token", data.csrfToken );
+            var response = JSON.parse(data['response']?.['content']?.[0]?.['text']);
+            console.log(response);
+        }
+        catch(err){
+          console.log(err);
+          console.log('Timeout API error : /api/aws/application/recommendation/get/');                  
+        }
+
+    }
+        
     
     //-- Init Function
     // eslint-disable-next-line
@@ -322,7 +341,7 @@ function Login() {
                                         }
                                       }
                       >
-                          
+                        
                         <ColumnLayout columns="4" variant="text-grid">
                              <div>
                                   <Box variant="awsui-key-label">Table Name</Box>

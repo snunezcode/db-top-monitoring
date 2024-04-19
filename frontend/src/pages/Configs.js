@@ -60,7 +60,7 @@ export const SideMainLayoutMenu = [
     },
     { type: "divider" },
     { type: 'link', text: 'Application Update', href: '/update/'},
-    { type: 'link', text: 'Engines Connections', href: '/connections/'},
+    { type: 'link', text: 'Engine Connections', href: '/connections/'},
     {
           type: "link",
           text: "Documentation",

@@ -1,8 +1,12 @@
 //-- Import Class Objects
 const { classCluster, classInstance, classRedisEngine, classMongoDBEngine, classPostgresqlEngine, classMysqlEngine, classSqlserverEngine, classOracleEngine, classDocumentDBElasticCluster, classElasticacheServerlessCluster, classDynamoDB } = require('./class.engine.js');
 const { classAWS } = require('./class.aws.js');
+const { classGenerativeIA } = require('./class.aws.js');
 const { classApplicationUpdate } = require('./class.update.js');
 const AWSObject = new classAWS();
+const GenerativeIAObject = new classGenerativeIA();
+
+
 
 //-- Engine Objects
 var elasticacheObjectContainer = [];
@@ -3114,6 +3118,34 @@ app.get("/api/aws/engines/connections/terminate", async (req, res) => {
     }
     
 });
+
+
+
+
+//--++ API : GENERAL : Get Recommendations
+app.get("/api/aws/application/recommendation/get", async (req, res) => {
+
+    // Token Validation
+    var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+
+    if (cognitoToken.isValid === false)
+        return res.status(511).send({ data: [], message : "Token is invalid"});
+ 
+    var params = req.query;
+    
+    try {
+        
+        var response = await GenerativeIAObject.getRecommendations({});
+        
+        res.status(200).send({ csrfToken: req.csrfToken(), response : response } )
+        
+    } catch(error) {
+        console.log(error);
+        res.status(401).send({});
+    }
+    
+});
+
 
 
 //--#################################################################################################### 
