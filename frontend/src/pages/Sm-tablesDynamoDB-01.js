@@ -81,7 +81,7 @@ function Login() {
                   {id: 'class',header: 'Table Class',cell: item => item.class,ariaLabel: createLabelFunction('Table Class'),sortingField: 'class',},
                   {id: 'indexes',header: 'Indexes',cell: item => item.indexes,ariaLabel: createLabelFunction('Indexes'),sortingField: 'indexes',},
                   {id: 'items',header: 'Items',cell: item => customFormatNumberLong(parseFloat(item.items) || 0,0),ariaLabel: createLabelFunction('Items'),sortingField: 'items',},
-                  {id: 'size',header: 'Size',cell: item => customFormatNumber(parseFloat(item.items) || 0 , 0) ,ariaLabel: createLabelFunction('Size'),sortingField: 'size',},
+                  {id: 'size',header: 'Size',cell: item => customFormatNumber(parseFloat(item.size) || 0 , 0) ,ariaLabel: createLabelFunction('Size'),sortingField: 'size',},
                   {id: 'wcu',header: 'Write Capacity',cell: item => item.wcu,ariaLabel: createLabelFunction('Write Capacity'),sortingField: 'wcu',},
                   {id: 'rcu',header: 'Read Capacity',cell: item => item.rcu,ariaLabel: createLabelFunction('Read Capacity'),sortingField: 'rcu',},
     ];
