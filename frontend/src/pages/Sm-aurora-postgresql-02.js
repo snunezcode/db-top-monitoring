@@ -25,7 +25,6 @@ import ChartLine04  from '../components/ChartLine04';
 import AuroraLimitlessNode from '../components/CompAuroraLimitlessNode01';
 import ChartBar01  from '../components/ChartBar01';
 import ChartBar03  from '../components/ChartBar03';
-import ChartBar04  from '../components/ChartBar04';
 import ChartPie01  from '../components/ChartPie-01';
 import ChartRadialBar01  from '../components/ChartRadialBar01';
 
@@ -59,10 +58,11 @@ function App() {
     //--######## Global Settings
     
     //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("tab02");
-    const currentTabId = useRef("tab02");
+    const [activeTabId, setActiveTabId] = useState("tab01");
+    const currentTabId = useRef("tab01");
     
-    
+
+    //-- Variable for parameters
     const parameter_code_id=params.get("code_id");  
     const parameter_id=params.get("session_id");  
     var parameter_object_bytes = CryptoJS.AES.decrypt(parameter_id, parameter_code_id);
@@ -403,8 +403,7 @@ function App() {
                                         engineType : cnf_engine,                                                           
                               }
                           }).then((data)=>{     
-                            setShardMetrics({... data.data });                    
-                          console.log(data);                        
+                            setShardMetrics({... data.data });                                              
                       })
                       .catch((err) => {
                           console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics/table' );

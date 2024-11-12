@@ -4278,12 +4278,7 @@ class classAuroraLimitlessPostgresqlEngine {
     #clusterMetadata = {};
     #shardGroupMetadata = {};
 
-    //-- Cloudwatch Metrics
-    #cloudwatchMetrics = { 
-                            shardGroup : {}, 
-                            routerGroup : {}, 
-                            instanceGroup : {} 
-    };
+    //-- Cloudwatch Metrics   
     
     #cloudwatchMetricsShards = {};
     #metricCatalog = [
@@ -5026,11 +5021,7 @@ class classAuroraLimitlessPostgresqlEngine {
                         resourceType : "ALL",
                     });                    
                     chartHistory['DBShardGroupCapacity'] = dataset['charts'];
-                                      
-
-                    
-
-
+            
             }
             catch(err){
                 this.#objLog.write("getCloudwatchMetricsTable","err",err);
