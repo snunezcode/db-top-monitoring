@@ -19,7 +19,7 @@ import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import CompMetric01  from '../components/Metric01';
 import ChartLine02  from '../components/ChartLine02';
-import ChartColumn01 from '../components/ChartColumn01';
+import ChartColumn02 from '../components/ChartColumn02';
 import Animation01 from '../components/Animation01';
 import ChartLine04  from '../components/ChartLine04';
 import AuroraLimitlessNode from '../components/CompAuroraLimitlessNode01';
@@ -171,8 +171,8 @@ function App() {
                                                                             summary : { total : 0, average : 0, min : 0, max : 0, count : 0  }, 
                                                                             currentState : { 
                                                                                                 chart : { 
-                                                                                                            categories : [], 
-                                                                                                            data : [] }, 
+                                                                                                            categories : new Array("-", "-"), 
+                                                                                                            data : new Array(0 , 0) },                                                                                                         
                                                                                                             value : 0 
                                                                                                         } 
                                                                     });
@@ -379,6 +379,7 @@ function App() {
                                       resourceType : optionType.current,
                             }
                         }).then((data)=>{     
+                        
                         setShardCloudwatchMetric({... data.data });                                            
                     })
                     .catch((err) => {
@@ -403,6 +404,7 @@ function App() {
                                         engineType : cnf_engine,                                                           
                               }
                           }).then((data)=>{     
+                            console.log(data.data);
                             setShardMetrics({... data.data });                                              
                       })
                       .catch((err) => {
@@ -1405,14 +1407,12 @@ function App() {
                                                                         fontSizeValue={"30px"}
                                                                         fontSizeTitle={"12px"}
                                                                     />  
-                                                                    <br/>                                                                    
-                                                                    <ChartColumn01 
-                                                                        series = {{ 
-                                                                                data : shardCloudwatchMetric['currentState']?.['chart']?.['data'], 
-                                                                                categories : shardCloudwatchMetric['currentState']?.['chart']?.['categories']
-                                                                            }}     
+                                                                    <br/>                                                                                                           
+                                                                    <ChartColumn02 
+                                                                        series={ JSON.stringify([ { data : shardCloudwatchMetric['currentState']?.['chart']?.['data'] } ] ) }
+                                                                        categories={ JSON.stringify(shardCloudwatchMetric['currentState']?.['chart']?.['categories']) }                                                                     
                                                                         height="435px"                                                               
-                                                                    />  
+                                                                    />                                                             
                                                                     </div>                                                            
                                                                       
                                                                 </Container>
