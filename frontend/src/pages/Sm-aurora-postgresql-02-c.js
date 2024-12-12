@@ -306,16 +306,12 @@ function App() {
     //-- Function Cluster Gather Stats
     async function gatherClusterStats() {
         
-
-        //const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/aurora/cluster/region/list/`);
-
-        //-- API CALL 1
-        var localClusterStats = {};
         if ( currentTabId.current == "tab01" || currentTabId.current == "tab02" || currentTabId.current == "tab03" ) {
         
         
-                var api_url = configuration["apps-settings"]["api_url"];                
-                await Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/gather/stats/`,{
+                var api_url = configuration["apps-settings"]["api_url"];
+                
+                Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/gather/stats/`,{
                               params: { connectionId : cnf_connection_id, 
                                         clusterId : cnf_identifier,     
                                         engineType : cnf_engine                              
@@ -323,9 +319,7 @@ function App() {
                           }).then((data)=>{
                            
                            var info = data.data.cluster;
-                           localClusterStats = { cluster : {...info} };
-
-                           //setClusterStats({ cluster : {...info} });
+                           setClusterStats({ cluster : {...info} });
                              
                       })
                       .catch((err) => {
@@ -335,134 +329,132 @@ function App() {
                       });
               
         }
+        
+    }
 
-        //-- API CALL 2
-        var localClusterStatsDetails = {};
-        if ( currentTabId.current == "tab01" && splitPanelIsShow.current === true ) {
+
+    //-- Function Gather Metric Details
+    async function gatherClusterStatsDetails() {
+        
+      if ( currentTabId.current == "tab01" && splitPanelIsShow.current === true ) {
       
               
-            var api_url = configuration["apps-settings"]["api_url"];
+              var api_url = configuration["apps-settings"]["api_url"];
+              
+              Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/gather/stats/details`,{
+                            params: { connectionId : cnf_connection_id, 
+                                      clusterId : cnf_identifier, 
+                                      engineType : cnf_engine,                   
+                                      metricId :  metricCurrent.current['metricId']
+                            }
+                        }).then((data)=>{                         
+                        setClusterStatsDetails({ ...data.data });                        
+                    })
+                    .catch((err) => {
+                        console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/gather/stats/details' );
+                        console.log(err);
+                        
+                    });
             
-            await Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/gather/stats/details`,{
-                          params: { connectionId : cnf_connection_id, 
-                                    clusterId : cnf_identifier, 
-                                    engineType : cnf_engine,                   
-                                    metricId :  metricCurrent.current['metricId']
-                          }
-                      }).then((data)=>{                         
-                      //setClusterStatsDetails({ ...data.data });                        
-                      localClusterStatsDetails = { ...data.data };
-                  })
-                  .catch((err) => {
-                      console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/gather/stats/details' );
-                      console.log(err);
-                      
-                  });
+        }
+    }
+
+
+
+    //-- Function Gather Cloudwatch Shard Metrics 
+    async function gatherCloudwatchShardMetrics() {
+ 
+      if ( currentTabId.current == "tab03" ) {
+              var api_url = configuration["apps-settings"]["api_url"];
+              
+              Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics`,{
+                            params: { connectionId : cnf_connection_id, 
+                                      clusterId : cnf_identifier, 
+                                      engineType : cnf_engine,                   
+                                      type :  cloudwatchMetric.current.type,
+                                      metric :  cloudwatchMetric.current.name,
+                                      period : 1,
+                                      interval : optionInterval.current * 60,
+                                      stat : "Average",
+                                      resourceType : optionType.current,
+                            }
+                        }).then((data)=>{     
+                        
+                        setShardCloudwatchMetric({... data.data });                                            
+                    })
+                    .catch((err) => {
+                        console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics' );
+                        console.log(err);                        
+                    });     
+      
+      }      
+        
+    }
+
+
+    //-- Function Gather Cloudwatch Metrics Table
+    async function gatherCloudwatchMetricsTable() {
+ 
+        if ( currentTabId.current == "tab02" ) {
+                var api_url = configuration["apps-settings"]["api_url"];
+                
+                Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics/table`,{
+                              params: { connectionId : cnf_connection_id, 
+                                        clusterId : cnf_identifier, 
+                                        engineType : cnf_engine,                                                           
+                              }
+                          }).then((data)=>{     
+                            console.log(data.data);
+                            setShardMetrics({... data.data });                                              
+                      })
+                      .catch((err) => {
+                          console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics/table' );
+                          console.log(err);                        
+                      });     
+        
+        }      
+          
+    }
+
+
+    //-- Function Gather Cloudwatch Shard Metrics 
+    async function gatherCloudwatchDashboardDetails() {
+ 
+        if ( currentTabId.current == "tab02" && splitPanelIsShow.current === true ) {
+                var api_url = configuration["apps-settings"]["api_url"];
+                
+                Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics`,{
+                              params: { connectionId : cnf_connection_id, 
+                                        clusterId : cnf_identifier, 
+                                        engineType : cnf_engine,                   
+                                        type :  "1",
+                                        metric :  metricName.current,
+                                        period : 1,
+                                        interval : 30,
+                                        stat : "Average",
+                                        resourceType : "ALL",
+                              }
+                          }).then((data)=>{     
+                          setShardCloudwatchMetric({... data.data });                                            
+                      })
+                      .catch((err) => {
+                          console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics' );
+                          console.log(err);                        
+                      });     
+        
+        }      
           
       }
-
-
-      
-        //-- API CALL 3
-        var localShardCloudwatchMetric = {};        
-        if ( currentTabId.current == "tab03" ) {
-            var api_url = configuration["apps-settings"]["api_url"];            
-
-            await Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics`,{
-                        params: { connectionId : cnf_connection_id, 
-                                    clusterId : cnf_identifier, 
-                                    engineType : cnf_engine,                   
-                                    type :  cloudwatchMetric.current.type,
-                                    metric :  cloudwatchMetric.current.name,
-                                    period : 1,
-                                    interval : optionInterval.current * 60,
-                                    stat : "Average",
-                                    resourceType : optionType.current,
-                        }
-                    }).then((data)=>{                        
-                    
-                    //setShardCloudwatchMetric({... data.data });                            
-                    localShardCloudwatchMetric = {... data.data };
-                    
-                })
-                .catch((err) => {
-                    console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics' );
-                    console.log(err);                        
-                });     
-
-        }   
-
-      
-        //-- API CALL : 4
-        var localShardMetrics = {};
-        if ( currentTabId.current == "tab02" ) {
-            var api_url = configuration["apps-settings"]["api_url"];
-            
-            await Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics/table`,{
-                          params: { connectionId : cnf_connection_id, 
-                                    clusterId : cnf_identifier, 
-                                    engineType : cnf_engine,                                                           
-                          }
-                      }).then((data)=>{     
-                        
-                        //setShardMetrics({... data.data });                                              
-                        localShardMetrics = {... data.data };
-                  })
-                  .catch((err) => {
-                      console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics/table' );
-                      console.log(err);                        
-                  });     
-    
-        }      
-
-      
-        //-- API CALL 5
-        if ( currentTabId.current == "tab02" && splitPanelIsShow.current === true ) {
-            var api_url = configuration["apps-settings"]["api_url"];
-            
-            await Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics`,{
-                          params: { connectionId : cnf_connection_id, 
-                                    clusterId : cnf_identifier, 
-                                    engineType : cnf_engine,                   
-                                    type :  "1",
-                                    metric :  metricName.current,
-                                    period : 1,
-                                    interval : 30,
-                                    stat : "Average",
-                                    resourceType : "ALL",
-                          }
-                      }).then((data)=>{     
-                      //setShardCloudwatchMetric({... data.data });      
-                      localShardCloudwatchMetric = {... data.data };
-                  })
-                  .catch((err) => {
-                      console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics' );
-                      console.log(err);                        
-                  });     
-    
-        }
-
-
-
-        if (Object.keys(localClusterStats).length > 0)
-            setClusterStats(localClusterStats);
-
-        if (Object.keys(localClusterStatsDetails).length > 0)
-            setClusterStatsDetails(localClusterStatsDetails);
-
-        if (Object.keys(localShardCloudwatchMetric).length > 0)
-            setShardCloudwatchMetric(localShardCloudwatchMetric);
-        
-        if (Object.keys(localShardMetrics).length > 0)
-            setShardMetrics(localShardMetrics);
-
-
-    }
+  
 
 
     //-- Gather all stats
     function gatherGlobalStats(){
         gatherClusterStats();
+        gatherClusterStatsDetails();
+        gatherCloudwatchShardMetrics();
+        gatherCloudwatchMetricsTable();
+        gatherCloudwatchDashboardDetails();
     }
 
 
@@ -471,8 +463,8 @@ function App() {
         metricName.current = object.metricName;
         splitPanelIsShow.current = true;
         setsplitPanelShow(true);
-        gatherClusterStats();      
-        
+        gatherCloudwatchDashboardDetails();        
+
     }
     
     //-- Function Handle Logout
@@ -729,12 +721,10 @@ function App() {
                             <Tabs
                                     disableContentPaddings
                                     onChange={({ detail }) => {
-                                          
+                                          setActiveTabId(detail.activeTabId);
                                           currentTabId.current=detail.activeTabId;
-                                          setActiveTabId(detail.activeTabId);                                          
                                           setsplitPanelShow(false);
                                           gatherGlobalStats();
-
                                       }
                                     }
                                     activeTabId={activeTabId}
@@ -950,7 +940,7 @@ function App() {
                                                                                                                   metricCurrent.current = detail;
                                                                                                                   splitPanelIsShow.current = true;
                                                                                                                   setsplitPanelShow(true);                                                                                                                                                                                                                                    
-                                                                                                                  gatherGlobalStats();
+                                                                                                                  gatherClusterStatsDetails();
                                                                                                               }
                                                                                                             }
                                                                                                         />
@@ -1024,7 +1014,7 @@ function App() {
                                                                                                                 metricCurrent.current = detail;
                                                                                                                 splitPanelIsShow.current = true;
                                                                                                                 setsplitPanelShow(true);                                                                                                                                                                                                                                    
-                                                                                                                gatherGlobalStats();
+                                                                                                                gatherClusterStatsDetails();
                                                                                                                 }
                                                                                                               }
                                                                                                           />
@@ -1326,8 +1316,8 @@ function App() {
                                                                                     selectedOption={selectedCloudWatchMetric}
                                                                                     onChange={({ detail }) => {
                                                                                             cloudwatchMetric.current = { type : detail.selectedOption.type, name : detail.selectedOption.value, descriptions : detail.selectedOption.descriptions, unit : detail.selectedOption.unit };
-                                                                                            setSelectedCloudWatchMetric(detail.selectedOption);                                                                                            
-                                                                                            gatherGlobalStats();
+                                                                                            setSelectedCloudWatchMetric(detail.selectedOption);
+                                                                                            gatherCloudwatchShardMetrics();
                                                                                     }
                                                                                     }
                                                                                     options={cloudwatchMetrics}
@@ -1346,8 +1336,8 @@ function App() {
                                                                             selectedOption={selectedOptionInterval}
                                                                             onChange={({ detail }) => {
                                                                                     optionInterval.current = detail.selectedOption.value;
-                                                                                    setSelectedOptionInterval(detail.selectedOption);                                                                                    
-                                                                                    gatherGlobalStats();
+                                                                                    setSelectedOptionInterval(detail.selectedOption);
+                                                                                    gatherCloudwatchShardMetrics();
                                                                             }}
                                                                             options={[
                                                                                 { label: "Last hour", value: 1 },
@@ -1373,7 +1363,7 @@ function App() {
                                                                             onChange={({ detail }) => {
                                                                                     optionType.current = detail.selectedOption.value;
                                                                                     setSelectedOptionType(detail.selectedOption);
-                                                                                    gatherGlobalStats();
+                                                                                    gatherCloudwatchShardMetrics();
                                                                             }}
                                                                             options={[
                                                                                 { label: "Shards + Routers", value: "ALL" },
