@@ -1095,7 +1095,7 @@ function App() {
                                                                 <td valign="middle" style={{ "width":"10%", "padding": "0em", "text-align" : "right"}}>                                                                 
                                                                         <CompMetric01 
                                                                                 value={ shardMetrics['chartHistory']?.['DBShardGroupACUUtilization']?.[0]?.['data']?.[0]?.[1] || 0 }
-                                                                                title={"DBShardGroupACUUtilization"}
+                                                                                title={"DBShardGroupACUUtilization(%)"}
                                                                                 precision={0}
                                                                                 format={3}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
@@ -1107,14 +1107,14 @@ function App() {
                                                                                 <ChartBar01 series={JSON.stringify(
                                                                                         shardMetrics['chartHistory']?.['DBShardGroupACUUtilization']
                                                                                         )} 
-                                                                                        title="DBShardGroupACUUtilization"
+                                                                                        title="DBShardGroupACUUtilization(%)"
                                                                                         height="220px"                                                                                 
                                                                                 />                                                                                                                                                            
                                                                 </td>   
                                                                 <td valign="middle" style={{ "width":"10%", "padding": "0em", "text-align" : "right"}}>                                                                 
                                                                         <CompMetric01 
                                                                                 value={ shardMetrics['chartHistory']?.['DBShardGroupCapacity']?.[0]?.['data']?.[0]?.[1] || 0 }
-                                                                                title={"DBShardGroupCapacity"}
+                                                                                title={"DBShardGroupCapacity(Units)"}
                                                                                 precision={0}
                                                                                 format={3}
                                                                                 fontColorValue={configuration.colors.fonts.metric100}
@@ -1126,7 +1126,7 @@ function App() {
                                                                                 <ChartBar01 series={JSON.stringify(
                                                                                         shardMetrics['chartHistory']?.['DBShardGroupCapacity']
                                                                                         )} 
-                                                                                        title="DBShardGroupCapacity"
+                                                                                        title="DBShardGroupCapacity(Units)"
                                                                                         height="220px"                                                                                 
                                                                                 />       
                                                                                                                                                     
@@ -1429,6 +1429,24 @@ function App() {
                                                                     
                                                                     <br/>   
                                                                     <div style={{ "text-align": "center" }}>
+                                                                    
+                                                                         
+                                                                    {/*                                                                                                    
+                                                                    <ChartColumn02 
+                                                                        series={ JSON.stringify([ { data : shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['data'] } ] ) }
+                                                                        categories={ JSON.stringify(shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['categories']) }                                                                     
+                                                                        height="435px"                                                               
+                                                                    />         
+                                                                    */}
+                                                                    <ChartPie01 
+                                                                        height="450px" 
+                                                                        width="100%" 
+                                                                        series = {shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['data']}
+                                                                        labels = {shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['categories']}
+                                                                        onClickEvent={() => {}}
+                                                                    />    
+                                                                    <br/>     
+                                                                    <br/>  
                                                                     <CompMetric01 
                                                                         value={ shardCloudwatchMetricAnalytics['currentState']?.['value'] || 0 }
                                                                         title={ cloudwatchMetric.current.name + " (" +  cloudwatchMetric.current.unit + ")"}
@@ -1437,13 +1455,8 @@ function App() {
                                                                         fontColorValue={configuration.colors.fonts.metric100}
                                                                         fontSizeValue={"30px"}
                                                                         fontSizeTitle={"12px"}
-                                                                    />  
-                                                                    <br/>                                                                                                           
-                                                                    <ChartColumn02 
-                                                                        series={ JSON.stringify([ { data : shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['data'] } ] ) }
-                                                                        categories={ JSON.stringify(shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['categories']) }                                                                     
-                                                                        height="435px"                                                               
-                                                                    />                                                             
+                                                                    />      
+                                                                    <br/>                                           
                                                                     </div>                                                            
                                                                       
                                                                 </Container>
