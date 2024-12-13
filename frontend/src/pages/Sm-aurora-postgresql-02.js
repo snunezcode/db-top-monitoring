@@ -176,7 +176,21 @@ function App() {
                                                                                                             value : 0 
                                                                                                         } 
                                                                     });
+    
 
+    const [shardCloudwatchMetricAnalytics,setShardCloudwatchMetricAnalytics] = useState({ 
+                                                                            labels : [], 
+                                                                            values : [], 
+                                                                            charts : [], 
+                                                                            summary : { total : 0, average : 0, min : 0, max : 0, count : 0  }, 
+                                                                            currentState : { 
+                                                                                                chart : { 
+                                                                                                            categories : new Array("-", "-"), 
+                                                                                                            data : new Array(0 , 0) },                                                                                                         
+                                                                                                            value : 0 
+                                                                                                        } 
+                                                                    });
+    
     
     //--Cloudwatch Metrics
     const [selectedOptionInterval,setSelectedOptionInterval] = useState({label: "1 Hour",value: 1});
@@ -363,8 +377,8 @@ function App() {
 
 
       
-        //-- API CALL 3
-        var localShardCloudwatchMetric = {};        
+        //-- API CALL 3        
+        var localShardCloudwatchMetricAnalytics = {};
         if ( currentTabId.current == "tab03" ) {
             var api_url = configuration["apps-settings"]["api_url"];            
 
@@ -381,8 +395,8 @@ function App() {
                         }
                     }).then((data)=>{                        
                     
-                    //setShardCloudwatchMetric({... data.data });                            
-                    localShardCloudwatchMetric = {... data.data };
+                    //setShardCloudwatchMetric({... data.data });                                                
+                    localShardCloudwatchMetricAnalytics = {... data.data };
                     
                 })
                 .catch((err) => {
@@ -417,6 +431,7 @@ function App() {
 
       
         //-- API CALL 5
+        var localShardCloudwatchMetric = {};     
         if ( currentTabId.current == "tab02" && splitPanelIsShow.current === true ) {
             var api_url = configuration["apps-settings"]["api_url"];
             
@@ -432,8 +447,8 @@ function App() {
                                     resourceType : "ALL",
                           }
                       }).then((data)=>{     
-                      //setShardCloudwatchMetric({... data.data });      
-                      localShardCloudwatchMetric = {... data.data };
+                      //setShardCloudwatchMetric({... data.data });   
+                      localShardCloudwatchMetric = {... data.data };                         
                   })
                   .catch((err) => {
                       console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics' );
@@ -449,12 +464,18 @@ function App() {
 
         if (Object.keys(localClusterStatsDetails).length > 0)
             setClusterStatsDetails(localClusterStatsDetails);
-
-        if (Object.keys(localShardCloudwatchMetric).length > 0)
-            setShardCloudwatchMetric(localShardCloudwatchMetric);
+        
+        if (Object.keys(localShardCloudwatchMetricAnalytics).length > 0)
+            setShardCloudwatchMetricAnalytics(localShardCloudwatchMetricAnalytics);
         
         if (Object.keys(localShardMetrics).length > 0)
             setShardMetrics(localShardMetrics);
+        
+        if (Object.keys(localShardCloudwatchMetric).length > 0)
+            setShardCloudwatchMetric(localShardCloudwatchMetric);
+        
+        
+        
 
 
     }
@@ -472,7 +493,7 @@ function App() {
         splitPanelIsShow.current = true;
         setsplitPanelShow(true);
         gatherClusterStats();      
-        
+
     }
     
     //-- Function Handle Logout
@@ -1409,7 +1430,7 @@ function App() {
                                                                     <br/>   
                                                                     <div style={{ "text-align": "center" }}>
                                                                     <CompMetric01 
-                                                                        value={ shardCloudwatchMetric['currentState']?.['value'] || 0 }
+                                                                        value={ shardCloudwatchMetricAnalytics['currentState']?.['value'] || 0 }
                                                                         title={ cloudwatchMetric.current.name + " (" +  cloudwatchMetric.current.unit + ")"}
                                                                         precision={0}
                                                                         format={3}
@@ -1419,8 +1440,8 @@ function App() {
                                                                     />  
                                                                     <br/>                                                                                                           
                                                                     <ChartColumn02 
-                                                                        series={ JSON.stringify([ { data : shardCloudwatchMetric['currentState']?.['chart']?.['data'] } ] ) }
-                                                                        categories={ JSON.stringify(shardCloudwatchMetric['currentState']?.['chart']?.['categories']) }                                                                     
+                                                                        series={ JSON.stringify([ { data : shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['data'] } ] ) }
+                                                                        categories={ JSON.stringify(shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['categories']) }                                                                     
                                                                         height="435px"                                                               
                                                                     />                                                             
                                                                     </div>                                                            
@@ -1442,7 +1463,7 @@ function App() {
                                                                         <tr>                                                      
                                                                             <td valign="top" style={{ "width":"20%","text-align": "center" }}>
                                                                                 <CompMetric01 
-                                                                                    value={ shardCloudwatchMetric['summary']?.['average'] || 0 }
+                                                                                    value={ shardCloudwatchMetricAnalytics['summary']?.['average'] || 0 }
                                                                                     title={"Average"}
                                                                                     precision={2}
                                                                                     format={3}
@@ -1453,7 +1474,7 @@ function App() {
                                                                             </td>                                                            
                                                                             <td valign="top" style={{ "width":"20%","text-align": "center"}}>
                                                                                 <CompMetric01 
-                                                                                    value={ shardCloudwatchMetric['summary']?.['max'] || 0 }
+                                                                                    value={ shardCloudwatchMetricAnalytics['summary']?.['max'] || 0 }
                                                                                     title={"Maximum"}
                                                                                     precision={2}
                                                                                     format={3}
@@ -1465,7 +1486,7 @@ function App() {
                                                                             
                                                                             <td valign="top" style={{ "width":"20%","text-align": "center"}}>
                                                                                 <CompMetric01 
-                                                                                    value={ shardCloudwatchMetric['summary']?.['min']|| 0 }
+                                                                                    value={ shardCloudwatchMetricAnalytics['summary']?.['min']|| 0 }
                                                                                     title={"Minimum"}
                                                                                     precision={2}
                                                                                     format={3}
@@ -1476,7 +1497,7 @@ function App() {
                                                                             </td>         
                                                                             <td valign="top" style={{ "width":"20%","text-align": "center"}}>
                                                                                 <CompMetric01 
-                                                                                    value={ shardCloudwatchMetric['summary']?.['count'] || 0 }
+                                                                                    value={ shardCloudwatchMetricAnalytics['summary']?.['count'] || 0 }
                                                                                     title={"DataPoints"}
                                                                                     precision={0}
                                                                                     format={3}
@@ -1487,7 +1508,7 @@ function App() {
                                                                             </td>                                                                                                               
                                                                             <td valign="top" style={{ "width":"20%","text-align": "center"}}>
                                                                                 <CompMetric01 
-                                                                                    value={ shardCloudwatchMetric['summary']?.['total'] || 0 }
+                                                                                    value={ shardCloudwatchMetricAnalytics['summary']?.['total'] || 0 }
                                                                                     title={"Total"}
                                                                                     precision={0}
                                                                                     format={4}
@@ -1506,13 +1527,13 @@ function App() {
                                                                                 <ChartPie01 
                                                                                             height="450px" 
                                                                                             width="100%" 
-                                                                                            series = {shardCloudwatchMetric['values']}
-                                                                                            labels = {shardCloudwatchMetric['labels']}
+                                                                                            series = {shardCloudwatchMetricAnalytics['values']}
+                                                                                            labels = {shardCloudwatchMetricAnalytics['labels']}
                                                                                             onClickEvent={() => {}}
                                                                                 />
                                                                             </td>
                                                                             <td valign="top" style={{"width": "80%", "padding-right": "2em"}}>    
-                                                                                <ChartLine04 series={JSON.stringify(shardCloudwatchMetric['charts'])}
+                                                                                <ChartLine04 series={JSON.stringify(shardCloudwatchMetricAnalytics['charts'])}
                                                                                     title={cloudwatchMetric.current.name} 
                                                                                     height="400px" 
                                                                                 />
