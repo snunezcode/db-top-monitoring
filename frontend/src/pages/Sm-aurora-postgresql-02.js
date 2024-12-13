@@ -28,9 +28,9 @@ import ChartBar03  from '../components/ChartBar03';
 import ChartPie01  from '../components/ChartPie-01';
 import ChartRadialBar01  from '../components/ChartRadialBar01';
 
-
 import { createLabelFunction, customFormatNumberLong, customFormatNumber, customFormatNumberShort } from '../components/Functions';
 import CustomTable02 from "../components/Table02";
+
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -48,6 +48,7 @@ export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
 var CryptoJS = require("crypto-js");
 
 function App() {
+    
     
     //-- Connection Usage
     const [connectionMessage, setConnectionMessage] = useState([]);
@@ -320,10 +321,7 @@ function App() {
     //-- Function Cluster Gather Stats
     async function gatherClusterStats() {
         
-
-        //const { data } = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/aws/aurora/cluster/region/list/`);
-
-        //-- API CALL 1
+     //-- API CALL 1
         var localClusterStats = {};
         if ( currentTabId.current == "tab01" || currentTabId.current == "tab02" || currentTabId.current == "tab03" ) {
         
@@ -380,6 +378,7 @@ function App() {
         //-- API CALL 3        
         var localShardCloudwatchMetricAnalytics = {};
         if ( currentTabId.current == "tab03" ) {
+            
             var api_url = configuration["apps-settings"]["api_url"];            
 
             await Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/shard/gather/cloudwatch/metrics`,{
@@ -476,6 +475,7 @@ function App() {
         
         
         
+        
 
 
     }
@@ -546,16 +546,16 @@ function App() {
     
 
     useEffect(() => {
-        openClusterConnection();        
+        openClusterConnection();                     
     }, []);
     
     
-    useEffect(() => {
+    useEffect(() => {        
         const id = setInterval(gatherGlobalStats, configuration["apps-settings"]["refresh-interval-documentdb-metrics"]);
         return () => clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-    
+
 
   return (
     <div style={{"background-color": "#121b29"}}>
