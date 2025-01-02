@@ -29,11 +29,8 @@ import ChartBar05  from '../components/ChartBar05';
 import ChartRadialBar01  from '../components/ChartRadialBar01';
 import ChartPolar01  from '../components/ChartPolar-01';
 
-
-
 import { createLabelFunction, customFormatNumberLong, customFormatNumber, customFormatNumberShort, customFormatNumberInteger } from '../components/Functions';
 import CustomTable02 from "../components/Table02";
-
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -52,14 +49,13 @@ var CryptoJS = require("crypto-js");
 
 function App() {
     
+    //--######## Global Settings
     
     //-- Connection Usage
     const [connectionMessage, setConnectionMessage] = useState([]);
     
     //-- Gather Parameters
-    const [params]=useSearchParams();
-    
-    //--######## Global Settings
+    const [params]=useSearchParams();    
     
     //-- Variable for Active Tabs
     const [activeTabId, setActiveTabId] = useState("tab01");
@@ -198,7 +194,7 @@ function App() {
                                                                     });
     
     
-    // Storage Usage
+    //-- Storage Usage
     const [storageUsage,setStorageUsage] = useState({ 
                                                         chart : { categories : [], series : []}  , 
                                                         table : [] 
@@ -206,7 +202,7 @@ function App() {
 
 
 
-    //--Cloudwatch Metrics
+    //-- Cloudwatch Metrics
     const [selectedOptionInterval,setSelectedOptionInterval] = useState({label: "1 Hour",value: 1});
     const optionInterval = useRef(1);
 
@@ -358,7 +354,7 @@ function App() {
    
 
 
-    //-- Function Open connection
+    //-- Function open connection
     async function openClusterConnection() {
         
         var api_url = configuration["apps-settings"]["api_url"];
@@ -533,10 +529,6 @@ function App() {
         }
 
 
-        
-
-
-
         if (Object.keys(localClusterStats).length > 0)
             setClusterStats(localClusterStats);
 
@@ -606,7 +598,6 @@ function App() {
                 
               case 'other':
                 break;
-                
               
             }
 
@@ -825,7 +816,7 @@ function App() {
                             <Flashbar items={connectionMessage} />
                             <table style={{"width":"100%"}}>
                                 <tr>  
-                                    <td style={{"width":"40%","padding-left": "1em", "border-left": "10px solid " + configuration.colors.lines.separator100,}}>  
+                                    <td style={{"width":"44%","padding-left": "1em", "border-left": "10px solid " + configuration.colors.lines.separator100,}}>  
                                         <SpaceBetween direction="horizontal" size="xs">
                                             { clusterStats['cluster']['status'] != 'available' &&
                                                 <Spinner size="big" />
@@ -833,27 +824,27 @@ function App() {
                                             <Box variant="h3" color="text-status-inactive" >{parameter_object_values['rds_host']}</Box>
                                         </SpaceBetween>
                                     </td>
-                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
-                                        <StatusIndicator type={clusterStats['cluster']['status'] === 'available' ? 'success' : 'pending'}> {clusterStats['cluster']['status']} </StatusIndicator>
-                                        <Box variant="awsui-key-label">Status</Box>
-                                    </td>
-                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
+                                    <td style={{"width":"14%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
                                         <div>{clusterStats['cluster']['shardId']}</div>
                                         <Box variant="awsui-key-label">ShardIdentifier</Box>
                                     </td>
                                     <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
+                                        <StatusIndicator type={clusterStats['cluster']['status'] === 'available' ? 'success' : 'pending'}> {clusterStats['cluster']['status']} </StatusIndicator>
+                                        <Box variant="awsui-key-label">Status</Box>
+                                    </td>                                    
+                                    <td style={{"width":"8%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
                                         <div>{clusterStats['cluster']?.['metrics']?.['vcpu'] || 0}</div>
                                         <Box variant="awsui-key-label">vCPU</Box>
                                     </td>
-                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
+                                    <td style={{"width":"8%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
                                         <div>{clusterStats['cluster']['minACU']}</div>
                                         <Box variant="awsui-key-label">MinACU</Box>
                                     </td>
-                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
+                                    <td style={{"width":"8%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
                                         <div>{clusterStats['cluster']['maxACU']}</div>
                                         <Box variant="awsui-key-label">MaxACU</Box>
                                     </td>
-                                    <td style={{"width":"10%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
+                                    <td style={{"width":"8%","padding-left": "1em", "border-left": "4px solid " + configuration.colors.lines.separator100,}}>  
                                         <div>{clusterStats['cluster']['lastUpdate']}</div>
                                         <Box variant="awsui-key-label">LastUpdate</Box>
                                     </td>
