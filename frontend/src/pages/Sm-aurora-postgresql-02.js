@@ -28,6 +28,7 @@ import ChartBar03  from '../components/ChartBar03';
 import ChartBar05  from '../components/ChartBar05';
 import ChartRadialBar01  from '../components/ChartRadialBar01';
 import ChartPolar01  from '../components/ChartPolar-01';
+import ChartPolar02  from '../components/ChartPolar-02';
 
 import { createLabelFunction, customFormatNumberLong, customFormatNumber, customFormatNumberShort, customFormatNumberInteger } from '../components/Functions';
 import CustomTable02 from "../components/Table02";
@@ -889,13 +890,12 @@ function App() {
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>
                                                                         <td valign="middle" colspan="2" style={{"width": "100%",  "padding-right": "2em", "padding-left": "2em", "text-align" : "center" }}> 
-                                                                            <ChartPolar01 
+                                                                            <ChartPolar02 
                                                                                     title={"CommitThroughput(Count/sec)"} 
                                                                                     height="550px" 
                                                                                     width="100%" 
-                                                                                    series = {clusterStats['cluster']?.['chartSummary']?.['data']}
-                                                                                    labels = {clusterStats['cluster']?.['chartSummary']?.['categories']}
-                                                                                    onClickEvent={() => {}}
+                                                                                    series = {JSON.stringify(clusterStats['cluster']?.['chartSummary']?.['data'])}
+                                                                                    labels = {JSON.stringify(clusterStats['cluster']?.['chartSummary']?.['categories'])}                                                                                    
                                                                             />                                                                            
                                                                             <br/>
                                                                             <CompMetric01 
@@ -1228,13 +1228,12 @@ function App() {
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>
                                                                         <td valign="top" style={{ "width":"40%", "padding": "1em", "text-align" : "center"}}>                                                                         
-                                                                            <ChartPolar01 
+                                                                            <ChartPolar02
                                                                                     title={""} 
                                                                                     height="300px" 
                                                                                     width="100%" 
-                                                                                    series = {shardMetrics['chartSummary']?.['DBLoad']?.['data']}
-                                                                                    labels = {shardMetrics['chartSummary']?.['DBLoad']?.['categories']}
-                                                                                    onClickEvent={() => {}}
+                                                                                    series = {JSON.stringify(shardMetrics['chartSummary']?.['DBLoad']?.['data'])}
+                                                                                    labels = {JSON.stringify(shardMetrics['chartSummary']?.['DBLoad']?.['categories'])}
                                                                             />                                                                 
                                                                                 
                                                                         </td>                                                                  
@@ -1332,13 +1331,12 @@ function App() {
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>
                                                                         <td valign="top" style={{ "width":"40%", "padding": "1em", "text-align" : "center"}}>                                                                         
-                                                                            <ChartPolar01 
+                                                                            <ChartPolar02
                                                                                     title={""} 
                                                                                     height="300px" 
                                                                                     width="100%" 
-                                                                                    series = {shardMetrics['chartSummary']?.['CommitThroughput']?.['data']}
-                                                                                    labels = {shardMetrics['chartSummary']?.['CommitThroughput']?.['categories']}
-                                                                                    onClickEvent={() => {}}
+                                                                                    series = {JSON.stringify(shardMetrics['chartSummary']?.['CommitThroughput']?.['data'])}
+                                                                                    labels = {JSON.stringify(shardMetrics['chartSummary']?.['CommitThroughput']?.['categories'])}
                                                                             />                                                                 
                                                                             
                                                                             
@@ -1520,13 +1518,13 @@ function App() {
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>
                                                                         <td valign="top" style={{ "width":"40%", "padding": "1em", "text-align" : "center"}}>                                                                         
-                                                                            <ChartPolar01 
+                                                                            <ChartPolar02
                                                                                     title={""} 
                                                                                     height="300px" 
                                                                                     width="100%" 
-                                                                                    series = {shardMetrics['chartSummary']?.['CommitLatency']?.['data']}
-                                                                                    labels = {shardMetrics['chartSummary']?.['CommitLatency']?.['categories']}
-                                                                                    onClickEvent={() => {}}
+                                                                                    series = {JSON.stringify(shardMetrics['chartSummary']?.['CommitLatency']?.['data'])}
+                                                                                    labels = {JSON.stringify(shardMetrics['chartSummary']?.['CommitLatency']?.['categories'])}
+                                                                                    
                                                                             />                                                                 
                                                                                 
                                                                         </td>                                                                  
@@ -1720,13 +1718,12 @@ function App() {
                                                                     <br/>   
                                                                     <div style={{ "text-align": "center" }}>
                                                                     
-                                                                    <ChartPolar01 
+                                                                    <ChartPolar02 
                                                                         title={"Commit Throughput"} 
                                                                         height="350px" 
                                                                         width="100%" 
-                                                                        series = {shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['data']}
-                                                                        labels = {shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['categories']}
-                                                                        onClickEvent={() => {}}
+                                                                        series = {JSON.stringify(shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['data'])}
+                                                                        labels = {JSON.stringify(shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['categories'])}
                                                                     />
                                                                     
                                                                     <br/>     
@@ -1925,12 +1922,11 @@ function App() {
                                                                             </FormField>
                                                                             <div style={{ "text-align": "center" }}>
                                                                             
-                                                                                <ChartPolar01                                                                                     
+                                                                                <ChartPolar02                                                                                     
                                                                                     height="350px" 
                                                                                     width="100%" 
-                                                                                    series = {storageUsage['chart']?.['series']}
-                                                                                    labels = {storageUsage['chart']?.['categories']}
-                                                                                    onClickEvent={() => {}}
+                                                                                    series = {JSON.stringify(storageUsage['chart']?.['series'])}
+                                                                                    labels = {JSON.stringify(storageUsage['chart']?.['categories'])}
                                                                                 />                                                                               
                                                                                                                     
                                                                             </div>                                                                                                                                       
