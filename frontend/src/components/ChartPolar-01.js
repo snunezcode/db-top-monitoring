@@ -1,7 +1,7 @@
 import {memo} from 'react';
 import Chart from 'react-apexcharts';
 
-const ChartComponent = memo(({ series, labels, title, height="350px", width="100%", onClickEvent }) => {
+const ChartComponent = memo(({ series, labels, title="", height="350px", width="100%", onClickEvent }) => {
       
             function onClickChart(object){
                 onClickEvent(object);
@@ -21,8 +21,23 @@ const ChartComponent = memo(({ series, labels, title, height="350px", width="100
       
                 },
               },
+              title: {
+                text : title,
+                align: "right",
+                show: false,
+                style: {
+                  fontSize:  '14px',
+                  fontWeight:  'bold',
+                  fontFamily:  "Lato",
+                  color : "#2ea597"
+                }
+                
+              },
               theme: {
-                palette : "palette2"
+                palette : "palette2",
+                monochrome: {
+                  enabled: true
+                }
               },
               labels: labels,
               stroke: {
@@ -40,16 +55,13 @@ const ChartComponent = memo(({ series, labels, title, height="350px", width="100
               responsive: [{
                 breakpoint: 480,
                 options: {
-                  chart: {
-                    width: 200
-                  },
                   legend: {
                     position: 'bottom'
                   }
                 }
               }],
               yaxis: {
-                 tickAmount: 5,
+                 tickAmount: 3,
                  axisTicks: {
                       show: true,
                  },
