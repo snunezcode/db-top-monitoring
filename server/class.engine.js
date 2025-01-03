@@ -5264,12 +5264,12 @@ class classAuroraLimitlessPostgresqlEngine {
 
                 var shardStorage = 0;
                 var routerStorage = 0;
+                var totalStorage = 0;
 
                 if (object.type != "database"){      
                     
                     //-- Execute storage query     
-                    var dataset = (await this.#connection.query(this.#sql_storage_global_usage)).rows; 
-                    
+                    var dataset = (await this.#connection.query(this.#sql_storage_global_usage)).rows;                  
                     
                     dataset.forEach(item => {                             
                                             
@@ -5278,7 +5278,8 @@ class classAuroraLimitlessPostgresqlEngine {
                             if (object.type == item['subcluster_type'] || object.type == "ALL"){                            
                                 result.chart.categories.push(this.#shards[item['subcluster_id']].name);
                                 result.chart.series.push(item['db_size']);
-                                result.table.push({ name : this.#shards[item['subcluster_id']].name, type : item['subcluster_type'], size : item['db_size'] });
+                                result.table.push({ name : this.#shards[item['subcluster_id']].name, type : item['subcluster_type'], size : item['db_size'], pct :0 });
+                                totalStorage = totalStorage + parseFloat(item['db_size']);
                             }   
                             
                             if (item['subcluster_type']=='shard')
@@ -5290,18 +5291,25 @@ class classAuroraLimitlessPostgresqlEngine {
                         }              
                     });
 
+                    for (let index=0; index < result.table.length; index++){
+                        result.table[index]['pct'] =  Math.trunc((parseFloat(result.table[index]['size'])/totalStorage)*100);
+                    }
+
                     
 
                 }
                 else{
                     
                     //-- Execute storage query     
-                    var dataset = (await this.#connection.query(this.#sql_storage_db_usage)).rows;                                        
+                    var dataset = (await this.#connection.query(this.#sql_storage_db_usage)).rows;                    
+                    
+                    totalStorage = dataset.reduce((n, {db_size}) => n + parseFloat(db_size), 0);
+
                     dataset.forEach(item => {                                                                         
                         
                                 result.chart.categories.push(item['datname']);
                                 result.chart.series.push(item['db_size']);
-                                result.table.push({ name : item['datname'], type : 'database', size : item['db_size'] });                           
+                                result.table.push({ name : item['datname'], type : 'database', size : item['db_size'], pct : Math.trunc((parseFloat(item['db_size'])/totalStorage)*100) });                           
                             
                     });
 
@@ -5313,7 +5321,7 @@ class classAuroraLimitlessPostgresqlEngine {
                         if (item['subcluster_type']=='shard')
                                 shardStorage = shardStorage + parseFloat(item['db_size']);
 
-                            if (item['subcluster_type']=='router')
+                        if (item['subcluster_type']=='router')
                                 routerStorage = routerStorage + parseFloat(item['db_size']);                           
                        
                     });

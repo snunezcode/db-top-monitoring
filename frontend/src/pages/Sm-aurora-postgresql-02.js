@@ -7,6 +7,8 @@ import AppLayout from "@cloudscape-design/components/app-layout";
 import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import { SplitPanel } from '@cloudscape-design/components';
+import ProgressBar from "@cloudscape-design/components/progress-bar";
+
 
 import Icon from "@cloudscape-design/components/icon";
 import FormField from "@cloudscape-design/components/form-field";
@@ -349,9 +351,16 @@ function App() {
         {id: 'name',header: 'Identifier',cell: item => item['name'],ariaLabel: createLabelFunction('name'),sortingField: 'name',},
         {id: 'type',header: 'Type',cell: item => item['type'],ariaLabel: createLabelFunction('type'),sortingField: 'type',},
         {id: 'size',header: 'Size',cell: item => customFormatNumber(parseFloat(item['size']) || 0 ,0) ,ariaLabel: createLabelFunction('size'),sortingField: 'size',},        
+        {id: 'pct',header: '(%)',cell: item => ( <div style={{"text-align" : "center"}}>                                                                                      
+            <ProgressBar
+                value={item['pct']}                
+            />
+            </div> )  ,ariaLabel: createLabelFunction('pct'),sortingField: 'pct',},
     ];
 
-    const visibleContentStorageTable = ['name', 'type', 'size'];
+    
+
+    const visibleContentStorageTable = ['name', 'type', 'size', 'pct'];
    
 
 
@@ -561,7 +570,8 @@ function App() {
                                     engineType : cnf_engine,                   
                                     type : optionTypeStorage.current,
                           }
-                      }).then((data)=>{                                                   
+                      }).then((data)=>{                           
+                        console.log(data.data);                        
                         setStorageUsage({... data.data });        
                   })
                   .catch((err) => {
@@ -1849,7 +1859,16 @@ function App() {
                                         content:                                          
                                               <div style={{"padding": "1em"}}>
                                                     <div style={{"padding": "1em"}}>
-                                                        <Container>
+                                                        <Container
+                                                            header={
+                                                                    <Header
+                                                                    variant="h2"                      
+                                                                    >
+                                                                    Storage summary
+                                                                    </Header>
+                                                          }
+                                                        >
+                                                            <br/>
                                                             <table style={{"width":"100%"}}>
                                                                 <tr>                                                                     
                                                                    <td style={{ "width":"15%","padding-left": "2em", "border-left": "4px solid " + configuration.colors.lines.separator100 }}>
@@ -1859,7 +1878,7 @@ function App() {
                                                                             precision={2}
                                                                             format={2}
                                                                             fontColorValue={configuration.colors.fonts.metric100}
-                                                                            fontSizeValue={"30px"}
+                                                                            fontSizeValue={"28px"}
                                                                             fontSizeTitle={"12px"}
                                                                         />
                                                                     </td>
@@ -1870,7 +1889,7 @@ function App() {
                                                                             precision={2}
                                                                             format={2}
                                                                             fontColorValue={configuration.colors.fonts.metric100}
-                                                                            fontSizeValue={"30px"}
+                                                                            fontSizeValue={"28px"}
                                                                             fontSizeTitle={"12px"}
                                                                         />
                                                                     </td>
@@ -1881,7 +1900,7 @@ function App() {
                                                                             precision={2}
                                                                             format={2}
                                                                             fontColorValue={configuration.colors.fonts.metric100}
-                                                                            fontSizeValue={"30px"}
+                                                                            fontSizeValue={"28px"}
                                                                             fontSizeTitle={"12px"}
                                                                         />
                                                                     </td>
@@ -1894,11 +1913,20 @@ function App() {
                                                         </Container>
 
                                                         <br/>
-                                                        <Container>
+                                                        <Container                                                        
+                                                            header={
+                                                                <Header
+                                                                variant="h2"                      
+                                                                >
+                                                                Storage analysis ({selectedOptionTypeStorage['label'] })
+                                                                </Header>
+                                                            }
+
+                                                        >
 
                                                             <table style={{"width":"100%", "padding": "0em"}}>
                                                                 <tr>                                                      
-                                                                    <td valign="top" style={{ "width":"50%","text-align": "center", "padding": "1em" }}>
+                                                                    <td valign="top" style={{ "width":"50%","text-align": "left", "padding": "1em" }}>
                                                                             <FormField
                                                                             description="Resource type for storage analysis."
                                                                             label="Resource type"
@@ -1920,31 +1948,34 @@ function App() {
                                                                                 />
                                                                             
                                                                             </FormField>
-                                                                            <div style={{ "text-align": "center" }}>
-                                                                            
-                                                                                <ChartPolar02                                                                                     
-                                                                                    height="350px" 
-                                                                                    width="100%" 
-                                                                                    series = {JSON.stringify(storageUsage['chart']?.['series'])}
-                                                                                    labels = {JSON.stringify(storageUsage['chart']?.['categories'])}
-                                                                                />                                                                               
-                                                                                                                    
-                                                                            </div>                                                                                                                                       
+                                                                            <br/>
+                                                                            <br/>
+                                                                            <CustomTable02
+                                                                                columnsTable={columnsStorageTable}
+                                                                                visibleContent={visibleContentStorageTable}
+                                                                                dataset={storageUsage['table']}
+                                                                                title={"Resources"}
+                                                                                description={""}
+                                                                                pageSize={10}
+                                                                                extendedTableProperties = {
+                                                                                    { variant : "borderless" }
+                                                                                    
+                                                                                }
+                                                                            />                                                                            
                                                                         
                                                                     </td>
-                                                                    <td valign="top" style={{ "width":"50%","text-align": "center", "padding-left": "3em" }}>                                                                                                                                                        
-                                                                        <CustomTable02
-                                                                            columnsTable={columnsStorageTable}
-                                                                            visibleContent={visibleContentStorageTable}
-                                                                            dataset={storageUsage['table']}
-                                                                            title={"Resources"}
-                                                                            description={""}
-                                                                            pageSize={10}
-                                                                            extendedTableProperties = {
-                                                                                { variant : "borderless" }
-                                                                                
-                                                                            }
-                                                                        />
+                                                                    <td valign="top" style={{ "width":"50%","text-align": "left", "padding-left": "5em" }}>                                                                                                                                                        
+                                                                        <Box variant="h3">Storage distribution</Box>
+                                                                        <br/> 
+                                                                        <div style={{ "text-align": "center" }}>                                                                            
+                                                                            <ChartPolar02                                                                                     
+                                                                                height="400px" 
+                                                                                width="100%" 
+                                                                                series = {JSON.stringify(storageUsage['chart']?.['series'])}
+                                                                                labels = {JSON.stringify(storageUsage['chart']?.['categories'])}
+                                                                            />                                                                               
+                                                                                                                
+                                                                        </div>                                                                                                                                                                                                               
                                                                     </td>
                                                                 </tr>
                                                             </table>                                                          
