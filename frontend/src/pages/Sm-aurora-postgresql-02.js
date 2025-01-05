@@ -324,6 +324,15 @@ function App() {
     //-- Table Routers globally    
     const columnsTableRoutersGlobal =  [
         {id: 'name',header: 'Name',cell: item => item['name']  ,ariaLabel: createLabelFunction('name'),sortingField: 'name',},
+        {id: 'numbackends',header: 'Users',cell: item => ( <div style={{"text-align" : "center"}}>                                                                                      
+            <Box variant="h3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                </svg>
+                &nbsp;
+                {customFormatNumberInteger(parseFloat(item['numbackends']))}                 
+            </Box>
+            </div> )  ,ariaLabel: createLabelFunction('numbackends'),sortingField: 'numbackends',},
         {id: 'commitThroughput',header: 'CommitThroughput',cell: item => ( <div style={{"text-align" : "center"}}> 
                                                                                 
             <Box variant="h2">{customFormatNumberInteger(parseFloat(item['xactCommit']))}</Box>
@@ -339,21 +348,30 @@ function App() {
                     &nbsp;
                     {customFormatNumberInteger(parseFloat(item['vcpu']))}                 
                 </Box>
-            </div> )  ,ariaLabel: createLabelFunction('vcpu'),sortingField: 'vcpu',},        
-        {id: 'numbackends',header: 'Users',cell: item => ( <div style={{"text-align" : "center"}}>                                                                                      
+            </div> )  ,ariaLabel: createLabelFunction('vcpu'),sortingField: 'vcpu',},                
+        {id: 'numbackendsActive',header: 'ActiveSessions',cell: item => customFormatNumberInteger(parseFloat(item['numbackendsActive'])) ,ariaLabel: createLabelFunction('numbackendsActive'),sortingField: 'numbackendsActive',},
+        {id: 'totalIOPS',header: 'IOPS',cell: item => ( <div style={{"text-align" : "center"}}>                                                                                      
             <Box variant="h3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hdd-stack" viewBox="0 0 16 16">
+                    <path d="M14 10a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-1a1 1 0 0 1 1-1zM2 9a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1a2 2 0 0 0-2-2z"/>
+                    <path d="M5 11.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m-2 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0M14 3a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM2 2a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/>
+                    <path d="M5 4.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m-2 0a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+                </svg>                  
+                &nbsp;
+                {customFormatNumberInteger(parseFloat(item['totalIOPS']))}                 
+            </Box>
+        </div> )  ,ariaLabel: createLabelFunction('totalIOPS'),sortingField: 'totalIOPS',},         
+        {id: 'totalNetworkBytes',header: 'Network',cell: item => ( <div style={{"text-align" : "center"}}>                                                                                      
+            <Box variant="h3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hdd-network" viewBox="0 0 16 16">
+                    <path d="M4.5 5a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1M3 4.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H8.5v3a1.5 1.5 0 0 1 1.5 1.5h5.5a.5.5 0 0 1 0 1H10A1.5 1.5 0 0 1 8.5 14h-1A1.5 1.5 0 0 1 6 12.5H.5a.5.5 0 0 1 0-1H6A1.5 1.5 0 0 1 7.5 10V7H2a2 2 0 0 1-2-2zm1 0v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1m6 7.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5"/>
                 </svg>
                 &nbsp;
-                {customFormatNumberInteger(parseFloat(item['numbackends']))}                 
+                {customFormatNumber(parseFloat(item['totalNetworkBytes']))}                 
             </Box>
-            </div> )  ,ariaLabel: createLabelFunction('numbackends'),sortingField: 'numbackends',},
-
-        {id: 'numbackendsActive',header: 'ActiveSessions',cell: item => customFormatNumberInteger(parseFloat(item['numbackendsActive'])) ,ariaLabel: createLabelFunction('numbackendsActive'),sortingField: 'numbackendsActive',},
-        {id: 'totalIOPS',header: 'IOPS',cell: item => customFormatNumberInteger(parseFloat(item['totalIOPS'])) ,ariaLabel: createLabelFunction('totalIOPS'),sortingField: 'totalIOPS',},
-        {id: 'totalIOBytes',header: 'IOBytes',cell: item => customFormatNumber(parseFloat(item['totalIOBytes']),0) ,ariaLabel: createLabelFunction('totalIOBytes'),sortingField: 'totalIOBytes',},
-        {id: 'totalNetworkBytes',header: 'NetworkBytes',cell: item => customFormatNumber(parseFloat(item['totalNetworkBytes']),0) ,ariaLabel: createLabelFunction('totalNetworkBytes'),sortingField: 'totalNetworkBytes',},
+        </div> )  ,ariaLabel: createLabelFunction('totalNetworkBytes'),sortingField: 'totalNetworkBytes',},         
+        {id: 'totalIOBytes',header: 'IOBytes',cell: item => customFormatNumber(parseFloat(item['totalIOBytes']),0) ,ariaLabel: createLabelFunction('totalIOBytes'),sortingField: 'totalIOBytes',},                
         {id: 'tuples',header: 'Tuples',cell: item => customFormatNumberInteger(parseFloat(item['tuples'])) ,ariaLabel: createLabelFunction('tuples'),sortingField: 'tuples',},
         {id: 'tuplesRead',header: 'TuplesRead',cell: item => customFormatNumberInteger(parseFloat(item['tuplesRead'])) ,ariaLabel: createLabelFunction('tuplesRead'),sortingField: 'tuplesRead',},
         {id: 'tuplesWritten',header: 'TuplesWritten',cell: item => customFormatNumberInteger(parseFloat(item['tuplesWritten'])) ,ariaLabel: createLabelFunction('tuplesWritten'),sortingField: 'tuplesWritten',},
@@ -1767,25 +1785,18 @@ function App() {
                                                        
                                                         <br/>
                                                         <Container>
-                                                            <table style={{"width":"100%"}}>
-                                                                <tr>                                                                      
-                                                                    <td valign="top" style={{ "width":"100%", "padding": "1em"}}>   
-                                                                        <CustomTable02
-                                                                            columnsTable={columnsTable}
-                                                                            visibleContent={visibleContent}
-                                                                            dataset={shardMetrics['tableMetrics']}
-                                                                            title={"Routers/Shards"}
-                                                                            description={""}
-                                                                            pageSize={10}
-                                                                            extendedTableProperties = {
-                                                                                { variant : "borderless" }
-                                                                                
-                                                                            }
-                                                                        />             
-                                                                                                                              
-                                                                    </td>                                                                    
-                                                                </tr>
-                                                            </table>
+                                                            <CustomTable02
+                                                                columnsTable={columnsTable}
+                                                                visibleContent={visibleContent}
+                                                                dataset={shardMetrics['tableMetrics']}
+                                                                title={"Routers/Shards"}
+                                                                description={""}
+                                                                pageSize={10}
+                                                                extendedTableProperties = {
+                                                                    { variant : "borderless" }
+                                                                    
+                                                                }
+                                                            />                                                                     
                                                         </Container>                                                 
                                                                                                      
                                               </div> 
