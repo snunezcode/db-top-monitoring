@@ -166,7 +166,8 @@ function App() {
                                             
                                 },
                 });
-                
+    
+    const currentNode = useRef({ nodeId : 0, nodeType : 'routers' } );
     const metricCurrent = useRef({ nodeId : '', metricId : '', metricDescription : '', format : 3 } );
     const [clusterStatsDetails,setClusterStatsDetails] = useState({ value : 0, history : []});
     const [shardCloudwatchMetric,setShardCloudwatchMetric] = useState({ 
@@ -220,39 +221,54 @@ function App() {
 
     const cloudwatchMetrics = [
       {
+            label: "Cluster",
+            options: [
+                      { type : "3", label : "VolumeReadIops", value : "VolumeReadIops", descriptions : "The number of billed read I/O operations from a cluster volume, reported at 5-minute intervals.", unit : "Count", format : 3 },
+                      { type : "3", label : "VolumeWriteIops", value : "VolumeWriteIops", descriptions : "The number of write disk I/O operations to the cluster volume, reported at 5-minute intervals.", unit : "Count", format : 3 },
+                      { type : "3", label : "VolumeBytesUsed", value : "VolumeBytesUsed", descriptions : "The amount of storage used by your Aurora PostgreSQL Limitless Database cluster, reported at 5-minute intervals.", unit : "Count", format : 2 },                  
+            ]
+      },
+      {
         label: "DBShard Group Instance",
         options: [
-                  { type : "1", label : "BufferCacheHitRatio", value : "BufferCacheHitRatio", descriptions : "The percentage of data and indexes served from an instance’s memory cache (as opposed to the storage volume).", unit : "Percentage" },
-                  { type : "1", label : "CommitLatency", value : "CommitLatency", descriptions : "The average duration for the engine and storage to complete the commit operations for a particular node (router or shard).", unit : "ms" },
-                  { type : "1", label : "CommitThroughput", value : "CommitThroughput", descriptions : "The average number of commit operations per second.", unit : "Count/sec" },                  
-                  { type : "1", label : "DBLoad", value : "DBLoad", descriptions : "The number of active sessions for the database.", unit : "Count" },
-                  { type : "1", label : "DBLoadCPU", value : "DBLoadCPU", descriptions : "The number of active sessions where the wait event type is CPU.", unit : "Count" },
-                  { type : "1", label : "DBLoadNonCPU", value : "DBLoadNonCPU", descriptions : "The number of active sessions where the wait event type is not CPU.", unit : "Count" },
-                  { type : "1", label : "DBLoadRelativeToNumVCPUs", value : "DBLoadRelativeToNumVCPUs", descriptions : "The ratio of the DB load to the number of virtual CPUs for the database.", unit : "Count" },                  
-                  { type : "1", label : "MaximumUsedTransactionIDs", value : "MaximumUsedTransactionIDs", descriptions : "The age of the oldest unvacuumed transaction ID, in transactions. If this value reaches 2,146,483,648 (2^31 - 1,000,000), the database is forced into read-only mode, to avoid transaction ID wraparound.", unit : "Count" },
-                  { type : "1", label : "NetworkReceiveThroughput", value : "NetworkReceiveThroughput", descriptions : "The amount of network throughput received from clients by each instance in the DB shard group. This throughput doesn't include network traffic between instances in the DB shard group and the cluster volume", unit : "Bytes/sec" },
-                  { type : "1", label : "NetworkThroughput", value : "NetworkThroughput", descriptions : "The aggregated network throughput (both transmitted and received) between clients and routers, and routers and shards in the DB shard group. This throughput doesn't include network traffic between instances in the DB shard group and the cluster volume.", unit : "Bytes/sec" },
-                  { type : "1", label : "NetworkTransmitThroughput", value : "NetworkTransmitThroughput", descriptions : "The amount of network throughput sent to clients by each instance in the DB shard group. This throughput doesn't include network traffic between instances in the DB shard group and the cluster volume.", unit : "COUNT" },
-                  { type : "1", label : "ReadIOPS", value : "ReadIOPS", descriptions : " The average number of disk read input/output operations per second (IOPS).", unit : "Count/sec" },
-                  { type : "1", label : "ReadLatency", value : "ReadLatency", descriptions : " The average amount time taken per disk read input/output (I/O) operation.", unit : "ms" },
-                  { type : "1", label : "ReadThroughput", value : "ReadThroughput", descriptions : "The average number of bytes read from disk per second.", unit : "Bytes/sec" },
-                  { type : "1", label : "StorageNetworkReceiveThroughput", value : "StorageNetworkReceiveThroughput", descriptions : "The amount of network throughput received from the Aurora storage subsystem by each instance in the DB shard group.", unit : "Bytes/sec" },
-                  { type : "1", label : "StorageNetworkThroughput", value : "StorageNetworkThroughput", descriptions : "The aggregated network throughput both transmitted to and received from the Aurora storage subsystem by each instance in the DB shard group.", unit : "Bytes/sec" },
-                  { type : "1", label : "StorageNetworkTransmitThroughput", value : "StorageNetworkTransmitThroughput", descriptions : "The amount of network throughput sent to the Aurora storage subsystem by each instance in the DB shard group.", unit : "Bytes/sec" },
-                  { type : "1", label : "TempStorageIOPS", value : "TempStorageIOPS", descriptions : "The average number of I/O operations performed on local storage attached to the DB instance. It includes both read and write I/O operations.", unit : "Count/sec" },
-                  { type : "1", label : "TempStorageThroughput", value : "TempStorageThroughput", descriptions : "The amount of data transferred to and from local storage associated with either a router or a shard.", unit : "Bytes/sec" },
-                  { type : "1", label : "WriteIOPS", value : "WriteIOPS", descriptions : "The average number of disk write IOPS.", unit : "Count/sec" },
-                  { type : "1", label : "WriteLatency", value : "WriteLatency", descriptions : " The average amount time taken per disk write I/O operation.", unit : "ms" },
-                  { type : "1", label : "WriteThroughput", value : "WriteThroughput", descriptions : "The average number of bytes written to disk per second.", unit : "Bytes/sec" },                  
+                  { type : "1", label : "BufferCacheHitRatio", value : "BufferCacheHitRatio", descriptions : "The percentage of data and indexes served from an instance’s memory cache (as opposed to the storage volume).", unit : "Percentage", format : 3 },
+                  { type : "1", label : "CommitLatency", value : "CommitLatency", descriptions : "The average duration for the engine and storage to complete the commit operations for a particular node (router or shard).", unit : "ms", format : 3 },
+                  { type : "1", label : "CommitThroughput", value : "CommitThroughput", descriptions : "The average number of commit operations per second.", unit : "Count/sec", format : 3 },                  
+                  { type : "1", label : "DBLoad", value : "DBLoad", descriptions : "The number of active sessions for the database.", unit : "Count", format : 3  },
+                  { type : "1", label : "DBLoadCPU", value : "DBLoadCPU", descriptions : "The number of active sessions where the wait event type is CPU.", unit : "Count", format : 3 },
+                  { type : "1", label : "DBLoadNonCPU", value : "DBLoadNonCPU", descriptions : "The number of active sessions where the wait event type is not CPU.", unit : "Count", format : 3 },
+                  { type : "1", label : "DBLoadRelativeToNumVCPUs", value : "DBLoadRelativeToNumVCPUs", descriptions : "The ratio of the DB load to the number of virtual CPUs for the database.", unit : "Count", format : 3 },                  
+                  { type : "1", label : "MaximumUsedTransactionIDs", value : "MaximumUsedTransactionIDs", descriptions : "The age of the oldest unvacuumed transaction ID, in transactions. If this value reaches 2,146,483,648 (2^31 - 1,000,000), the database is forced into read-only mode, to avoid transaction ID wraparound.", unit : "Count", format : 3 },
+                  { type : "1", label : "NetworkReceiveThroughput", value : "NetworkReceiveThroughput", descriptions : "The amount of network throughput received from clients by each instance in the DB shard group. This throughput doesn't include network traffic between instances in the DB shard group and the cluster volume", unit : "Bytes/sec", format : 2 },
+                  { type : "1", label : "NetworkThroughput", value : "NetworkThroughput", descriptions : "The aggregated network throughput (both transmitted and received) between clients and routers, and routers and shards in the DB shard group. This throughput doesn't include network traffic between instances in the DB shard group and the cluster volume.", unit : "Bytes/sec", format : 2 },
+                  { type : "1", label : "NetworkTransmitThroughput", value : "NetworkTransmitThroughput", descriptions : "The amount of network throughput sent to clients by each instance in the DB shard group. This throughput doesn't include network traffic between instances in the DB shard group and the cluster volume.", unit : "Count", format : 2 },
+                  { type : "1", label : "ReadIOPS", value : "ReadIOPS", descriptions : " The average number of disk read input/output operations per second (IOPS).", unit : "Count/sec", format : 3 },
+                  { type : "1", label : "ReadLatency", value : "ReadLatency", descriptions : " The average amount time taken per disk read input/output (I/O) operation.", unit : "ms", format : 3 },
+                  { type : "1", label : "ReadThroughput", value : "ReadThroughput", descriptions : "The average number of bytes read from disk per second.", unit : "Bytes/sec", format : 2 },
+                  { type : "1", label : "StorageNetworkReceiveThroughput", value : "StorageNetworkReceiveThroughput", descriptions : "The amount of network throughput received from the Aurora storage subsystem by each instance in the DB shard group.", unit : "Bytes/sec", format : 2 },
+                  { type : "1", label : "StorageNetworkThroughput", value : "StorageNetworkThroughput", descriptions : "The aggregated network throughput both transmitted to and received from the Aurora storage subsystem by each instance in the DB shard group.", unit : "Bytes/sec", format : 2 },
+                  { type : "1", label : "StorageNetworkTransmitThroughput", value : "StorageNetworkTransmitThroughput", descriptions : "The amount of network throughput sent to the Aurora storage subsystem by each instance in the DB shard group.", unit : "Bytes/sec", format : 2 },
+                  { type : "1", label : "TempStorageIOPS", value : "TempStorageIOPS", descriptions : "The average number of I/O operations performed on local storage attached to the DB instance. It includes both read and write I/O operations.", unit : "Count/sec", format : 3 },
+                  { type : "1", label : "TempStorageThroughput", value : "TempStorageThroughput", descriptions : "The amount of data transferred to and from local storage associated with either a router or a shard.", unit : "Bytes/sec", format : 2 },
+                  { type : "1", label : "WriteIOPS", value : "WriteIOPS", descriptions : "The average number of disk write IOPS.", unit : "Count/sec", format : 3 },
+                  { type : "1", label : "WriteLatency", value : "WriteLatency", descriptions : " The average amount time taken per disk write I/O operation.", unit : "ms", format : 3 },
+                  { type : "1", label : "WriteThroughput", value : "WriteThroughput", descriptions : "The average number of bytes written to disk per second.", unit : "Bytes/sec", format : 2 },                  
         ]
       },
       {
         label: "DBShard Group",
         options: [
-                  { type : "2", label : "DBShardGroupACUUtilization", value : "DBShardGroupACUUtilization", descriptions : "Aurora capacity unit (ACU) usage as a percentage calculated from DBShardGroupCapacity divided by DBShardGroupMaxACU.", unit : "Percentage" },
-                  { type : "2", label : "DBShardGroupCapacity", value : "DBShardGroupCapacity", descriptions : "Number of ACUs consumed by the DB shard group.The average duration for the engine and storage to complete the commit operations for a particular node (router or shard).", unit : "Count" },
-                  { type : "2", label : "DBShardGroupMaxACU", value : "DBShardGroupMaxACU", descriptions : "Maximum number of ACUs configured for the DB shard group.", unit : "Count" },
-                  { type : "2", label : "DBShardGroupMinACU", value : "DBShardGroupMinACU", descriptions : "Minimum number of ACUs required by the DB shard group.", unit : "Count" },
+                  { type : "2", label : "DBShardGroupACUUtilization", value : "DBShardGroupACUUtilization", descriptions : "Aurora capacity unit (ACU) usage as a percentage calculated from DBShardGroupCapacity divided by DBShardGroupMaxACU.", unit : "Percentage", format : 3 },
+                  { type : "2", label : "DBShardGroupCapacity", value : "DBShardGroupCapacity", descriptions : "Number of ACUs consumed by the DB shard group.The average duration for the engine and storage to complete the commit operations for a particular node (router or shard).", unit : "Count", format : 3 },
+                  { type : "2", label : "DBShardGroupMaxACU", value : "DBShardGroupMaxACU", descriptions : "Maximum number of ACUs configured for the DB shard group.", unit : "Count", format : 3 },
+                  { type : "2", label : "DBShardGroupMinACU", value : "DBShardGroupMinACU", descriptions : "Minimum number of ACUs required by the DB shard group.", unit : "Count", format : 3 },
+        ]
+      },      
+      {
+        label: "DBShard Group Router",
+        options: [
+                  { type : "4", label : "CommitThroughput", value : "CommitThroughput", descriptions : "The average number of commit operations per second across all of the router nodes in the DB shard group.", unit : "Count", format : 3 },
+                  { type : "4", label : "DatabaseConnections", value : "DatabaseConnections", descriptions : "The sum of all connections across all of the router nodes in the DB shard group.", unit : "Count", format : 3 },                  
         ]
       }
     ];
@@ -261,7 +277,7 @@ function App() {
                                                       label: "CommitThroughput",
                                                       value: "CommitThroughput"
     });
-    const cloudwatchMetric = useRef({ type : "1", name : "CommitThroughput", descriptions : "The average number of commit operations per second.", unit : "Count/sec" });
+    const cloudwatchMetric = useRef({ type : "1", name : "CommitThroughput", descriptions : "The average number of commit operations per second.", unit : "Count/sec", format : 2 });
     var metricName = useRef("");
 
 
@@ -357,11 +373,28 @@ function App() {
             />
             </div> )  ,ariaLabel: createLabelFunction('pct'),sortingField: 'pct',},
     ];
-
     
-
     const visibleContentStorageTable = ['name', 'type', 'size', 'pct'];
    
+
+    //-- Table Proccesses
+
+    const columnsTableEm = [
+        {id: 'id',header: 'PID',cell: item => item['id'],ariaLabel: createLabelFunction('id'),sortingField: 'id',},
+        {id: 'parentID',header: 'ParentPID',cell: item => item['parentID'] || "-",ariaLabel: createLabelFunction('parentID'),sortingField: 'parentID',},
+        {id: 'name',header: 'Name',cell: item => item['name'],ariaLabel: createLabelFunction('name'),sortingField: 'name',},
+        {id: 'cpuUsedPc',header: 'CPU',cell: item => item['cpuUsedPc'] || "-",ariaLabel: createLabelFunction('cpuUsedPc'),sortingField: 'cpuUsedPc',},
+        {id: 'memoryUsedPc',header: 'Memory',cell: item => item['memoryUsedPc'],ariaLabel: createLabelFunction('memoryUsedPc'),sortingField: 'memoryUsedPc',},
+        {id: 'rss',header: 'RSS',cell: item => item['rss'],ariaLabel: createLabelFunction('rss'),sortingField: 'rss',},
+        {id: 'vmlimit',header: 'VMLimit',cell: item => item['vmlimit'],ariaLabel: createLabelFunction('vmlimit'),sortingField: 'vmlimit',},
+        {id: 'vss',header: 'VSS',cell: item => item['vss'],ariaLabel: createLabelFunction('vss'),sortingField: 'vss',},
+        {id: 'tgid',header: 'TGID',cell: item => item['tgid'],ariaLabel: createLabelFunction('tgid'),sortingField: 'tgid',}
+    ];
+
+    const visibleContentEm = ['id', 'parentID', 'name', 'cpuUsedPc', 'memoryUsedPc', 'rss', 'vmlimit', 'vss', 'tgid' ];
+    
+
+
 
 
     //-- Function open connection
@@ -424,7 +457,8 @@ function App() {
                           }).then((data)=>{
                            
                            var info = data.data.cluster;
-                           localClusterStats = { cluster : {...info} };                               
+                           localClusterStats = { cluster : {...info} };           
+                           console.log(localClusterStats);                    
                              
                       })
                       .catch((err) => {
@@ -438,8 +472,8 @@ function App() {
         //-- API - 02 - Gather stats details
         var localClusterStatsDetails = {};
         if ( currentTabId.current == "tab01" && splitPanelIsShow.current === true ) {
-      
-              
+            
+            /*              
             var api_url = configuration["apps-settings"]["api_url"];
             
             await Axios.get(`${api_url}/api/aurora/cluster/postgresql/limitless/gather/stats/details`,{
@@ -456,6 +490,7 @@ function App() {
                       console.log(err);
                       
                   });
+            */
           
       }
 
@@ -701,31 +736,142 @@ function App() {
                                             {metricName.current}
                                         </Header>                                                                    
                                     }                                    
+                                    { splitPanelIsShow.current === true && currentTabId.current == "tab01" &&
+                                        <Header variant="h3">
+                                            {(currentNode.current['type'] == "routers" ? "Router : " : "Shard : ") }                                            
+                                            {clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['name']}
+                                        </Header>                                                                    
+                                    }     
                                 </div>
                             
                         }
                   >
-                        { splitPanelIsShow.current === true && currentTabId.current == "tab01" &&
-                          <table style={{"width":"100%"}}>
-                              <tr>
-                                  <td valign="middle" style={{"width": "20%",  "padding-right": "2em" }}>                                                         
-                                      <CompMetric01 
-                                          value={clusterStatsDetails['value'] || 0}
-                                          title={metricCurrent.current['metricDescription']}
-                                          precision={0}
-                                          format={metricCurrent.current['format']}
-                                          fontColorValue={configuration.colors.fonts.metric100}
-                                          fontSizeValue={"36px"}
-                                      />                                                                            
-                                  </td> 
-                                  <td valign="middle" style={{"width": "80%",  "padding-right": "2em" }}>                                                         
-                                        <ChartLine02 series={JSON.stringify(clusterStatsDetails['history'])} 
-                                            title={metricCurrent.current['metricDescription']}
-                                            height="230px" 
-                                        />                                                                            
-                                  </td> 
-                              </tr>
-                          </table>                    
+                        { splitPanelIsShow.current === true && currentTabId.current == "tab01" &&                         
+
+                            <div>
+                                    <Container
+                                        header={
+                                            <Header
+                                            variant="h3"                      
+                                            >
+                                            Performance
+                                            </Header>
+                                        }
+                                    >
+                                        <table style={{"width":"100%"}}>                                                               
+                                            <tr>                                                                    
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['vcpu'] || 0 }
+                                                        title={"vCPUs"}
+                                                        precision={2}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>    
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['xactCommit'] || 0 }
+                                                        title={"CommitThroughput"}
+                                                        precision={2}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>                                                
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['tuplesRead'] || 0 }
+                                                        title={"TuplesRead"}
+                                                        precision={2}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['tuplesWritten'] || 0 }
+                                                        title={"TuplesWritten"}
+                                                        precision={2}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['numbackends'] || 0 }
+                                                        title={"TotalSessions"}
+                                                        precision={2}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>                                               
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['numbackendsActive'] || 0 }
+                                                        title={"ActiveSessions"}
+                                                        precision={2}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['totalIOPS'] || 0 }
+                                                        title={"IOPS"}
+                                                        precision={2}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['totalNetworkBytes'] || 0 }
+                                                        title={"NetworkThroughput"}
+                                                        precision={2}
+                                                        format={2}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>
+                                                <td valign="middle" style={{ "width":"11%", "padding": "1em"}}>                                          
+                                                    <CompMetric01 
+                                                        value={ clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['totalIOBytes'] || 0 }
+                                                        title={"I/O Throughput"}
+                                                        precision={2}
+                                                        format={2}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"18px"}
+                                                        fontSizeTitle={"12px"}
+                                                    />                                                                                                              
+                                                </td>                                                
+                                            </tr>
+                                        </table>
+                                    </Container>
+                                    <br/>
+                                    <CustomTable02                                            
+                                        columnsTable={columnsTableEm}
+                                        visibleContent={visibleContentEm}
+                                        dataset={clusterStats['cluster'][currentNode.current['type']][currentNode.current['nodeId']]?.['processList']}
+                                        title={"Processes"}                                                                                 
+                                    />  
+                                    <br/>
+                            </div>                                  
+                       
                         }
 
                         { splitPanelIsShow.current === true && currentTabId.current == "tab02" &&
@@ -897,11 +1043,12 @@ function App() {
                                                                             </Header>
                                                                         }
                                                               > 
+                                                                <Box variant="h3">Commit Throughput</Box>
                                                                 <table style={{"width":"100%"}}>
                                                                     <tr>
                                                                         <td valign="middle" colspan="2" style={{"width": "100%",  "padding-right": "2em", "padding-left": "2em", "text-align" : "center" }}> 
                                                                             <ChartPolar02 
-                                                                                    title={"CommitThroughput(Count/sec)"} 
+                                                                                    title={""} 
                                                                                     height="550px" 
                                                                                     width="100%" 
                                                                                     series = {JSON.stringify(clusterStats['cluster']?.['chartSummary']?.['data'])}
@@ -1096,7 +1243,16 @@ function App() {
                                                                                         dataset={clusterStats['cluster']['routers']}
                                                                                         title={"Distributed transaction routers"}
                                                                                         description={""}
-                                                                                        pageSize={5}                                                                            
+                                                                                        pageSize={5}       
+                                                                                        onSelectionItem={( item ) => {   
+                                                                                            console.log(item);         
+                                                                                            currentNode.current['nodeId'] =  item[0]['indexId'];
+                                                                                            currentNode.current['type'] =  'routers';                                                                                          
+                                                                                            splitPanelIsShow.current = true;                                       
+                                                                                            setsplitPanelShow(true);
+                                                                                            
+                                                                                          }
+                                                                                        }                                                                     
                                                                                 />                                                                                          
                                                                         </div>                                                  
                                                                     
@@ -1140,7 +1296,16 @@ function App() {
                                                                                 dataset={clusterStats['cluster']['shards']}
                                                                                 title={"Data access shards"}
                                                                                 description={""}
-                                                                                pageSize={5}                                                                            
+                                                                                pageSize={5}            
+                                                                                onSelectionItem={( item ) => {   
+                                                                                    console.log(item);         
+                                                                                    currentNode.current['nodeId'] =  item[0]['indexId'];
+                                                                                    currentNode.current['type'] =  'shards';                                                                                          
+                                                                                    splitPanelIsShow.current = true;                                       
+                                                                                    setsplitPanelShow(true);
+                                                                                    
+                                                                                  }
+                                                                                }                                                                                                                                     
                                                                             />                                                                                                                                      
                                                                         </div>
                                                                         
@@ -1190,6 +1355,7 @@ function App() {
                                                                                         fontColorValue={configuration.colors.fonts.metric100}
                                                                                         fontSizeValue={"30px"}
                                                                                         fontSizeTitle={"12px"}
+                                                                                        postFix={"%"}
                                                                                 />
                                                                                 <ChartBar05 series={JSON.stringify(
                                                                                         shardMetrics['chartHistory']?.['DBShardGroupACUUtilization']
@@ -1644,7 +1810,7 @@ function App() {
                                                                                 <Select
                                                                                     selectedOption={selectedCloudWatchMetric}
                                                                                     onChange={({ detail }) => {
-                                                                                            cloudwatchMetric.current = { type : detail.selectedOption.type, name : detail.selectedOption.value, descriptions : detail.selectedOption.descriptions, unit : detail.selectedOption.unit };
+                                                                                            cloudwatchMetric.current = { type : detail.selectedOption.type, name : detail.selectedOption.value, descriptions : detail.selectedOption.descriptions, unit : detail.selectedOption.unit, format : detail.selectedOption.format  };
                                                                                             setSelectedCloudWatchMetric(detail.selectedOption);                                                                                            
                                                                                             gatherGlobalStats();
                                                                                     }
@@ -1681,27 +1847,28 @@ function App() {
                                                                             
                                                                     </td>
                                                                     <td valign="middle" style={{ "width":"15%","padding-left": "1em", "padding-right": "4em"}}>
+                                                                        { cloudwatchMetric.current.type == "1" &&
+                                                                            <FormField
+                                                                            description="Resource type for analysis."
+                                                                            label="Type"
+                                                                            >
+                                                                                
+                                                                                <Select
+                                                                                selectedOption={selectedOptionType}
+                                                                                onChange={({ detail }) => {
+                                                                                        optionType.current = detail.selectedOption.value;
+                                                                                        setSelectedOptionType(detail.selectedOption);
+                                                                                        gatherGlobalStats();
+                                                                                }}
+                                                                                options={[
+                                                                                    { label: "Shards + Routers", value: "ALL" },
+                                                                                    { label: "Shards", value: "DAS" },
+                                                                                    { label: "Routers", value: "DTR" }                                                                                
+                                                                                ]}
+                                                                                />
                                                                             
-                                                                        <FormField
-                                                                        description="Resource type for analysis."
-                                                                        label="Type"
-                                                                        >
-                                                                            
-                                                                            <Select
-                                                                            selectedOption={selectedOptionType}
-                                                                            onChange={({ detail }) => {
-                                                                                    optionType.current = detail.selectedOption.value;
-                                                                                    setSelectedOptionType(detail.selectedOption);
-                                                                                    gatherGlobalStats();
-                                                                            }}
-                                                                            options={[
-                                                                                { label: "Shards + Routers", value: "ALL" },
-                                                                                { label: "Shards", value: "DAS" },
-                                                                                { label: "Routers", value: "DTR" }                                                                                
-                                                                            ]}
-                                                                            />
-                                                                        
-                                                                        </FormField>
+                                                                            </FormField>
+                                                                        }
                                                                             
                                                                     </td>
                                                                     <td style={{ "width":"50%","padding-left": "2em", "border-left": "4px solid " + configuration.colors.lines.separator100 }}>
@@ -1729,7 +1896,7 @@ function App() {
                                                                     <div style={{ "text-align": "center" }}>
                                                                     
                                                                     <ChartPolar02 
-                                                                        title={"Commit Throughput"} 
+                                                                        title={""} 
                                                                         height="350px" 
                                                                         width="100%" 
                                                                         series = {JSON.stringify(shardCloudwatchMetricAnalytics['currentState']?.['chart']?.['data'])}
@@ -1742,7 +1909,7 @@ function App() {
                                                                         value={ shardCloudwatchMetricAnalytics['currentState']?.['value'] || 0 }
                                                                         title={ cloudwatchMetric.current.name + " (" +  cloudwatchMetric.current.unit + ")"}
                                                                         precision={0}
-                                                                        format={3}
+                                                                        format={cloudwatchMetric.current.format}
                                                                         fontColorValue={configuration.colors.fonts.metric100}
                                                                         fontSizeValue={"30px"}
                                                                         fontSizeTitle={"12px"}
@@ -1780,7 +1947,7 @@ function App() {
                                                                                     value={ shardCloudwatchMetricAnalytics['summary']?.['average'] || 0 }
                                                                                     title={"Average"}
                                                                                     precision={2}
-                                                                                    format={3}
+                                                                                    format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                     fontSizeValue={"30px"}
                                                                                     fontSizeTitle={"12px"}
@@ -1791,7 +1958,7 @@ function App() {
                                                                                     value={ shardCloudwatchMetricAnalytics['summary']?.['max'] || 0 }
                                                                                     title={"Maximum"}
                                                                                     precision={2}
-                                                                                    format={3}
+                                                                                    format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                     fontSizeValue={"30px"}
                                                                                     fontSizeTitle={"12px"}
@@ -1803,7 +1970,7 @@ function App() {
                                                                                     value={ shardCloudwatchMetricAnalytics['summary']?.['min']|| 0 }
                                                                                     title={"Minimum"}
                                                                                     precision={2}
-                                                                                    format={3}
+                                                                                    format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                     fontSizeValue={"30px"}
                                                                                     fontSizeTitle={"12px"}
@@ -1825,7 +1992,7 @@ function App() {
                                                                                     value={ shardCloudwatchMetricAnalytics['summary']?.['total'] || 0 }
                                                                                     title={"Total"}
                                                                                     precision={0}
-                                                                                    format={4}
+                                                                                    format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
                                                                                     fontSizeValue={"30px"}
                                                                                     fontSizeTitle={"12px"}

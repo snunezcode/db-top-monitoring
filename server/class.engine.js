@@ -4663,9 +4663,9 @@ class classAuroraLimitlessPostgresqlEngine {
 
             //-- Gather instances ids from CloudWatch
             var result = await AWSObject.getGenericMetricsInsight({ 
-                                                            sqlQuery : `SELECT AVG(DBLoad) FROM \"AWS/RDS\" WHERE DBClusterIdentifier = '${this.objectProperties.clusterId}' GROUP BY DBShardGroupSubClusterIdentifier,DBShardGroupInstanceIdentifier`, 
-                                                            period : 60 * 180, 
-                                                            interval : 180
+                                                            sqlQuery : `SELECT AVG(CommitThroughput) FROM \"AWS/RDS\" WHERE DBClusterIdentifier = '${this.objectProperties.clusterId}' GROUP BY DBShardGroupSubClusterIdentifier,DBShardGroupInstanceIdentifier`, 
+                                                            period : 60, 
+                                                            interval : 5
             });
             
             
@@ -4771,17 +4771,21 @@ class classAuroraLimitlessPostgresqlEngine {
         var routers = [];
         var chartSummary = { categories : [], data : [] } ;
         var chartRaw = [];
+        var indexShard = 0;
+        var indexRouter = 0;
         try {
                 for (let shardId of Object.keys(this.#shards)) {                                         
                     if (this.#shards[shardId].type == "shard"){
                         shards.push({ ...this.#shards[shardId],
-                            ...this.#shards[shardId].metrics.getMetricList(), 
+                            ...this.#shards[shardId].metrics.getMetricList(), indexId : indexShard
                         });
+                        indexShard++;
                     }
                     else{
                         routers.push({ ...this.#shards[shardId],
-                            ...this.#shards[shardId].metrics.getMetricList(),
+                            ...this.#shards[shardId].metrics.getMetricList(), indexId : indexRouter
                         });
+                        indexRouter++;
                     }                    
                     
                     chartRaw.push({ 
@@ -4924,7 +4928,7 @@ class classAuroraLimitlessPostgresqlEngine {
                     case "2":
                             metrics.push({
                                             namespace : "AWS/RDS",
-                                            label : "DBShardGroup-" + this.#shardGroupMetadata['DBShardGroupIdentifier'],
+                                            label : this.#shardGroupMetadata['DBShardGroupIdentifier'],
                                             metric : object.metric,
                                             dimension : [   
                                                             {                                     
@@ -4932,6 +4936,42 @@ class classAuroraLimitlessPostgresqlEngine {
                                                                 "Value" : this.#shardGroupMetadata['DBShardGroupIdentifier'], 
                                                             }
 
+                                                        ],
+                                                    stat : object.stat                    
+                                });
+                    break;
+
+
+                    case "3":
+                            metrics.push({
+                                            namespace : "AWS/RDS",
+                                            label : this.#shardGroupMetadata['DBClusterIdentifier'],
+                                            metric : object.metric,
+                                            dimension : [   
+                                                            {                                     
+                                                                "Name" : "DBClusterIdentifier", 
+                                                                "Value" : this.#shardGroupMetadata['DBClusterIdentifier'],
+                                                            }
+                                                        ],
+                                                    stat : object.stat                    
+                                });
+                    break;
+
+
+                    case "4":
+                            metrics.push({
+                                            namespace : "AWS/RDS",
+                                            label : this.#shardGroupMetadata['DBClusterIdentifier'],
+                                            metric : object.metric,
+                                            dimension : [   
+                                                            {                                     
+                                                                "Name" : "DBClusterIdentifier", 
+                                                                "Value" : this.#shardGroupMetadata['DBClusterIdentifier'],
+                                                            },
+                                                            {                                     
+                                                                "Name" : "DBShardGroupIdentifier", 
+                                                                "Value" : this.#shardGroupMetadata['DBShardGroupIdentifier'], 
+                                                            },
                                                         ],
                                                     stat : object.stat                    
                                 });
