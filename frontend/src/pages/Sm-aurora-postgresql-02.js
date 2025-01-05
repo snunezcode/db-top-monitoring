@@ -1960,7 +1960,7 @@ function App() {
                                                                                     precision={2}
                                                                                     format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"30px"}
+                                                                                    fontSizeValue={"26px"}
                                                                                     fontSizeTitle={"12px"}
                                                                                 />
                                                                             </td>                                                            
@@ -1971,7 +1971,7 @@ function App() {
                                                                                     precision={2}
                                                                                     format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"30px"}
+                                                                                    fontSizeValue={"26px"}
                                                                                     fontSizeTitle={"12px"}
                                                                                 />
                                                                             </td>
@@ -1983,7 +1983,7 @@ function App() {
                                                                                     precision={2}
                                                                                     format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"30px"}
+                                                                                    fontSizeValue={"26px"}
                                                                                     fontSizeTitle={"12px"}
                                                                                 />
                                                                             </td>         
@@ -1994,7 +1994,7 @@ function App() {
                                                                                     precision={0}
                                                                                     format={3}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"30px"}
+                                                                                    fontSizeValue={"26px"}
                                                                                     fontSizeTitle={"12px"}
                                                                                 />
                                                                             </td>                                                                                                               
@@ -2005,7 +2005,7 @@ function App() {
                                                                                     precision={0}
                                                                                     format={cloudwatchMetric.current.format}
                                                                                     fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"30px"}
+                                                                                    fontSizeValue={"26px"}
                                                                                     fontSizeTitle={"12px"}
                                                                                 />
                                                                             </td> 
