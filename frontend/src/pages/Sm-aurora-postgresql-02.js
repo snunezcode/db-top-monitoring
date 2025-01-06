@@ -472,12 +472,9 @@ function App() {
                                         clusterId : cnf_identifier,     
                                         engineType : cnf_engine                              
                               }
-                          }).then((data)=>{
-                           
+                          }).then((data)=>{                           
                            var info = data.data.cluster;
-                           localClusterStats = { cluster : {...info} };           
-                           console.log(localClusterStats);                    
-                             
+                           localClusterStats = { cluster : {...info} };                                     
                       })
                       .catch((err) => {
                           console.log('Timeout API Call : /api/aurora/cluster/postgresql/limitless/gather/stats/' );
@@ -1262,8 +1259,7 @@ function App() {
                                                                                         title={"Distributed transaction routers"}
                                                                                         description={""}
                                                                                         pageSize={5}       
-                                                                                        onSelectionItem={( item ) => {   
-                                                                                            console.log(item);         
+                                                                                        onSelectionItem={( item ) => {                                                                                               
                                                                                             currentNode.current['nodeId'] =  item[0]['indexId'];
                                                                                             currentNode.current['type'] =  'routers';                                                                                          
                                                                                             splitPanelIsShow.current = true;                                       
@@ -1315,8 +1311,7 @@ function App() {
                                                                                 title={"Data access shards"}
                                                                                 description={""}
                                                                                 pageSize={5}            
-                                                                                onSelectionItem={( item ) => {   
-                                                                                    console.log(item);         
+                                                                                onSelectionItem={( item ) => {                                                                                       
                                                                                     currentNode.current['nodeId'] =  item[0]['indexId'];
                                                                                     currentNode.current['type'] =  'shards';                                                                                          
                                                                                     splitPanelIsShow.current = true;                                       
