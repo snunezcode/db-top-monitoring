@@ -1,224 +1,474 @@
-{ 
-"cache.a1.medium":500000000,
-"cache.a1.large":750000000,
-"cache.a1.xlarge":1250000000,
-"cache.a1.2xlarge":2500000000,
-"cache.a1.4xlarge":5000000000,
-"cache.a1.metal":5000000000,
-"cache.m5.large":750000000,
-"cache.m5.xlarge":1250000000,
-"cache.m5.2xlarge":2500000000,
-"cache.m5.4xlarge":5000000000,
-"cache.m5a.large":750000000,
-"cache.m5a.xlarge":1250000000,
-"cache.m5a.2xlarge":2500000000,
-"cache.m5a.4xlarge":5000000000,
-"cache.m5a.8xlarge":7500000000,
-"cache.m5ad.large":750000000,
-"cache.m5ad.xlarge":1250000000,
-"cache.m5ad.2xlarge":2500000000,
-"cache.m5ad.4xlarge":5000000000,
-"cache.m5ad.8xlarge":7500000000,
-"cache.m5d.large":750000000,
-"cache.m5d.xlarge":1250000000,
-"cache.m5d.2xlarge":2500000000,
-"cache.m5d.4xlarge":5000000000,
-"cache.m5dn.large":2100000000,
-"cache.m5dn.xlarge":4100000000,
-"cache.m5dn.2xlarge":8125000000,
-"cache.m5dn.4xlarge":16250000000,
-"cache.m5n.large":2100000000,
-"cache.m5n.xlarge":4100000000,
-"cache.m5n.2xlarge":8125000000,
-"cache.m5n.4xlarge":16250000000,
-"cache.m5zn.large":3000000000,
-"cache.m5zn.xlarge":5000000000,
-"cache.m5zn.2xlarge":10000000000,
-"cache.m5zn.3xlarge":15000000000,
-"cache.m6a.large":781000000,
-"cache.m6a.xlarge":1562000000,
-"cache.m6a.2xlarge":3125000000,
-"cache.m6a.4xlarge":6250000000,
-"cache.m6g.medium":500000000,
-"cache.m6g.large":750000000,
-"cache.m6g.xlarge":1250000000,
-"cache.m6g.2xlarge":2500000000,
-"cache.m6g.4xlarge":5000000000,
-"cache.m6gd.medium":500000000,
-"cache.m6gd.large":750000000,
-"cache.m6gd.xlarge":1250000000,
-"cache.m6gd.2xlarge":2500000000,
-"cache.m6gd.4xlarge":5000000000,
-"cache.m6i.large":781000000,
-"cache.m6i.xlarge":1562000000,
-"cache.m6i.2xlarge":3125000000,
-"cache.m6i.4xlarge":6250000000,
-"cache.m6id.large":781000000,
-"cache.m6id.xlarge":1562000000,
-"cache.m6id.2xlarge":3125000000,
-"cache.m6id.4xlarge":6250000000,
-"cache.m6idn.large":3125000000,
-"cache.m6idn.xlarge":6250000000,
-"cache.m6idn.2xlarge":12500000000,
-"cache.m6idn.4xlarge":25000000000,
-"cache.m6in.large":3125000000,
-"cache.m6in.xlarge":6250000000,
-"cache.m6in.2xlarge":12500000000,
-"cache.m6in.4xlarge":25000000000,
-"cache.m7a.medium":390000000,
-"cache.m7a.large":781000000,
-"cache.m7a.xlarge":1562000000,
-"cache.m7a.2xlarge":3125000000,
-"cache.m7a.4xlarge":6250000000,
-"cache.m7g.medium":520000000,
-"cache.m7g.large":937000000,
-"cache.m7g.xlarge":1876000000,
-"cache.m7g.2xlarge":3750000000,
-"cache.m7g.4xlarge":7500000000,
-"cache.m7gd.medium":520000000,
-"cache.m7gd.large":937000000,
-"cache.m7gd.xlarge":1876000000,
-"cache.m7gd.2xlarge":3750000000,
-"cache.m7gd.4xlarge":7500000000,
-"cache.m7i.large":781000000,
-"cache.m7i.xlarge":1562000000,
-"cache.m7i.2xlarge":3125000000,
-"cache.m7i.4xlarge":6250000000,
-"cache.m7i-flex.large":390000000,
-"cache.m7i-flex.xlarge":781000000,
-"cache.m7i-flex.2xlarge":1562000000,
-"cache.m7i-flex.4xlarge":3125000000,
-"cache.m7i-flex.8xlarge":6250000000,
-"cache.t3.nano":32000000,
-"cache.t3.micro":64000000,
-"cache.t3.small":128000000,
-"cache.t3.medium":256000000,
-"cache.t3.large":512000000,
-"cache.t3.xlarge":1024000000,
-"cache.t3.2xlarge":2048000000,
-"cache.t3a.nano":32000000,
-"cache.t3a.micro":64000000,
-"cache.t3a.small":128000000,
-"cache.t3a.medium":256000000,
-"cache.t3a.large":512000000,
-"cache.t3a.xlarge":1024000000,
-"cache.t3a.2xlarge":2048000000,
-"cache.t4g.nano":32000000,
-"cache.t4g.micro":64000000,
-"cache.t4g.small":128000000,
-"cache.t4g.medium":256000000,
-"cache.t4g.large":512000000,
-"cache.t4g.xlarge":1024000000,
-"cache.t4g.2xlarge":2048000000,
-"db.a1.medium":500000000,
-"db.a1.large":750000000,
-"db.a1.xlarge":1250000000,
-"db.a1.2xlarge":2500000000,
-"db.a1.4xlarge":5000000000,
-"db.a1.metal":5000000000,
-"db.m5.large":750000000,
-"db.m5.xlarge":1250000000,
-"db.m5.2xlarge":2500000000,
-"db.m5.4xlarge":5000000000,
-"db.m5a.large":750000000,
-"db.m5a.xlarge":1250000000,
-"db.m5a.2xlarge":2500000000,
-"db.m5a.4xlarge":5000000000,
-"db.m5a.8xlarge":7500000000,
-"db.m5ad.large":750000000,
-"db.m5ad.xlarge":1250000000,
-"db.m5ad.2xlarge":2500000000,
-"db.m5ad.4xlarge":5000000000,
-"db.m5ad.8xlarge":7500000000,
-"db.m5d.large":750000000,
-"db.m5d.xlarge":1250000000,
-"db.m5d.2xlarge":2500000000,
-"db.m5d.4xlarge":5000000000,
-"db.m5dn.large":2100000000,
-"db.m5dn.xlarge":4100000000,
-"db.m5dn.2xlarge":8125000000,
-"db.m5dn.4xlarge":16250000000,
-"db.m5n.large":2100000000,
-"db.m5n.xlarge":4100000000,
-"db.m5n.2xlarge":8125000000,
-"db.m5n.4xlarge":16250000000,
-"db.m5zn.large":3000000000,
-"db.m5zn.xlarge":5000000000,
-"db.m5zn.2xlarge":10000000000,
-"db.m5zn.3xlarge":15000000000,
-"db.m6a.large":781000000,
-"db.m6a.xlarge":1562000000,
-"db.m6a.2xlarge":3125000000,
-"db.m6a.4xlarge":6250000000,
-"db.m6g.medium":500000000,
-"db.m6g.large":750000000,
-"db.m6g.xlarge":1250000000,
-"db.m6g.2xlarge":2500000000,
-"db.m6g.4xlarge":5000000000,
-"db.m6gd.medium":500000000,
-"db.m6gd.large":750000000,
-"db.m6gd.xlarge":1250000000,
-"db.m6gd.2xlarge":2500000000,
-"db.m6gd.4xlarge":5000000000,
-"db.m6i.large":781000000,
-"db.m6i.xlarge":1562000000,
-"db.m6i.2xlarge":3125000000,
-"db.m6i.4xlarge":6250000000,
-"db.m6id.large":781000000,
-"db.m6id.xlarge":1562000000,
-"db.m6id.2xlarge":3125000000,
-"db.m6id.4xlarge":6250000000,
-"db.m6idn.large":3125000000,
-"db.m6idn.xlarge":6250000000,
-"db.m6idn.2xlarge":12500000000,
-"db.m6idn.4xlarge":25000000000,
-"db.m6in.large":3125000000,
-"db.m6in.xlarge":6250000000,
-"db.m6in.2xlarge":12500000000,
-"db.m6in.4xlarge":25000000000,
-"db.m7a.medium":390000000,
-"db.m7a.large":781000000,
-"db.m7a.xlarge":1562000000,
-"db.m7a.2xlarge":3125000000,
-"db.m7a.4xlarge":6250000000,
-"db.m7g.medium":520000000,
-"db.m7g.large":937000000,
-"db.m7g.xlarge":1876000000,
-"db.m7g.2xlarge":3750000000,
-"db.m7g.4xlarge":7500000000,
-"db.m7gd.medium":520000000,
-"db.m7gd.large":937000000,
-"db.m7gd.xlarge":1876000000,
-"db.m7gd.2xlarge":3750000000,
-"db.m7gd.4xlarge":7500000000,
-"db.m7i.large":781000000,
-"db.m7i.xlarge":1562000000,
-"db.m7i.2xlarge":3125000000,
-"db.m7i.4xlarge":6250000000,
-"db.m7i-flex.large":390000000,
-"db.m7i-flex.xlarge":781000000,
-"db.m7i-flex.2xlarge":1562000000,
-"db.m7i-flex.4xlarge":3125000000,
-"db.m7i-flex.8xlarge":6250000000,
-"db.t3.nano":32000000,
-"db.t3.micro":64000000,
-"db.t3.small":128000000,
-"db.t3.medium":256000000,
-"db.t3.large":512000000,
-"db.t3.xlarge":1024000000,
-"db.t3.2xlarge":2048000000,
-"db.t3a.nano":32000000,
-"db.t3a.micro":64000000,
-"db.t3a.small":128000000,
-"db.t3a.medium":256000000,
-"db.t3a.large":512000000,
-"db.t3a.xlarge":1024000000,
-"db.t3a.2xlarge":2048000000,
-"db.t4g.nano":32000000,
-"db.t4g.micro":64000000,
-"db.t4g.small":128000000,
-"db.t4g.medium":256000000,
-"db.t4g.large":512000000,
-"db.t4g.xlarge":1024000000,
-"db.t4g.2xlarge":2048000000
+
+{
+    "elasticache": {
+        "cache.t4g.micro": {
+            "networkRateBytesPerSecondBaseLine": "16000000",
+            "networkRateBytesPerSecondBurst": "625000000",
+            "vcpu": "2",
+            "memoryInGB": "0.5",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.t4g.small": {
+            "networkRateBytesPerSecondBaseLine": "16000000",
+            "networkRateBytesPerSecondBurst": "625000000",
+            "vcpu": "2",
+            "memoryInGB": "1.37",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.t4g.medium": {
+            "networkRateBytesPerSecondBaseLine": "16000000",
+            "networkRateBytesPerSecondBurst": "625000000",
+            "vcpu": "2",
+            "memoryInGB": "3.09",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.t3.micro": {
+            "networkRateBytesPerSecondBaseLine": "16000000",
+            "networkRateBytesPerSecondBurst": "625000000",
+            "vcpu": "2",
+            "memoryInGB": "0.5",
+            "cpuFamily": "Intel Xeon Scalable (2.5 GHz)"
+        },
+        "cache.t3.small": {
+            "networkRateBytesPerSecondBaseLine": "16000000",
+            "networkRateBytesPerSecondBurst": "625000000",
+            "vcpu": "2",
+            "memoryInGB": "1.37",
+            "cpuFamily": "Intel Xeon Scalable (2.5 GHz)"
+        },
+        "cache.t3.medium": {
+            "networkRateBytesPerSecondBaseLine": "16000000",
+            "networkRateBytesPerSecondBurst": "625000000",
+            "vcpu": "2",
+            "memoryInGB": "3.09",
+            "cpuFamily": "Intel Xeon Scalable (2.5 GHz)"
+        },
+        "cache.t2.micro": {
+            "networkRateBytesPerSecondBaseLine": "8000000",
+            "networkRateBytesPerSecondBurst": "150000000",
+            "vcpu": "1",
+            "memoryInGB": "0.5",
+            "cpuFamily": "Intel Xeon (3.3 GHz)"
+        },
+        "cache.t2.small": {
+            "networkRateBytesPerSecondBaseLine": "8000000",
+            "networkRateBytesPerSecondBurst": "150000000",
+            "vcpu": "1",
+            "memoryInGB": "1.55",
+            "cpuFamily": "Intel Xeon (3.3 GHz)"
+        },
+        "cache.t2.medium": {
+            "networkRateBytesPerSecondBaseLine": "16000000",
+            "networkRateBytesPerSecondBurst": "150000000",
+            "vcpu": "2",
+            "memoryInGB": "3.22",
+            "cpuFamily": "Intel Xeon (3.3 GHz)"
+        },
+        "cache.m7g.large": {
+            "networkRateBytesPerSecondBaseLine": "117187500",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "2",
+            "memoryInGB": "8",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.m7g.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "156250000",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "4",
+            "memoryInGB": "16",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.m7g.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "312500000",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "8",
+            "memoryInGB": "32",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.m7g.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "625000000",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "16",
+            "memoryInGB": "64",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.m7g.8xlarge": {
+            "networkRateBytesPerSecondBaseLine": "1562500000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "32",
+            "memoryInGB": "128",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.m7g.12xlarge": {
+            "networkRateBytesPerSecondBaseLine": "2343750000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "48",
+            "memoryInGB": "192",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.m7g.16xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "64",
+            "memoryInGB": "256",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.m6g.large": {
+            "networkRateBytesPerSecondBaseLine": "93750000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "2",
+            "memoryInGB": "8",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.m6g.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "150000000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "4",
+            "memoryInGB": "16",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.m6g.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "312500000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "8",
+            "memoryInGB": "32",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.m6g.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "625000000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "16",
+            "memoryInGB": "64",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.m6g.8xlarge": {
+            "networkRateBytesPerSecondBaseLine": "1500000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "32",
+            "memoryInGB": "128",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.m6g.12xlarge": {
+            "networkRateBytesPerSecondBaseLine": "2250000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "48",
+            "memoryInGB": "192",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.m6g.16xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "64",
+            "memoryInGB": "256",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.m5.large": {
+            "networkRateBytesPerSecondBaseLine": "93750000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "2",
+            "memoryInGB": "8",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.m5.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "156250000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "4",
+            "memoryInGB": "16",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.m5.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "312500000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "8",
+            "memoryInGB": "32",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.m5.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "625000000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "16",
+            "memoryInGB": "64",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.m5.12xlarge": {
+            "networkRateBytesPerSecondBaseLine": "1500000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "48",
+            "memoryInGB": "192",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.m5.24xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "96",
+            "memoryInGB": "384",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.m4.large": {
+            "networkRateBytesPerSecondBaseLine": "56250000",
+            "networkRateBytesPerSecondBurst": "150000000",
+            "vcpu": "2",
+            "memoryInGB": "6.42",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.m4.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "93750000",
+            "networkRateBytesPerSecondBurst": "350000000",
+            "vcpu": "4",
+            "memoryInGB": "14.28",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.m4.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "125000000",
+            "networkRateBytesPerSecondBurst": "437500000",
+            "vcpu": "8",
+            "memoryInGB": "29.7",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.m4.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "250000000",
+            "networkRateBytesPerSecondBurst": "500000000",
+            "vcpu": "16",
+            "memoryInGB": "56.9",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.m4.10xlarge": {
+            "networkRateBytesPerSecondBaseLine": "625000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "40",
+            "memoryInGB": "154.64",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.r7g.large": {
+            "networkRateBytesPerSecondBaseLine": "97625000",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "2",
+            "memoryInGB": "16",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.r7g.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "195250000",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "4",
+            "memoryInGB": "32",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.r7g.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "390625000",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "8",
+            "memoryInGB": "64",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.r7g.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "781250000",
+            "networkRateBytesPerSecondBurst": "1562500000",
+            "vcpu": "16",
+            "memoryInGB": "128",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.r7g.8xlarge": {
+            "networkRateBytesPerSecondBaseLine": "1562500000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "32",
+            "memoryInGB": "256",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.r7g.12xlarge": {
+            "networkRateBytesPerSecondBaseLine": "2343750000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "48",
+            "memoryInGB": "384",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.r7g.16xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "64",
+            "memoryInGB": "512",
+            "cpuFamily": "AWS Graviton3 Processor"
+        },
+        "cache.r6g.large": {
+            "networkRateBytesPerSecondBaseLine": "93750000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "2",
+            "memoryInGB": "13.07",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.r6g.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "156250000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "4",
+            "memoryInGB": "26.3",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.r6g.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "312500000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "8",
+            "memoryInGB": "53.82",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.r6g.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "625000000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "16",
+            "memoryInGB": "107.64",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.r6g.8xlarge": {
+            "networkRateBytesPerSecondBaseLine": "1500000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "32",
+            "memoryInGB": "218.3",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.r6g.12xlarge": {
+            "networkRateBytesPerSecondBaseLine": "2250000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "48",
+            "memoryInGB": "327.5",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.r6g.16xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "64",
+            "memoryInGB": "436.6",
+            "cpuFamily": "AWS Graviton2 Processor"
+        },
+        "cache.r5.large": {
+            "networkRateBytesPerSecondBaseLine": "93750000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "2",
+            "memoryInGB": "13.07",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.r5.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "156250000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "4",
+            "memoryInGB": "26.3",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.r5.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "312500000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "8",
+            "memoryInGB": "53.82",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.r5.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "625000000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "16",
+            "memoryInGB": "107.64",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.r5.12xlarge": {
+            "networkRateBytesPerSecondBaseLine": "1500000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "48",
+            "memoryInGB": "323.3",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.r5.24xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "96",
+            "memoryInGB": "649.6",
+            "cpuFamily": "Intel Xeon Platinum 8175 (3.1 GHz)"
+        },
+        "cache.r4.large": {
+            "networkRateBytesPerSecondBaseLine": "93750000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "2",
+            "memoryInGB": "12.3",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.r4.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "156250000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "4",
+            "memoryInGB": "25.05",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.r4.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "312500000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "8",
+            "memoryInGB": "50.47",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.r4.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "625000000",
+            "networkRateBytesPerSecondBurst": "1250000000",
+            "vcpu": "16",
+            "memoryInGB": "101.38",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.r4.8xlarge": {
+            "networkRateBytesPerSecondBaseLine": "1250000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "32",
+            "memoryInGB": "203.26",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.r4.16xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "64",
+            "memoryInGB": "406.64",
+            "cpuFamily": "Intel Xeon E5-2686 v4 (2.3 GHz)"
+        },
+        "cache.c7gn.large": {
+            "networkRateBytesPerSecondBaseLine": "1562500000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "2",
+            "memoryInGB": "4",
+            "cpuFamily": "AWS Graviton3E Processor"
+        },
+        "cache.c7gn.xlarge": {
+            "networkRateBytesPerSecondBaseLine": "3125000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "4",
+            "memoryInGB": "8",
+            "cpuFamily": "AWS Graviton3E Processor"
+        },
+        "cache.c7gn.2xlarge": {
+            "networkRateBytesPerSecondBaseLine": "5000000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "8",
+            "memoryInGB": "16",
+            "cpuFamily": "AWS Graviton3E Processor"
+        },
+        "cache.c7gn.4xlarge": {
+            "networkRateBytesPerSecondBaseLine": "6250000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "16",
+            "memoryInGB": "32",
+            "cpuFamily": "AWS Graviton3E Processor"
+        },
+        "cache.c7gn.8xlarge": {
+            "networkRateBytesPerSecondBaseLine": "12500000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "32",
+            "memoryInGB": "64",
+            "cpuFamily": "AWS Graviton3E Processor"
+        },
+        "cache.c7gn.12xlarge": {
+            "networkRateBytesPerSecondBaseLine": "18750000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "48",
+            "memoryInGB": "96",
+            "cpuFamily": "AWS Graviton3E Processor"
+        },
+        "cache.c7gn.16xlarge": {
+            "networkRateBytesPerSecondBaseLine": "25000000000",
+            "networkRateBytesPerSecondBurst": "0",
+            "vcpu": "64",
+            "memoryInGB": "128",
+            "cpuFamily": "AWS Graviton3E Processor"
+        }
+    }
 }

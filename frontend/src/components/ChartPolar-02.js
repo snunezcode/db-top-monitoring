@@ -1,8 +1,15 @@
-import {memo} from 'react';
+import {memo, useEffect, useState} from 'react';
 import Chart from 'react-apexcharts';
 
 const ChartComponent = memo(({ series, labels, title="", height="350px", width="100%"}) => {      
           
+            const [parsedSeries, setParsedSeries] = useState([]);
+              
+            useEffect(() => {
+                setParsedSeries(JSON.parse(series));
+            }, [series]);
+
+
             var options = {
               chart: {
                 type: 'polarArea',
@@ -36,12 +43,29 @@ const ChartComponent = memo(({ series, labels, title="", height="350px", width="
               fill: {
                 opacity: 0.8
               },
+              /*
               legend: {
                     show: true,
                     showForSingleSeries: true,
                     fontSize: '11px',
                     fontFamily: 'Lato',
-              },
+              },*/
+              legend: {
+                show: true,
+                showForSingleSeries: true,
+                fontSize: '11px',
+                fontFamily: 'Lato',
+                formatter: function(seriesName, opts) {                  
+                    const value = parsedSeries[opts.seriesIndex];
+                    if (value == undefined){
+                      return `${seriesName}`;
+                    }
+                    else {                        
+                        const formattedValue = formatValue(value);                        
+                        return `${seriesName} (${formattedValue})`;
+                  }
+                }
+            },          
               responsive: [{
                 breakpoint: 480,
                 options: {
@@ -82,7 +106,16 @@ const ChartComponent = memo(({ series, labels, title="", height="350px", width="
               }
             };
             
-          
+            const formatValue = (val) => {
+              if (val === 0) return '0';
+              if (val < 1000) return parseFloat(val).toFixed(1);
+              
+              var k = 1000,
+              sizes = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'],
+              i = Math.floor(Math.log(val) / Math.log(k));
+              return parseFloat((val / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+          };
+
     return (
             <div>
                 <Chart options={options} series={JSON.parse(series)} type="polarArea" height={height} width={width} />

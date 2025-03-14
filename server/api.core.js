@@ -264,6 +264,7 @@ function verifyTokenCognito(token) {
 
 
 
+
 //--#################################################################################################### 
 //   ---------------------------------------- ELASTICACHE
 //--#################################################################################################### 
@@ -356,6 +357,7 @@ async function openConnectionElasticacheRedisCluster(req, res) {
                                                 { name : "cacheHitRate", type : 4, history : 20 },
                                                 { name : "netIn", type : 1, history : 20 },
                                                 { name : "netOut", type : 1, history : 20 },
+                                                { name : "netTotal", type : 1, history : 20 },
                                                 { name : "network", type : 4, history : 20 },
                                                 { name : "connectionsTotal", type : 1, history : 20 },
                                                 { name : "commands", type : 1, history : 20 },
@@ -365,6 +367,10 @@ async function openConnectionElasticacheRedisCluster(req, res) {
                                                 { name : "cmdScan", type : 1, history : 20 },
                                                 { name : "cmdXadd", type : 1, history : 20 },
                                                 { name : "cmdZadd", type : 1, history : 20 },
+                                                { name : "errorstatErr", type : 1, history : 20 },
+                                                { name : "errorstatMoved", type : 1, history : 20 },
+                                                { name : "errorstatOom", type : 1, history : 20 },
+                                                { name : "errorsTotal", type : 1, history : 20 },
                                             ]
                                     }
                                 );
@@ -408,7 +414,8 @@ async function gatherStatsElasticacheCluster(req, res) {
                 var params = req.query;
                 
                 var cluster = elasticacheObjectContainer[params.engineType + ":" + params.clusterId].getAllDataCluster({ includeSessions : 0});
-                var nodes = cluster.nodes.slice(params.beginItem,params.endItem);
+                //var nodes = cluster.nodes.slice(params.beginItem,params.endItem);
+                var nodes = cluster.nodes;
                 res.status(200).send({ 
                                         cluster : {...cluster,nodes : nodes}
                                     });
@@ -418,6 +425,33 @@ async function gatherStatsElasticacheCluster(req, res) {
                 console.log(err);
         }
 }
+
+
+
+//--++ ELASTICACHE : Gather Node Information
+app.get("/api/elasticache/redis/node/gather/stats/", gatherStatsElasticacheNode);
+async function gatherStatsElasticacheNode(req, res) {
+    
+        // Token Validation
+        var standardToken = verifyToken(req.headers['x-token']);
+        var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+        if (standardToken.isValid === false || cognitoToken.isValid === false)
+            return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+        try
+            {
+                var params = req.query;          
+                var node = elasticacheObjectContainer[params.engineType + ":" + params.clusterId].getNodeData({ node : params.node });
+                res.status(200).send(node);
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+
 
 
 
@@ -3433,6 +3467,34 @@ app.get("/api/aws/application/recommendation/get", async (req, res) => {
     
 });
 
+
+//--++ API : GENERAL : Gather Cloudwatch Information
+app.get("/api/general/cloudwatch/gather/metrics/", gatherCloudwatchMetrics);
+async function gatherCloudwatchMetrics(req, res) {
+    
+        // Token Validation
+        var standardToken = verifyToken(req.headers['x-token']);
+        var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+        if (standardToken.isValid === false || cognitoToken.isValid === false)
+            return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+        try
+            {
+                var params = req.query;          
+                var result = await AWSObject.getGenericMetricsInsight({ 
+                    sqlQuery : params.sql, 
+                    period : params.period, 
+                    interval :params.interval
+                });
+
+                res.status(200).send(result);
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
 
 
 //--#################################################################################################### 

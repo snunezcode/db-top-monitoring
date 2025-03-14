@@ -76,7 +76,17 @@ class classAWS {
                         var clusterInfo = await elasticache.send(command);
                         
                         if (clusterInfo.ReplicationGroups.length> 0) 
-                            result = { status : clusterInfo.ReplicationGroups[0]["Status"], size : clusterInfo.ReplicationGroups[0]["CacheNodeType"], totalShards : clusterInfo.ReplicationGroups[0]["NodeGroups"].length, totalNodes : clusterInfo.ReplicationGroups[0]["MemberClusters"].length };
+                            result = { 
+                                        status : clusterInfo.ReplicationGroups[0]["Status"], 
+                                        size : clusterInfo.ReplicationGroups[0]["CacheNodeType"], 
+                                        totalShards : clusterInfo.ReplicationGroups[0]["NodeGroups"].length, 
+                                        totalNodes : clusterInfo.ReplicationGroups[0]["MemberClusters"].length,
+                                        hostMemory : ( nodeCatalog['elasticache']?.[clusterInfo.ReplicationGroups[0]["CacheNodeType"]]?.['memoryInGB'] || 0),
+                                        hostVCPU : ( nodeCatalog['elasticache']?.[clusterInfo.ReplicationGroups[0]["CacheNodeType"]]?.['vcpu'] || 0),
+                                        hostCPUFamily : ( nodeCatalog['elasticache']?.[clusterInfo.ReplicationGroups[0]["CacheNodeType"]]?.['cpuFamily'] || "-"),
+                                        hostNetworkBurst : ( nodeCatalog['elasticache']?.[clusterInfo.ReplicationGroups[0]["CacheNodeType"]]?.['networkRateBytesPerSecondBurst'] || 0),
+                                        hostNetworkBase : ( nodeCatalog['elasticache']?.[clusterInfo.ReplicationGroups[0]["CacheNodeType"]]?.['networkRateBytesPerSecondBaseLine'] || 0),
+                            };
     
                         
                        
@@ -137,8 +147,12 @@ class classAWS {
                                                                         port : nodePort,
                                                                         nodeType : rg['CacheNodeType'],
                                                                         cacheClusterId : nodeItem.CacheClusterId,
-                                                                        cacheNodeId : nodeItem.CacheNodeId,
-                                                                        networkRate : nodeCatalog[rg['CacheNodeType']]
+                                                                        cacheNodeId : nodeItem.CacheNodeId,                                                           
+                                                                        hostMemory : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['memoryInGB'] || 0),
+                                                                        hostVCPU : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['vcpu'] || 0),
+                                                                        hostCPUFamily : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['cpuFamily'] || "-"),
+                                                                        hostNetworkBurst : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['networkRateBytesPerSecondBurst'] || 0),
+                                                                        hostNetworkBase : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['networkRateBytesPerSecondBaseLine'] || 0),
                                                         });
                                                         
                                                          
@@ -164,8 +178,12 @@ class classAWS {
                                                                         port : nodePort,
                                                                         nodeType : rg['CacheNodeType'],
                                                                         cacheClusterId : nodeItem.CacheClusterId,
-                                                                        cacheNodeId : nodeItem.CacheNodeId,
-                                                                        networkRate : nodeCatalog[rg['CacheNodeType']]
+                                                                        cacheNodeId : nodeItem.CacheNodeId,                                                                        
+                                                                        hostMemory : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['memoryInGB'] || 0),
+                                                                        hostVCPU : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['vcpu'] || 0),
+                                                                        hostCPUFamily : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['cpuFamily'] || "-"),
+                                                                        hostNetworkBurst : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['networkRateBytesPerSecondBurst'] || 0),
+                                                                        hostNetworkBase : ( nodeCatalog['elasticache']?.[rg['CacheNodeType']]?.['networkRateBytesPerSecondBaseLine'] || 0),
                                                         });
                                                          
                                                      });
@@ -311,8 +329,12 @@ class classAWS {
                                                                             port : nodePort,
                                                                             nodeType : rg['NodeType'],
                                                                             cacheClusterId : rg['Name'],
-                                                                            cacheNodeId : node['Name'],
-                                                                            networkRate : nodeCatalog[rg['NodeType']]
+                                                                            cacheNodeId : node['Name'],                                                                            
+                                                                            hostMemory : ( nodeCatalog['memorydb']?.[rg['NodeType']]?.['memoryInGB'] || 0),
+                                                                            hostVCPU : ( nodeCatalog['memorydb']?.[rg['NodeType']]?.['vcpu'] || 0),
+                                                                            hostCPUFamily : ( nodeCatalog['memorydb']?.[rg['NodeType']]?.['cpuFamily'] || "-"),
+                                                                            hostNetworkBurst : ( nodeCatalog['memorydb']?.[rg['NodeType']]?.['networkRateBytesPerSecondBurst'] || 0),
+                                                                            hostNetworkBase : ( nodeCatalog['memorydb']?.[rg['NodeType']]?.['networkRateBytesPerSecondBaseLine'] || 0),
                                                             });
                                                             
                                                     }
@@ -442,8 +464,12 @@ class classAWS {
                                                         nodeType : node['DBInstanceClass'],
                                                         instanceId : node['DBInstanceIdentifier'],
                                                         monitoring : ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
-                                                        resourceId : node['DbiResourceId'],
-                                                        networkRate : nodeCatalog[node['DBInstanceClass']],
+                                                        resourceId : node['DbiResourceId'],                                                        
+                                                        hostMemory : ( nodeCatalog['documentdb']?.[node['DBInstanceClass']]?.['memoryInGB'] || 0),
+                                                        hostVCPU : ( nodeCatalog['documentdb']?.[node['DBInstanceClass']]?.['vcpu'] || 0),
+                                                        hostCPUFamily : ( nodeCatalog['documentdb']?.[rnode['DBInstanceClass']]?.['cpuFamily'] || "-"),                                                        
+                                                        hostNetworkBurst : ( nodeCatalog['documentdb']?.[node['DBInstanceClass']]?.['networkRateBytesPerSecondBurst'] || 0),
+                                                        hostNetworkBase : ( nodeCatalog['documentdb']?.[node['DBInstanceClass']]?.['networkRateBytesPerSecondBaseLine'] || 0),                                                        
                                                         role : roleType[node['DBInstanceIdentifier']],
                                                         size : node['DBInstanceClass'],
                                                         az : node['AvailabilityZone'],
@@ -571,8 +597,12 @@ class classAWS {
                                                         nodeType : node['DBInstanceClass'],
                                                         instanceId : node['DBInstanceIdentifier'],
                                                         monitoring : ( String(node['MonitoringInterval']) == "0" ? "clw" : "em" ),
-                                                        resourceId : node['DbiResourceId'],
-                                                        networkRate : nodeCatalog[node['DBInstanceClass']],
+                                                        resourceId : node['DbiResourceId'],                                                        
+                                                        hostMemory : ( nodeCatalog['aurora']?.[node['DBInstanceClass']]?.['memoryInGB'] || 0),
+                                                        hostVCPU : ( nodeCatalog['aurora']?.[node['DBInstanceClass']]?.['vcpu'] || 0),
+                                                        hostCPUFamily : ( nodeCatalog['aurora']?.[node['DBInstanceClass']]?.['cpuFamily'] || "-"),                                                        
+                                                        hostNetworkBurst : ( nodeCatalog['aurora']?.[node['DBInstanceClass']]?.['networkRateBytesPerSecondBurst'] || 0),
+                                                        hostNetworkBase : ( nodeCatalog['aurora']?.[node['DBInstanceClass']]?.['networkRateBytesPerSecondBaseLine'] || 0),                                                        
                                                         role : roleType[node['DBInstanceIdentifier']],
                                                         size : node['DBInstanceClass'],
                                                         az : node['AvailabilityZone'],

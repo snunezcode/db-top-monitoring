@@ -1,4 +1,7 @@
 import { useState,useEffect,useRef } from 'react';
+
+import { createLabelFunction, customFormatNumberLong, customFormatNumber, customFormatNumberShort, customFormatNumberInteger } from '../components/Functions';
+
 import Axios from 'axios';
 import { configuration } from './Configs';
 import { useSearchParams } from 'react-router-dom';
@@ -8,6 +11,10 @@ import Box from "@cloudscape-design/components/box";
 import Tabs from "@cloudscape-design/components/tabs";
 import ColumnLayout from "@cloudscape-design/components/column-layout";
 import { SplitPanel } from '@cloudscape-design/components';
+import Badge from "@cloudscape-design/components/badge";
+import FormField from "@cloudscape-design/components/form-field";
+import Select from "@cloudscape-design/components/select";
+import Toggle from "@cloudscape-design/components/toggle";
 
 import Flashbar from "@cloudscape-design/components/flashbar";
 import Icon from "@cloudscape-design/components/icon";
@@ -21,12 +28,18 @@ import Header from "@cloudscape-design/components/header";
 import Container from "@cloudscape-design/components/container";
 import ElasticNode  from '../components/CompElasticNode01';
 import CompMetric01  from '../components/Metric01';
+import Label01  from '../components/Label01';
 import ChartLine02  from '../components/ChartLine02';
+import ChartLine04  from '../components/ChartLine04';
 import CLWChart  from '../components/ChartCLW03';
 import ChartRadialBar01 from '../components/ChartRadialBar01';
 import ChartColumn01 from '../components/ChartColumn01';
 import ChartProgressBar01 from '../components/ChartProgressBar-01';
 import ChartBar03 from '../components/ChartBar03';
+import ChartBar06 from '../components/ChartBar06';
+import CustomTable02 from "../components/Table02";
+import ChartPolar02  from '../components/ChartPolar-02';
+
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -56,8 +69,8 @@ function App() {
     //--######## Global Settings
     
     //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("tab01");
-    const currentTabId = useRef("tab01");
+    const [activeTabId, setActiveTabId] = useState("tab02");
+    const currentTabId = useRef("tab02");
     
     
     const parameter_code_id=params.get("code_id");  
@@ -85,6 +98,9 @@ function App() {
     
     //-- Variable for Split Panels
     const [splitPanelShow,setsplitPanelShow] = useState(false);
+    var splitPanelIsShow = useRef(false);
+    const [splitPanelSize, setSplitPanelSize] = useState(500);
+
     const [metricDetailsIndex,setMetricDetailsIndex] = useState({index : 'cpu', title : 'CPU Usage(%)', timestamp : 0 });
     
     
@@ -101,6 +117,11 @@ function App() {
                                 cluster : {
                                             status : "pending",
                                             size : "-",
+                                            hostMemory : 0, 
+                                            hostVCPU : 0, 
+                                            hostCPUFamily : 0, 
+                                            hostNetworkBurst : 0, 
+                                            hostNetworkBase : 0,
                                             totalShards : 0,
                                             totalNodes : 0,
                                             cpu: 0,
@@ -119,8 +140,13 @@ function App() {
                                             cacheHitRate : 0,
                                             netIn: 0,
                                             netOut: 0,
+                                            netTotal: 0,
                                             connectionsTotal: 0,
                                             commands: 0,
+                                            errorstatErr : 0,
+                                            errorstatMoved : 0,
+                                            errorstatOom : 0,
+                                            errorsTotal : 0,
                                             lastUpdate : "-",
                                             connectionId : "-",
                                             history : {
@@ -132,12 +158,169 @@ function App() {
                                                 globalLatency : [],
                                                 keyspaceHits : [],
                                                 keyspaceMisses : [],
+                                                errorstatErr : [],
+                                                errorstatMoved : [],
+                                                errorstatOom : [],
+                                                cpu : [],
+                                                memory : [],                                                
+                                                network : [],
                                             },
                                             nodes : [],
+                                            chartSummary :  { categories : [], data : [] },                                            
+                                            
                                 },
                 });
     
     
+        const [nodeStats,setNodeStats] = useState({          
+                                                    hostMemory : 0, 
+                                                    hostVCPU : 0, 
+                                                    hostCPUFamily : 0, 
+                                                    hostNetworkBurst : 0, 
+                                                    hostNetworkBase : 0,
+                                                    operations : 0,
+                                                    getCalls : 0,
+                                                    setCalls : 0,
+                                                    cmdAuth : 0,
+                                                    cmdExec : 0,
+                                                    cmdInfo : 0,
+                                                    cmdScan : 0,
+                                                    cmdXadd : 0,
+                                                    cmdZadd : 0,
+                                                    commands : 0,
+                                                    connectionsTotal : 0,
+                                                    errorstatErr : 0,
+                                                    errorstatMoved : 0,
+                                                    errorstatOom : 0,
+                                                    errorsTotal : 0,
+                                                    keyspaceHits : 0,
+                                                    keyspaceMisses : 0,
+                                                    sessions : 0,
+                                                    cacheHitRate : 0,
+                                                    getLatency : 0,
+                                                    setLatency : 0,
+                                                    globalLatency : 0,
+                                                    connectedClients : 0,
+                                                    cpu : 0,
+                                                    memory : 0,
+                                                    memoryTotal : 0,
+                                                    memoryUsed : 0,
+                                                    network : 0,
+                                                    netIn : 0,
+                                                    netOut : 0,
+                                                    history : {
+                                                        operations : [],
+                                                        getCalls : [],
+                                                        setCalls : [],
+                                                        getLatency : [],
+                                                        setLatency : [],
+                                                        globalLatency : [],
+                                                        keyspaceHits : [],
+                                                        keyspaceMisses : [],
+                                                        errorstatErr : [],
+                                                        errorstatMoved : [],
+                                                        errorstatOom : [],
+                                                        cpu : [],
+                                                        memory : [],                                                
+                                                        network : [],
+                                                    }
+                 
+    });
+
+    var nodeName = useRef("");
+
+    //-- Table nodes    
+    const columnsTableNodes =  [
+            {id: 'name',header: 'Node',cell: item => 
+                ( <>                
+                    { item.role === "master" &&
+                        <Badge color="blue"> P </Badge>
+                    }
+                    { item.role === "slave" &&
+                        <Badge color="red"> R </Badge>
+                    }
+                    { item.role === "-" &&
+                        <Badge>-</Badge>
+                    }
+                    &nbsp;
+                    {item.name}
+
+                </> )
+            ,ariaLabel: createLabelFunction('name'),sortingField: 'name',},            
+            {id: 'role',header: 'Role',cell: item => (item['role'] == 'master' ? 'Primary' : ( item['role'] == 'slave' ? 'Reader' : 'Unknown' )) ,ariaLabel: createLabelFunction('role'),sortingField: 'role',},
+            {id: 'operations',header: 'Operations/sec',cell: item => customFormatNumberInteger(parseFloat(item['operations']) || 0),ariaLabel: createLabelFunction('operations'),sortingField: 'operations',},
+            {id: 'getCalls',header: 'GetCalls/sec',cell: item => customFormatNumberInteger(parseFloat(item['getCalls']) || 0) ,ariaLabel: createLabelFunction('getCalls'),sortingField: 'getCalls',},
+            {id: 'setCalls',header: 'SetCalls/sec',cell: item => customFormatNumberInteger(parseFloat(item['setCalls']) || 0),ariaLabel: createLabelFunction('setCalls'),sortingField: 'setCalls',},
+            {id: 'cmdAuth',header: 'CmdAuth/sec',cell: item => customFormatNumberInteger(parseFloat(item['cmdAuth']) || 0),ariaLabel: createLabelFunction('cmdAuth'),sortingField: 'cmdAuth',},
+            {id: 'cmdExec',header: 'CmdExec/sec',cell: item => customFormatNumberInteger(parseFloat(item['cmdExec']) || 0),ariaLabel: createLabelFunction('cmdExec'),sortingField: 'cmdExec',},
+            {id: 'cmdInfo',header: 'CmdInfo/sec',cell: item => customFormatNumberInteger(parseFloat(item['cmdInfo']) || 0),ariaLabel: createLabelFunction('cmdInfo'),sortingField: 'cmdInfo',},
+            {id: 'cmdScan',header: 'CmdScan/sec',cell: item => customFormatNumberInteger(parseFloat(item['cmdScan']) || 0),ariaLabel: createLabelFunction('cmdScan'),sortingField: 'cmdScan',},
+            {id: 'cmdXadd',header: 'CmdXadd/sec',cell: item => customFormatNumberInteger(parseFloat(item['cmdXadd']) || 0),ariaLabel: createLabelFunction('cmdXadd'),sortingField: 'cmdXadd',},
+            {id: 'cmdZadd',header: 'CmdZadd/sec',cell: item => customFormatNumberInteger(parseFloat(item['cmdZadd']) || 0),ariaLabel: createLabelFunction('cmdZadd'),sortingField: 'cmdZadd',},
+            {id: 'commands',header: 'Commands/sec',cell: item => customFormatNumberInteger(parseFloat(item['commands']) || 0),ariaLabel: createLabelFunction('commands'),sortingField: 'commands',},
+            {id: 'errorsTotal',header: 'Errors/sec',cell: item => customFormatNumberInteger(parseFloat(item['errorsTotal']) || 0),ariaLabel: createLabelFunction('errorsTotal'),sortingField: 'errorsTotal',},
+            {id: 'errorstatErr',header: 'ErrorStatErr/sec',cell: item => customFormatNumberInteger(parseFloat(item['errorstatErr']) || 0),ariaLabel: createLabelFunction('errorstatErr'),sortingField: 'errorstatErr',},
+            {id: 'errorstatMoved',header: 'ErrorStatMoved/sec',cell: item => customFormatNumberInteger(parseFloat(item['errorstatMoved']) || 0),ariaLabel: createLabelFunction('errorstatMoved'),sortingField: 'errorstatMoved',},
+            {id: 'errorstatOom',header: 'ErrorStatOom/sec',cell: item => customFormatNumberInteger(parseFloat(item['errorstatOom']) || 0),ariaLabel: createLabelFunction('errorstatOom'),sortingField: 'errorstatOom',},
+            {id: 'connectionsTotal',header: 'ConnectionsTotal',cell: item => customFormatNumberInteger(parseFloat(item['connectionsTotal']) || 0),ariaLabel: createLabelFunction('connectionsTotal'),sortingField: 'connectionsTotal',},
+            {id: 'keyspaceHits',header: 'KeyspaceHits/sec',cell: item => customFormatNumberInteger(parseFloat(item['keyspaceHits']) || 0),ariaLabel: createLabelFunction('keyspaceHits'),sortingField: 'keyspaceHits',},
+            {id: 'keyspaceMisses',header: 'KeyspaceMisses/sec',cell: item => customFormatNumberInteger(parseFloat(item['keyspaceMisses']) || 0),ariaLabel: createLabelFunction('keyspaceMisses'),sortingField: 'keyspaceMisses',},
+            {id: 'sessions',header: 'Sessions',cell: item => customFormatNumberInteger(parseFloat(item['sessions']) || 0),ariaLabel: createLabelFunction('sessions'),sortingField: 'sessions',},
+            {id: 'cacheHitRate',header: 'CacheHit(%)',cell: item => customFormatNumberShort(parseFloat(item['cacheHitRate']) || 0,2) ,ariaLabel: createLabelFunction('cacheHitRate'),sortingField: 'cacheHitRate',},
+            {id: 'getLatency',header: 'GetLatency(us)',cell: item => customFormatNumberShort(parseFloat(item['getLatency']) || 0,0),ariaLabel: createLabelFunction('getLatency'),sortingField: 'getLatency',},
+            {id: 'setLatency',header: 'SetLatency(us)',cell: item => customFormatNumberShort(parseFloat(item['setLatency']) || 0,0),ariaLabel: createLabelFunction('setLatency'),sortingField: 'setLatency',},
+            {id: 'globalLatency',header: 'GlobalLatency(us)',cell: item => customFormatNumberShort(parseFloat(item['globalLatency']) || 0,0),ariaLabel: createLabelFunction('globalLatency'),sortingField: 'setLatency',},
+            {id: 'connectedClients',header: 'ClientsConnected',cell: item => customFormatNumberInteger(parseFloat(item['connectedClients']) || 0),ariaLabel: createLabelFunction('connectedClients'),sortingField: 'connectedClients',},
+            {id: 'connectionsTotal',header: 'Connections/sec',cell: item => customFormatNumberInteger(parseFloat(item['connectionsTotal']) || 0),ariaLabel: createLabelFunction('connectionsTotal'),sortingField: 'connectionsTotal',},
+            {id: 'cpu',header: 'CPU(%)',cell: item => customFormatNumberShort(parseFloat(item['cpu']) || 0,0),ariaLabel: createLabelFunction('cpu'),sortingField: 'cpu',},
+            {id: 'memory',header: 'Memory(%)',cell: item => customFormatNumberShort(parseFloat(item['memory']) || 0,0),ariaLabel: createLabelFunction('memory'),sortingField: 'memory',},
+            {id: 'memoryTotal',header: 'TotalMemory',cell: item => customFormatNumber(parseFloat(item['memoryTotal']) || 0,0),ariaLabel: createLabelFunction('memoryTotal'),sortingField: 'memoryTotal',},
+            {id: 'memoryUsed',header: 'TotalUsed',cell: item => customFormatNumber(parseFloat(item['memoryUsed']) || 0,0),ariaLabel: createLabelFunction('memoryUsed'),sortingField: 'memoryUsed',},
+            {id: 'network',header: 'Network(%)',cell: item => customFormatNumberShort(parseFloat(item['network']) || 0,0),ariaLabel: createLabelFunction('network'),sortingField: 'network',},
+            {id: 'netIn',header: 'Netork-In',cell: item => customFormatNumber(parseFloat(item['netIn']) || 0,2),ariaLabel: createLabelFunction('netIn'),sortingField: 'netIn',},
+            {id: 'netOut',header: 'Network-Out',cell: item => customFormatNumber(parseFloat(item['netOut']) || 0,2),ariaLabel: createLabelFunction('netOut'),sortingField: 'netOut',},
+            {id: 'netTotal',header: 'Network-Total',cell: item => customFormatNumber(parseFloat(item['netOut']) || 0,2),ariaLabel: createLabelFunction('netOut'),sortingField: 'netOut',},
+            {id: 'hostNetworkBase',header: 'NetworkBase',cell: item => customFormatNumber(parseFloat(item['hostNetworkBase']) || 0),ariaLabel: createLabelFunction('hostNetworkBase'),sortingField: 'hostNetworkBase',},
+    ];
+
+    const visibleContentNodes = ['name', 'operations', 'connectedClients', 'getCalls', 'setCalls', 'cacheHitRate', 'errorsTotal', 'cpu', 'memory', 'network' ];
+
+
+    //-- Analytics Insight
+
+    const cloudwatchMetrics = [       
+        {
+          label: "Host-Level",
+          options: [
+                    { type : "1", label : "CPUUtilization", value : "CPUUtilization", descriptions : "The percentage of CPU utilization for the entire host. Because Valkey and Redis OSS are single-threaded, we recommend you monitor EngineCPUUtilization metric for nodes with 4 or more vCPUs.", unit : "Percentage", format : 3, ratio : "1" },          
+          
+          ]
+        },
+        {
+            label: "Engine-Level",
+            options: [
+                      { type : "2", label : "SetTypeCmds", value : "SetTypeCmds", descriptions : "The total number of write types of commands. This is derived from the commandstats statistic by summing all of the mutative types of commands that operate on data (set, hset, sadd, lpop, and so on.", unit : "Count", format : 3, ratio : "60" },          
+            
+            ]
+          }
+      ];
+    
+    const [selectedCloudWatchMetric,setSelectedCloudWatchMetric] = useState({
+                                                        label: "CPUUtilization",
+                                                        value: "CPUUtilization"
+    });
+    
+    const cloudwatchMetric = useRef({ type : "1", name : "CPUUtilization", descriptions : "The percentage of CPU utilization for the entire host. Because Valkey and Redis OSS are single-threaded, we recommend you monitor EngineCPUUtilization metric for nodes with 4 or more vCPUs.", unit : "Percentage", format : 3, ratio : "1" });
+    var metricName = useRef("");
+    const [stackedChart, setStackedChart] = useState(true);
+    const [selectedOptionInterval,setSelectedOptionInterval] = useState({label: "1 Hour",value: 1});
+    const optionInterval = useRef(1);
+    const [cloudwatchData,setCloudwatchData] = useState({
+        metrics : [],
+        summary : { categories : [], data : [] }        
+    });
+      
+
     //-- Function Gather Metrics
     async function openClusterConnection() {
         
@@ -179,6 +362,11 @@ function App() {
     }
    
 
+    async function gatherGlobalStats() {
+        gatherClusterStats();
+        gatherNodeStats();        
+    }
+
     //-- Function Cluster Gather Stats
     async function gatherClusterStats() {
         
@@ -199,8 +387,22 @@ function App() {
                       }
                   }).then((data)=>{
                    
-                   var info = data.data.cluster;
-                   setClusterStats({ cluster : {...info} });
+                    console.log(data.data.cluster);
+                
+                    var metricName = "operations";
+                    var chartSummary = { categories : [], data : []};
+                    var cluster = data.data.cluster;
+
+                    cluster.nodes.forEach(function(node) {
+
+                        chartSummary.categories.push(node['name']);
+                        chartSummary.data.push(node[metricName]);
+                    
+                    });      
+                    
+                   chartSummary = sortObjectByDataValues(chartSummary);
+
+                    setClusterStats({ cluster : {...cluster, chartSummary : chartSummary } });
 
               })
               .catch((err) => {
@@ -214,6 +416,210 @@ function App() {
     }
 
 
+    function convertCloudwatchArrayToChartLineFormat(inputArray, ratio = 1) {
+     
+        // Transform each item in the array
+        return inputArray.map(item => {
+          // Create data array by combining timestamps and values with division
+          const data = item.Timestamps.map((timestamp, index) => {
+            // Convert timestamp to string if it's not already
+            const timestampStr = timestamp instanceof Date ? 
+              timestamp.toISOString() : String(timestamp);
+            
+            // Divide the value by the divisor parameter
+            const dividedValue = item.Values[index] / ratio ;
+            
+            return [timestampStr, dividedValue];
+          });
+          
+          // Return the new format
+          return {
+            name: item.Label,
+            data: data
+          };
+        });
+    }
+
+
+    function convertCloudwatchArrayToChartPolarFormat(inputArray, ratio = 1) {
+        // Create a new object with the required structure
+        const result = {
+          categories: [],
+          data: []
+        };
+      
+        // Sort the array by Label to ensure consistent order
+        const sortedArray = [...inputArray].sort((a, b) => a.Label.localeCompare(b.Label));
+        
+        // Extract the categories and data from the sorted array
+        sortedArray.forEach(item => {
+          result.categories.push(item.Label);
+          
+          // Divide the first value by the ratio
+          const dividedValue = item.Values[0] / ratio;
+          result.data.push(dividedValue);
+        });
+      
+        return result;
+      }
+      
+
+
+    //-- Function Node Gather Stats
+    async function gatherNodeStats() {
+        
+        if (currentTabId.current != "tab01") {
+            return;
+        }
+
+        if (splitPanelIsShow.current != true) {
+            return;
+        }
+        
+        var api_url = configuration["apps-settings"]["api_url"];
+        
+        Axios.get(`${api_url}/api/elasticache/redis/node/gather/stats/`,{
+                      params: { 
+                                connectionId : cnf_connection_id, 
+                                clusterId : cnf_identifier,                                 
+                                engineType : "elasticache",
+                                node : nodeName.current
+                          
+                      }
+                  }).then((data)=>{                  
+                   
+                    setNodeStats(data.data);
+
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/elasticache/redis/node/gather/stats/' );
+                  console.log(err);
+                  
+              });
+              
+        
+        
+    }
+
+
+
+
+    //-- Function Cloudwatch metrics
+    async function gatherCloudwatchMetrics() {
+        
+        /*
+        if (currentTabId.current != "tab02") {
+            return;
+        }
+        */
+        
+        
+        //-- Metrics history
+        var params = { 
+            period : 60,
+            interval : 60,
+            sql : "SELECT AVG(SetTypeCmds) FROM SCHEMA(\"AWS/ElastiCache\", CacheClusterId) GROUP BY CacheClusterId"                          
+        };
+        
+        var dataMetrics = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/general/cloudwatch/gather/metrics/`,{
+                      params: params,         
+        });
+        
+        var metrics = convertCloudwatchArrayToChartLineFormat(dataMetrics.data,60);
+
+        
+        
+        //-- Metrics summary
+        
+        params = { 
+            period : 60*60,
+            interval : 60,
+            sql : "SELECT SUM(SetTypeCmds) FROM SCHEMA(\"AWS/ElastiCache\", CacheClusterId) GROUP BY CacheClusterId"                          
+        };
+
+
+        var dataSummary = await Axios.get(`${configuration["apps-settings"]["api_url"]}/api/general/cloudwatch/gather/metrics/`,{
+            params: params,         
+        });
+
+        console.log(dataSummary);
+
+        var summary = convertCloudwatchArrayToChartPolarFormat(dataSummary.data,60*60);
+
+        console.log(summary);
+        
+        setCloudwatchData({ metrics : metrics, summary : summary });
+
+        
+
+
+        /*
+        var api_url = configuration["apps-settings"]["api_url"];
+        
+        Axios.get(`${api_url}/api/general/cloudwatch/gather/metrics/`,{
+                      params: { 
+                                period : 60,
+                                interval : 60,
+                                sql : "SELECT AVG(SetTypeCmds) FROM SCHEMA(\"AWS/ElastiCache\", CacheClusterId) GROUP BY CacheClusterId"                          
+                      }
+                  }).then((data)=>{ 
+                    
+                    
+                    console.log(data);
+                    var metrics = convertCloudwatchArrayToChartLineFormat(data.data,60);
+                    setCloudwatchData({ metrics : metrics });
+
+                    //-- Polar chart
+                    var metricName = "operations";
+                    var chartSummary = { categories : [], data : []};
+                    var cluster = data.data.cluster;
+
+                    cluster.nodes.forEach(function(node) {
+
+                        chartSummary.categories.push(node['name']);
+                        chartSummary.data.push(node[metricName]);
+                    
+                    });      
+                    
+                   chartSummary = sortObjectByDataValues(chartSummary);
+
+
+
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/general/cloudwatch/gather/metrics/' );
+                  console.log(err);
+                  
+              });
+              
+        */
+        
+    }
+
+    
+
+    //--## Sort object array
+    function sortObjectByDataValues(obj) {
+        
+        const pairs = obj.categories.map((category, index) => {
+          return {
+            category,
+            data: obj.data[index]
+          };
+        });        
+        
+        pairs.sort((a, b) => b.data - a.data); // ascending order
+        // For descending order use: pairs.sort((a, b) => b.data - a.data);
+        // For ascending order use: pairs.sort((a, b) => a.data - b.data);
+        
+        return {
+              categories: pairs.map(pair => pair.category),
+            data: pairs.map(pair => pair.data)
+        };
+
+      }
+
+
 
     useEffect(() => {
         openClusterConnection();
@@ -221,7 +627,8 @@ function App() {
     
     
     useEffect(() => {
-        const id = setInterval(gatherClusterStats, configuration["apps-settings"]["refresh-interval-elastic"]);
+        gatherCloudwatchMetrics();
+        const id = setInterval(gatherGlobalStats, configuration["apps-settings"]["refresh-interval-elastic"]);
         return () => clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -352,10 +759,19 @@ function App() {
         toolsHide={true}
         navigationHide={true}
         splitPanelOpen={splitPanelShow}
-        onSplitPanelToggle={() => setsplitPanelShow(false)}
-        splitPanelSize={300}
+        onSplitPanelToggle={() => {
+                setsplitPanelShow(false);
+                splitPanelIsShow.current = false;
+            }
+        }
+        onSplitPanelResize={
+                    ({ detail: { size } }) => {
+                    setSplitPanelSize(size);
+                }
+        }
+        splitPanelSize={splitPanelSize}        
         splitPanel={
-                  <SplitPanel  header={metricDetailsIndex.title} i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
+                  <SplitPanel  header={nodeName.current} i18nStrings={splitPanelI18nStrings} closeBehavior="hide"
                     onSplitPanelToggle={({ detail }) => {
                                     
                                     }
@@ -363,26 +779,526 @@ function App() {
                   >
                      
                     { splitPanelShow === true &&
-                    
-                    <table style={{"width":"100%", "padding": "1em"}}>
-                        <tr>  
-                            <td style={{"width":"30%", "padding-left": "1em"}}>  
-                                
-                                <ChartColumn01 
-                                    series={metricDetailsToColumnsBar(clusterStats['cluster']['nodes'],metricDetailsIndex.index)} 
-                                    height="200px" 
-                                />
-                                
-                            </td>
-                            <td style={{"width":"70%", "padding-left": "1em"}}>  
-                                 <ChartLine02 
-                                    series={JSON.stringify(metricDetailsToColumnsLine(clusterStats['cluster']['nodes'],metricDetailsIndex.index))} 
-                                    timestamp={metricDetailsIndex.timestamp} 
-                                    height="200px" 
-                                  />
-                            </td>
-                        </tr>
-                    </table>
+        
+                            <>
+
+                                <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
+                                    <tr>  
+                                        <td> 
+                                            <table style={{"width":"100%"}}>
+                                                <tr>                                                                          
+                                                    <td style={{"width":"50%", "text-align" : "center", "vertical-align" : "top"}}>  
+                                                        <Container
+                                                            header={
+                                                                <Header
+                                                                    variant="h2"                                                                                      
+                                                                >
+                                                                    Throughput (Operations/sec)
+                                                                </Header>
+                                                                }
+                                                        >   
+
+                                                                <br/>                                                                          
+                                                                <br/>                                                                          
+                                                                <table style={{"width":"100%"}}>
+                                                                    <tr>  
+                                                                        <td style={{"width":"25%","text-align" : "center" }}>  
+
+                                                                                <CompMetric01 
+                                                                                    value={nodeStats['operations'] || 0}
+                                                                                    title={"Operations/sec"}
+                                                                                    precision={0}
+                                                                                    format={1}
+                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                    fontSizeValue={"28px"}
+                                                                                />
+                                                                        </td>
+                                                                        <td style={{"width":"25%", "text-align" : "center"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['getCalls'] || 0}
+                                                                                title={"getCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"28px"}
+                                                                            />
+                                                                        </td>  
+                                                                        <td style={{"width":"25%", "text-align" : "center"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['setCalls'] || 0}
+                                                                                title={"setCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"28px"}
+                                                                            />
+                                                                        </td>                                                                                                                                                                                                                                                                 
+                                                                        <td style={{"width":"25%", "text-align" : "center"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['errorsTotal']}
+                                                                                title={"Errors/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"28px"}
+                                                                            />
+                                                                        </td>    
+                                                                    </tr>                                                                                    
+                                                                </table>       
+                                                                <br/>                                                                                           
+                                                                <ChartLine02 series={JSON.stringify([
+                                                                                nodeStats['history']['getCalls'],
+                                                                                nodeStats['history']['setCalls'],
+                                                                                nodeStats['history']['operations'],
+                                                                                nodeStats['history']['errorstatErr'],
+                                                                                nodeStats['history']['errorstatMoved'],
+                                                                                nodeStats['history']['errorstatOom'],
+                                                                            ])} 
+                                                                        title={"Calls/sec"} height="230px" 
+                                                                />
+                                                                <br/>  
+                                                                <table style={{"width":"100%"}}>
+                                                                    <tr>                                                                                             
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                <CompMetric01 
+                                                                                value={nodeStats['cmdExec'] || 0}
+                                                                                title={"execCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['cmdAuth'] || 0}
+                                                                                title={"authCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['cmdInfo'] || 0}
+                                                                                title={"infoCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['cmdScan'] || 0}
+                                                                                title={"scanCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                <CompMetric01 
+                                                                                value={nodeStats['cmdXadd'] || 0}
+                                                                                title={"xaddCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['cmdZadd'] || 0}
+                                                                                title={"zaddCalls/sec"}
+                                                                                precision={0}
+                                                                                format={1}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                        </td>                                                                                            
+                                                                    </tr>
+                                                                    
+                                                            </table>  
+                                                        </Container>
+                                                        <br/>
+                                                        <Container
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    Errors
+                                                                    </Header>
+                                                                }
+                                                        >
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>
+                                                                    <td style={{"width":"33%", "padding-left": "1em", "text-align" : "center" }}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['errorstatErr'] || 0}
+                                                                            title={"Errors/sec"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"24px"}
+                                                                        />
+                                                                    </td>
+                                                                    <td style={{"width":"33%", "padding-left": "1em", "text-align" : "center"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['errorstatMoved'] || 0}
+                                                                            title={"Error Moved/sec"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"24px"}
+                                                                        /> 
+                                                                    </td>
+                                                                    <td style={{"width":"33%", "padding-left": "1em", "text-align" : "center" }}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['errorstatOom'] || 0}
+                                                                            title={"Error OOM/sec"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"24px"}
+                                                                        /> 
+                                                                    </td>                                                                                                                                                          
+                                                                </tr>                                                                                        
+                                                            </table>                                                                              
+                                                        </Container>
+                                                        <br/>
+                                                        <Container
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    Efficiency
+                                                                    </Header>
+                                                                }
+                                                        >
+                                                            
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr> 
+                                                                    <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                        <ChartRadialBar01                                                                  
+                                                                                height="230px" 
+                                                                                width="100%" 
+                                                                                title="CacheHit(%)"
+                                                                                series = {JSON.stringify( [ Math.round(nodeStats['cacheHitRate']) || 0 ])}                                                                                
+                                                                        />                                                                                                                                                                                                                                                                                 
+                                                                    </td>
+                                                                    <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                        <ChartLine02 series={JSON.stringify([
+                                                                                nodeStats['history']['keyspaceHits'],
+                                                                                nodeStats['history']['keyspaceMisses'],
+                                                                            ])} 
+                                                                            title={"Cache Efficiency/sec"} height="230px" 
+                                                                        /> 
+                                                                    </td>                                                                                      
+                                                                </tr>                                                                                                                                                                      
+                                                            </table>    
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['keyspaceHits'] || 0}
+                                                                            title={"Cache Hits/sec"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        />
+                                                                    </td>
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['keyspaceMisses'] || 0}
+                                                                            title={"Cache Misses/sec"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        /> 
+                                                                    </td>
+                                                                    <td style={{"width":"50%", "padding-left": "1em"}}>                                                                                             
+                                                                    </td>                                                                    
+                                                                </tr>                                                                                        
+                                                            </table>                                                                              
+                                                        </Container>
+                                                        <br/>
+                                                        <Container
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    Latency
+                                                                    </Header>
+                                                                }
+                                                        >
+                                                            <ChartLine02 series={JSON.stringify([
+                                                                    nodeStats['history']['getLatency'],
+                                                                    nodeStats['history']['setLatency']
+                                                                ])} 
+                                                                title={"CallsLatency(us)"} height="230px" 
+                                                            />     
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>      
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['globalLatency'] || 0}
+                                                                            title={"globalLatency(us)"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        />
+                                                                    </td>  
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['getLatency'] || 0}
+                                                                            title={"getLatency(us)"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        /> 
+                                                                    </td>                                                                                                                                                                                                                                                              
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['setLatency']|| 0}
+                                                                            title={"setLatency(us)"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        />
+                                                                    </td>
+                                                                    <td style={{"width":"25%", "padding-left": "1em"}}>  
+                                                                    </td>                                                                                                                                                                                                                                                          
+                                                                </tr>                                                                                        
+                                                            </table>                                                                           
+                                                        </Container>  
+                                                        
+                                                    </td>
+                                                    <td style={{"width":"50%", "padding-left": "1em", "vertical-align" : "top"}}>     
+
+
+                                                    <Container
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    CPU resources
+                                                                    </Header>
+                                                                }
+                                                        >
+                                                            
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr> 
+                                                                    <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                        <ChartRadialBar01                                                                  
+                                                                                height="230px" 
+                                                                                width="100%" 
+                                                                                title="CPU(%)"
+                                                                                series = {JSON.stringify( [ Math.round(nodeStats['cpu']) || 0 ])}                                                                                
+                                                                        />                                                                                                                                                                                                                                                                                 
+                                                                    </td>
+                                                                    <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                        <ChartBar06 series={JSON.stringify([
+                                                                                nodeStats['history']['cpu']
+                                                                            ])} 
+                                                                            title={"CPU(%)"} height="180px" 
+                                                                        />
+                                                                    </td>                                                                                      
+                                                                </tr>                                                                                                                                                                      
+                                                            </table>    
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>                                                                                                                                                      
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={ (nodeStats['hostVCPU'] || 0 )  }
+                                                                            title={"Node"}
+                                                                            precision={0}
+                                                                            format={2}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                            postFix={" vCPUs"}
+                                                                        />     
+                                                                    </td>                                                                                        
+                                                                    <td style={{"width":"50%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <Label01 
+                                                                                value={nodeStats['hostCPUFamily'] || "-"}
+                                                                                title={"CPUFamily"}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                    </td>
+                                                                    <td style={{"width":"25%", "padding-left": "1em"}}>  
+                                                                    </td>                                                                                                                                                                                                                                                          
+                                                                </tr>                                                                                        
+                                                            </table>                                                                              
+                                                        </Container>
+
+
+                                                        <br/>
+                                                        <Container
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    Memory resources
+                                                                    </Header>
+                                                                }
+                                                        >
+                                                            
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr> 
+                                                                    <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                        <ChartRadialBar01                                                                  
+                                                                                height="230px" 
+                                                                                width="100%" 
+                                                                                title="Memory(%)"
+                                                                                series = {JSON.stringify( [ Math.round(nodeStats['memory']) || 0 ])}                                                                                
+                                                                        />                                                                                                                                                                                                                                                                                 
+                                                                    </td>
+                                                                    <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                        <ChartBar06 series={JSON.stringify([
+                                                                                nodeStats['history']['memory']
+                                                                            ])} 
+                                                                            title={"Memory(%)"} height="180px" 
+                                                                        />
+                                                                    </td>                                                                                      
+                                                                </tr>                                                                                                                                                                      
+                                                            </table>    
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>                                                                         
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['hostMemory'] * 1024 * 1024 * 1024 || 0}
+                                                                                title={"Node Memory"}
+                                                                                precision={2}
+                                                                                format={2}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                    </td>                                                                                                                                                                           
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                            <CompMetric01 
+                                                                                value={nodeStats['memoryTotal'] || 0}
+                                                                                title={"Cache Memory Total"}
+                                                                                precision={2}
+                                                                                format={2}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                    </td>
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                                value={nodeStats['memoryUsed'] || 0}
+                                                                                title={"Cache Memory Used"}
+                                                                                precision={2}
+                                                                                format={2}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"16px"}
+                                                                            />
+                                                                    </td>
+                                                                    <td style={{"width":"25%", "padding-left": "1em"}}>  
+                                                                    </td>                                                                                                                                                                                                                                                          
+                                                                </tr>                                                                                        
+                                                            </table>                                                                              
+                                                        </Container>
+                                                        <br/>
+
+                                                        <Container
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    Network resources
+                                                                    </Header>
+                                                                }
+                                                        >
+                                                            
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr> 
+                                                                    <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                        <ChartRadialBar01                                                                  
+                                                                                height="230px" 
+                                                                                width="100%" 
+                                                                                title="Network(%)"
+                                                                                series = {JSON.stringify( [ Math.round(nodeStats['network']) || 0 ])}                                                                                
+                                                                        />                                                                                                                                                                                                                                                                                 
+                                                                    </td>
+                                                                    <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                        <ChartBar06 series={JSON.stringify([
+                                                                                nodeStats['history']['network']
+                                                                            ])} 
+                                                                            title={"Network utilization(%)"} height="180px" 
+                                                                        />
+                                                                    </td>                                                                                      
+                                                                </tr>                                                                                                                                                                      
+                                                            </table>    
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>
+                                                                    <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['hostNetworkBase'] || 0}
+                                                                            title={"Node Bandwidth"}
+                                                                            precision={2}
+                                                                            format={2}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                            postFix={"/sec"}
+                                                                        />
+                                                                    </td>                                                                    
+                                                                    <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['netTotal'] || 0}
+                                                                            title={"Network-Total"}
+                                                                            precision={2}
+                                                                            format={2}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                            postFix={"/sec"}
+                                                                        />
+                                                                    </td>
+                                                                    <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['netIn'] || 0}
+                                                                            title={"Network-In"}
+                                                                            precision={2}
+                                                                            format={2}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                            postFix={"/sec"}
+                                                                        />
+                                                                    </td>
+                                                                    <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={nodeStats['netOut'] || 0}
+                                                                            title={"Network-Out"}
+                                                                            precision={2}
+                                                                            format={2}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                            postFix={"/sec"}
+                                                                        />
+                                                                    </td>                                                                                                                                                                                                                                                    
+                                                                </tr>                                                                                        
+                                                            </table>                                                                              
+                                                        </Container>
+                                                        
+                                                    </td>
+                                                </tr>
+                                            </table>                                                                                                                                
+                                                    
+                                        </td>
+                                    </tr>
+                                </table>  
+                            
+                            </>
+
                      
                     }
                         
@@ -445,202 +1361,487 @@ function App() {
                                             <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
                                                 <tr>  
                                                    <td> 
-                                                        <Container>
-                                
-                                                                <table style={{"width":"100%"}}>
-                                                                    <tr>  
-                                                                        <td style={{"width":"12%", "padding-left": "1em"}}>  
-                                                                                <CompMetric01 
-                                                                                    value={clusterStats['cluster']['operations'] || 0}
-                                                                                    title={"Operations/sec"}
-                                                                                    precision={0}
-                                                                                    format={1}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                        </td>
-                                                                        <td style={{"width":"8%", "padding-left": "1em"}}>  
-                                                                                <CompMetric01 
-                                                                                    value={clusterStats['cluster']['globalLatency'] || 0}
-                                                                                    title={"globalLatency(us)"}
-                                                                                    precision={0}
-                                                                                    format={1}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"24px"}
-                                                                                />
-                                                                        </td>
-                                                                        <td style={{"width":"8%", "padding-left": "1em"}}>  
-                                                                                
-                                                                                <CompMetric01 
-                                                                                    value={clusterStats['cluster']['getLatency'] || 0}
-                                                                                    title={"getLatency(us)"}
-                                                                                    precision={0}
-                                                                                    format={1}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                                <br/> 
-                                                                                <br/> 
-                                                                                <CompMetric01 
-                                                                                    value={clusterStats['cluster']['setLatency']|| 0}
-                                                                                    title={"setLatency(us)"}
-                                                                                    precision={0}
-                                                                                    format={1}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "padding-left": "1em", "padding-right": "1em"}}>  
-                                                                                
-                                                                                <ChartProgressBar01 
-                                                                                    value={  Math.round(clusterStats['cluster']['cpu']) || 0 }
-                                                                                    valueSufix={"%"}
-                                                                                    title={"CPU"}
-                                                                                    precision={0}
-                                                                                    format={3}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                                <br />
-                                                                                <br />
-                                                                                <ChartProgressBar01 
-                                                                                    value={  Math.round(clusterStats['cluster']['memory']) || 0 }
-                                                                                    valueSufix={"%"}
-                                                                                    title={"Memory"}
-                                                                                    precision={0}
-                                                                                    format={3}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                             
-                                                                        </td>
-                                                                        <td style={{"width":"10%", "padding-left": "1em", "padding-right": "1em"}}>  
-                                                                                <ChartProgressBar01 
-                                                                                    value={  Math.round(clusterStats['cluster']['network']) || 0 }
-                                                                                    valueSufix={"%"}
-                                                                                    title={"Network"}
-                                                                                    precision={0}
-                                                                                    format={3}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                                <br />
-                                                                                <br />
-                                                                                <ChartProgressBar01 
-                                                                                    value={  Math.round(clusterStats['cluster']['cacheHitRate']) || 0 }
-                                                                                    valueSufix={"%"}
-                                                                                    title={"CacheHitRatio"}
-                                                                                    precision={0}
-                                                                                    format={3}
-                                                                                    fontColorValue={configuration.colors.fonts.metric100}
-                                                                                    fontSizeValue={"16px"}
-                                                                                />
-                                                                        </td>
-                                                                        <td style={{"width":"30%", "padding-left": "1em"}}>  
-                                                                            <ChartBar03 series={JSON.stringify([
-                                                                                                    clusterStats['cluster']['history']['operations']
-                                                                                                ])} 
-                                                                                                title={"Operations/sec"} height="200px" 
-                                                                            />
-                                                                        </td>
-                                                                        
-                                                                    </tr>
-                                                                    
-                                                                </table>  
+                                                      
                                                                 
-                                                                <br />
-                                                                <br />
                                                                 <table style={{"width":"100%"}}>
-                                                                    <tr> 
-                                                                        <td style={{"width":"12.5%",  "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['getCalls'] || 0}
-                                                                                title={"getCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
+                                                                    <tr>                                                                          
+                                                                        <td style={{"width":"50%", "text-align" : "center", "vertical-align" : "top"}}>  
+                                                                            <Container
+                                                                                header={
+                                                                                    <Header
+                                                                                      variant="h2"                                                                                      
+                                                                                    >
+                                                                                      Throughput (Operations/sec)
+                                                                                    </Header>
+                                                                                  }
+                                                                            >   
+                                                                                    <ChartPolar02 
+                                                                                        title={""} 
+                                                                                        height="470px" 
+                                                                                        width="100%" 
+                                                                                        series = {JSON.stringify(clusterStats['cluster']?.['chartSummary']?.['data'] || [])}
+                                                                                        labels = {JSON.stringify(clusterStats['cluster']?.['chartSummary']?.['categories'] || [])}                                                                                    
+                                                                                    />  
+                                                                                    <br/>                                                                                 
+                                                                                    <br/>                                                                                 
+                                                                                    <table style={{"width":"100%"}}>
+                                                                                        <tr>  
+                                                                                            
+                                                                                            <td style={{"width":"25%","text-align" : "center" }}>  
+
+                                                                                                    <CompMetric01 
+                                                                                                        value={clusterStats['cluster']['operations'] || 0}
+                                                                                                        title={"Operations/sec"}
+                                                                                                        precision={0}
+                                                                                                        format={1}
+                                                                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                        fontSizeValue={"28px"}
+                                                                                                    />
+                                                                                            </td>
+                                                                                            <td style={{"width":"25%", "text-align" : "center"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['getCalls'] || 0}
+                                                                                                    title={"getCalls/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"28px"}
+                                                                                                />
+                                                                                            </td>  
+                                                                                            <td style={{"width":"25%", "text-align" : "center"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['setCalls'] || 0}
+                                                                                                    title={"setCalls/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"28px"}
+                                                                                                />
+                                                                                            </td>                                                                                                                                                                                                                                                                 
+                                                                                            <td style={{"width":"25%", "text-align" : "center"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['errorsTotal']}
+                                                                                                    title={"Errors/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"28px"}
+                                                                                                />
+                                                                                            </td>    
+                                                                                        </tr>                                                                                    
+                                                                                    </table>       
+                                                                                    <br/>                                                                                           
+                                                                                    <ChartLine02 series={JSON.stringify([
+                                                                                                    clusterStats['cluster']['history']['getCalls'],
+                                                                                                    clusterStats['cluster']['history']['setCalls'],
+                                                                                                    clusterStats['cluster']['history']['operations'],
+                                                                                                    clusterStats['cluster']['history']['errorstatErr'],
+                                                                                                    clusterStats['cluster']['history']['errorstatMoved'],
+                                                                                                    clusterStats['cluster']['history']['errorstatOom'],
+                                                                                                ])} 
+                                                                                            title={"Calls/sec"} height="230px" 
+                                                                                    />
+                                                                                    <br/>  
+                                                                                    <table style={{"width":"100%"}}>
+                                                                                        <tr>                                                                                             
+                                                                                            <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                    <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['cmdExec'] || 0}
+                                                                                                    title={"execCalls/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                            </td>                                                                                            
+                                                                                            <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['cmdInfo'] || 0}
+                                                                                                    title={"infoCalls/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['cmdScan'] || 0}
+                                                                                                    title={"scanCalls/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                    <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['cmdXadd'] || 0}
+                                                                                                    title={"xaddCalls/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                            </td>
+                                                                                            <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['cmdZadd'] || 0}
+                                                                                                    title={"zaddCalls/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                            </td>      
+                                                                                            <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['connectionsTotal'] || 0}
+                                                                                                    title={"Connections/sec"}
+                                                                                                    precision={0}
+                                                                                                    format={1}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                            </td>                                                                                                                                                                                  
+                                                                                        </tr>
+                                                                                        
+                                                                                </table>  
+                                                                            </Container>
+                                                                            <br/>
+                                                                            <Container
+                                                                                    header={
+                                                                                        <Header
+                                                                                        variant="h2"                                                                                      
+                                                                                        >
+                                                                                        Errors
+                                                                                        </Header>
+                                                                                    }
+                                                                            >
+                                                                                  
+                                                                                <table style={{"width":"100%"}}>
+                                                                                    <tr>
+                                                                                        <td style={{"width":"33%", "padding-left": "1em", "text-align" : "center" }}>  
+                                                                                            <CompMetric01 
+                                                                                                value={clusterStats['cluster']['errorstatErr'] || 0}
+                                                                                                title={"Errors/sec"}
+                                                                                                precision={0}
+                                                                                                format={1}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"24px"}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td style={{"width":"33%", "padding-left": "1em", "text-align" : "center"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={clusterStats['cluster']['errorstatMoved'] || 0}
+                                                                                                title={"Error Moved/sec"}
+                                                                                                precision={0}
+                                                                                                format={1}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"24px"}
+                                                                                            /> 
+                                                                                        </td>
+                                                                                        <td style={{"width":"33%", "padding-left": "1em", "text-align" : "center" }}>  
+                                                                                            <CompMetric01 
+                                                                                                value={clusterStats['cluster']['errorstatOom'] || 0}
+                                                                                                title={"Error OOM/sec"}
+                                                                                                precision={0}
+                                                                                                format={1}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"24px"}
+                                                                                            /> 
+                                                                                        </td>                                                                                                                                                          
+                                                                                    </tr>                                                                                        
+                                                                                </table>                                                                              
+                                                                            </Container>
+
+                                                                            
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['setCalls'] || 0}
-                                                                                title={"setCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
+                                                                        <td style={{"width":"50%", "padding-left": "1em", "vertical-align" : "top"}}>     
+
+
+                                                                        <Container
+                                                                                    header={
+                                                                                        <Header
+                                                                                        variant="h2"                                                                                      
+                                                                                        >
+                                                                                        CPU resources
+                                                                                        </Header>
+                                                                                    }
+                                                                            >
+                                                                                
+                                                                                <table style={{"width":"100%"}}>
+                                                                                    <tr> 
+                                                                                        <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                                            <ChartRadialBar01                                                                  
+                                                                                                    height="230px" 
+                                                                                                    width="100%" 
+                                                                                                    title="CPU(%)"
+                                                                                                    series = {JSON.stringify( [ Math.round(clusterStats['cluster']['cpu']) || 0 ])}                                                                                
+                                                                                            />                                                                                                                                                                                                                                                                                 
+                                                                                        </td>
+                                                                                        <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                                            <ChartBar06 series={JSON.stringify([
+                                                                                                    clusterStats['cluster']['history']['cpu']
+                                                                                                ])} 
+                                                                                                title={"CPU(%)"} height="180px" 
+                                                                                            />
+                                                                                        </td>                                                                                      
+                                                                                    </tr>                                                                                                                                                                      
+                                                                                </table>    
+                                                                                <table style={{"width":"100%"}}>
+                                                                                    <tr>
+                                                                                        <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={ (clusterStats['cluster']['hostVCPU'] || 0 ) * (clusterStats['cluster']['totalNodes'] || 0 ) }
+                                                                                                title={"Cluster"}
+                                                                                                precision={0}
+                                                                                                format={2}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"16px"}
+                                                                                                postFix={" vCPUs"}
+                                                                                            />     
+                                                                                        </td>                                                                                        
+                                                                                        <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={ (clusterStats['cluster']['hostVCPU'] || 0 )  }
+                                                                                                title={"Node"}
+                                                                                                precision={0}
+                                                                                                format={2}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"16px"}
+                                                                                                postFix={" vCPUs"}
+                                                                                            />     
+                                                                                        </td>                                                                                        
+                                                                                        <td style={{"width":"50%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <Label01 
+                                                                                                    value={clusterStats['cluster']['hostCPUFamily'] || "-"}
+                                                                                                    title={"CPUFamily"}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                        </td>
+                                                                                        <td style={{"width":"25%", "padding-left": "1em"}}>  
+                                                                                        </td>                                                                                                                                                                                                                                                          
+                                                                                    </tr>                                                                                        
+                                                                                </table>                                                                              
+                                                                            </Container>
+
+
+                                                                            <br/>
+                                                                            <Container
+                                                                                    header={
+                                                                                        <Header
+                                                                                        variant="h2"                                                                                      
+                                                                                        >
+                                                                                        Memory resources
+                                                                                        </Header>
+                                                                                    }
+                                                                            >
+                                                                                
+                                                                                <table style={{"width":"100%"}}>
+                                                                                    <tr> 
+                                                                                        <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                                            <ChartRadialBar01                                                                  
+                                                                                                    height="230px" 
+                                                                                                    width="100%" 
+                                                                                                    title="Memory(%)"
+                                                                                                    series = {JSON.stringify( [ Math.round(clusterStats['cluster']['memory']) || 0 ])}                                                                                
+                                                                                            />                                                                                                                                                                                                                                                                                 
+                                                                                        </td>
+                                                                                        <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                                            <ChartBar06 series={JSON.stringify([
+                                                                                                    clusterStats['cluster']['history']['memory']
+                                                                                                ])} 
+                                                                                                title={"Memory(%)"} height="180px" 
+                                                                                            />
+                                                                                        </td>                                                                                      
+                                                                                    </tr>                                                                                                                                                                      
+                                                                                </table>    
+                                                                                <table style={{"width":"100%"}}>
+                                                                                    <tr>      
+                                                                                        <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={ (clusterStats['cluster']['hostMemory'] * 1024 * 1024 * 1024 || 0) * 
+                                                                                                             (clusterStats['cluster']['totalNodes'] || 0) }
+                                                                                                    title={"Cluster Memory"}
+                                                                                                    precision={2}
+                                                                                                    format={2}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                        </td>  
+                                                                                        <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['hostMemory'] * 1024 * 1024 * 1024 || 0}
+                                                                                                    title={"Node Memory"}
+                                                                                                    precision={2}
+                                                                                                    format={2}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                        </td>                                                                                                                                                                           
+                                                                                        <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                                <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['memoryTotal'] || 0}
+                                                                                                    title={"Cache Memory Total"}
+                                                                                                    precision={2}
+                                                                                                    format={2}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                        </td>
+                                                                                        <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                    value={clusterStats['cluster']['memoryUsed'] || 0}
+                                                                                                    title={"Cache Memory Used"}
+                                                                                                    precision={2}
+                                                                                                    format={2}
+                                                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                    fontSizeValue={"16px"}
+                                                                                                />
+                                                                                        </td>
+                                                                                        <td style={{"width":"25%", "padding-left": "1em"}}>  
+                                                                                        </td>                                                                                                                                                                                                                                                          
+                                                                                    </tr>                                                                                        
+                                                                                </table>                                                                              
+                                                                            </Container>
+                                                                            <br/>
+
+                                                                            <Container
+                                                                                    header={
+                                                                                        <Header
+                                                                                        variant="h2"                                                                                      
+                                                                                        >
+                                                                                        Network resources
+                                                                                        </Header>
+                                                                                    }
+                                                                            >
+                                                                                
+                                                                                <table style={{"width":"100%"}}>
+                                                                                    <tr> 
+                                                                                        <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                                            <ChartRadialBar01                                                                  
+                                                                                                    height="230px" 
+                                                                                                    width="100%" 
+                                                                                                    title="Network(%)"
+                                                                                                    series = {JSON.stringify( [ Math.round(clusterStats['cluster']['network']) || 0 ])}                                                                                
+                                                                                            />                                                                                                                                                                                                                                                                                 
+                                                                                        </td>
+                                                                                        <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                                            <ChartBar06 series={JSON.stringify([
+                                                                                                    clusterStats['cluster']['history']['network']
+                                                                                                ])} 
+                                                                                                title={"Network utilization(%)"} height="180px" 
+                                                                                            />
+                                                                                        </td>                                                                                      
+                                                                                    </tr>                                                                                                                                                                      
+                                                                                </table>    
+                                                                                <table style={{"width":"100%"}}>
+                                                                                    <tr>
+                                                                                        <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={clusterStats['cluster']['hostNetworkBase'] || 0}
+                                                                                                title={"Node Bandwidth"}
+                                                                                                precision={1}
+                                                                                                format={2}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"16px"}
+                                                                                                postFix={"/sec"}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={ ( clusterStats['cluster']['hostNetworkBase'] || 0 ) * ( clusterStats['cluster']['totalNodes'] || 0 ) }
+                                                                                                title={"Cluster Bandwidth"}
+                                                                                                precision={1}
+                                                                                                format={2}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"16px"}
+                                                                                                postFix={"/sec"}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={clusterStats['cluster']['netTotal'] || 0}
+                                                                                                title={"Network-Total"}
+                                                                                                precision={1}
+                                                                                                format={2}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"16px"}
+                                                                                                postFix={"/sec"}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={clusterStats['cluster']['netIn'] || 0}
+                                                                                                title={"Network-In"}
+                                                                                                precision={1}
+                                                                                                format={2}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"16px"}
+                                                                                                postFix={"/sec"}
+                                                                                            />
+                                                                                        </td>
+                                                                                        <td style={{"width":"20%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                                            <CompMetric01 
+                                                                                                value={clusterStats['cluster']['netOut'] || 0}
+                                                                                                title={"Network-Out"}
+                                                                                                precision={1}
+                                                                                                format={2}
+                                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                                fontSizeValue={"16px"}
+                                                                                                postFix={"/sec"}
+                                                                                            />
+                                                                                        </td>                                                                                                                                                                                                                                                    
+                                                                                    </tr>                                                                                        
+                                                                                </table>                                                                              
+                                                                            </Container>
+                                                                           
                                                                         </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                                <CompMetric01 
-                                                                                value={clusterStats['cluster']['cmdExec'] || 0}
-                                                                                title={"execCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['cmdAuth'] || 0}
-                                                                                title={"authCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['cmdInfo'] || 0}
-                                                                                title={"infoCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['cmdScan'] || 0}
-                                                                                title={"scanCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                                <CompMetric01 
-                                                                                value={clusterStats['cluster']['cmdXadd'] || 0}
-                                                                                title={"xaddCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['cmdZadd'] || 0}
-                                                                                title={"zaddCalls/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                        </td>
-                                                                        
                                                                     </tr>
-                                                                    
-                                                            </table>  
-                                                            <br />
-                                                            <br />
+                                                                </table>                                                                                                                                
+                                                                
+                                                    </td>
+                                                </tr>
+                                            </table>  
+
+                                            <table style={{"width":"100%", "padding": "1em"}}>
+                                                <tr> 
+                                                    <td style={{"width":"50%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                        <Container
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    Efficiency
+                                                                    </Header>
+                                                                }
+                                                        >
+                                                            
                                                             <table style={{"width":"100%"}}>
                                                                 <tr> 
-                                                                    <td style={{"width":"12.5%",  "padding-left": "1em"}}>  
+                                                                    <td style={{"width":"35%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
+                                                                        <ChartRadialBar01                                                                  
+                                                                                height="230px" 
+                                                                                width="100%" 
+                                                                                title="CacheHit(%)"
+                                                                                series = {JSON.stringify( [ Math.round(clusterStats['cluster']['cacheHitRate']) || 0 ])}                                                                                
+                                                                        />                                                                                                                                                                                                                                                                                 
+                                                                    </td>
+                                                                    <td style={{"width":"65%", "padding-left": "1em", "vertical-align" : "top"}}>                                                                                              
+                                                                        <ChartLine02 series={JSON.stringify([
+                                                                                clusterStats['cluster']['history']['keyspaceHits'],
+                                                                                clusterStats['cluster']['history']['keyspaceMisses'],
+                                                                            ])} 
+                                                                            title={"Cache Efficiency/sec"} height="230px" 
+                                                                        /> 
+                                                                    </td>                                                                                      
+                                                                </tr>                                                                                                                                                                      
+                                                            </table>    
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                         <CompMetric01 
                                                                             value={clusterStats['cluster']['keyspaceHits'] || 0}
                                                                             title={"Cache Hits/sec"}
@@ -650,7 +1851,7 @@ function App() {
                                                                             fontSizeValue={"16px"}
                                                                         />
                                                                     </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
                                                                         <CompMetric01 
                                                                             value={clusterStats['cluster']['keyspaceMisses'] || 0}
                                                                             title={"Cache Misses/sec"}
@@ -658,608 +1859,306 @@ function App() {
                                                                             format={1}
                                                                             fontColorValue={configuration.colors.fonts.metric100}
                                                                             fontSizeValue={"16px"}
-                                                                        />
+                                                                        /> 
                                                                     </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['memoryTotal'] || 0}
-                                                                                title={"MemoryTotal"}
-                                                                                precision={0}
-                                                                                format={2}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                    </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <CompMetric01 
-                                                                                value={clusterStats['cluster']['memoryUsed'] || 0}
-                                                                                title={"MemoryUsed"}
-                                                                                precision={0}
-                                                                                format={2}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                    </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <CompMetric01 
-                                                                            value={clusterStats['cluster']['netIn'] || 0}
-                                                                            title={"NetworkIn"}
-                                                                            precision={0}
-                                                                            format={2}
-                                                                            fontColorValue={configuration.colors.fonts.metric100}
-                                                                            fontSizeValue={"16px"}
-                                                                        />
-                                                                    </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <CompMetric01 
-                                                                            value={clusterStats['cluster']['netOut'] || 0}
-                                                                            title={"NetworkOut"}
-                                                                            precision={0}
-                                                                            format={2}
-                                                                            fontColorValue={configuration.colors.fonts.metric100}
-                                                                            fontSizeValue={"16px"}
-                                                                        />
-                                                                    </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                            <CompMetric01 
-                                                                                value={clusterStats['cluster']['connectionsTotal'] || 0}
-                                                                                title={"Connections/sec"}
-                                                                                precision={0}
-                                                                                format={1}
-                                                                                fontColorValue={configuration.colors.fonts.metric100}
-                                                                                fontSizeValue={"16px"}
-                                                                            />
-                                                                    </td>
-                                                                    <td style={{"width":"12.5%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
-                                                                        <CompMetric01 
-                                                                            value={clusterStats['cluster']['connectedClients'] || 0}
-                                                                            title={"CurConnections"}
-                                                                            precision={0}
-                                                                            format={3}
-                                                                            fontColorValue={configuration.colors.fonts.metric100}
-                                                                            fontSizeValue={"16px"}
-                                                                        />
-                                                                    </td>
-                                                                    
-                                                                </tr>
-                                                                    
-                                                            </table>  
-                                                                
-                                                            <br />
-                                                            <br />
-                                                              
-                                                              <table style={{"width":"100%"}}>
-                                                                  <tr>  
-                                                                    <td style={{"width":"33%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={JSON.stringify([
-                                                                                                    clusterStats['cluster']['history']['getCalls'],
-                                                                                                    clusterStats['cluster']['history']['setCalls']
-                                                                                                ])} 
-                                                                                                title={"Calls/sec"} height="230px" />
-                                                                    </td>
-                                                                    
-                                                                    <td style={{"width":"33%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={JSON.stringify([
-                                                                                                    clusterStats['cluster']['history']['getLatency'],
-                                                                                                    clusterStats['cluster']['history']['setLatency'],
-                                                                                                    clusterStats['cluster']['history']['globalLatency'],
-                                                                                                ])} 
-                                                                                                title={"CallsLatency(us)"} height="230px" />
-                                                                    </td>
-                                                                    <td style={{"width":"33%","padding-left": "1em"}}> 
-                                                                            <ChartLine02 series={JSON.stringify([
-                                                                                                    clusterStats['cluster']['history']['keyspaceHits'],
-                                                                                                    clusterStats['cluster']['history']['keyspaceMisses'],
-                                                                                                ])} 
-                                                                                                title={"Cache Efficiency/sec"} height="230px" />
-                                                                    </td>
-                                                                    
-                                                                  </tr>
-                                                              </table>
-                                                            
+                                                                    <td style={{"width":"50%", "padding-left": "1em"}}>                                                                                             
+                                                                    </td>                                                                    
+                                                                </tr>                                                                                        
+                                                            </table>                                                                              
                                                         </Container>
-                                                        <br/>
+                                                    
+                                                    </td>
+                                                    <td style={{"width":"50%", "padding-left": "1em", "text-align" : "center ", "vertical-align" : "top"}}>  
                                                         <Container
-                                                        
-                                                                    header={
-                                                                            <Header
-                                                                              variant="h2"
-                                                                              actions={
-                                                                                    <Pagination
-                                                                                          currentPageIndex={currentPageIndex}
-                                                                                          onChange={({ detail }) => {
-                                                                                                    setCurrentPageIndex(detail.currentPageIndex);
-                                                                                                    pageId.current = detail.currentPageIndex;
-                                                                                                    gatherClusterStats();
-                                                                                            }
-                                                                                          }
-                                                                                          pagesCount={ totalPages } 
-                                                                                    />
-                                                                                  
-                                                                              }
-                                                                            >
-                                                                              Instances
-                                                                            </Header>
-                                                                        }
+                                                                header={
+                                                                    <Header
+                                                                    variant="h2"                                                                                      
+                                                                    >
+                                                                    Latency
+                                                                    </Header>
+                                                                }
                                                         >
-                                                            
-                                                            <table style={{"width":"100%" }}>
-                                                                        <tr>
-                                                                            <td style={{ "width":"9%", "text-align":"left","padding-left":"1em", "font-size": "12px", "font-weight": "600"}}>
-                                                                                    NodeId
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('operations','Operations/sec')}>Operations/sec</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('getCalls','getCalls/sec')}>getCalls/sec</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('setCalls','setCalls/sec')}>setCalls/sec</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('cacheHitRate','CacheHitRate(%)')}>CacheHitRate(%)</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('getLatency','getLatency(us)')}> getLatency(us)</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('setLatency','setLatency(us)')}>setLatency(us)</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('connectedClients','Connections')}>Connections</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() =>  onClickMetric('cpu','CPU Usage(%)')}>CPU Usage(%)</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('memory','Memory Usage(%)')}>Memory Usage(%)</Link>
-                                                                            </td>
-                                                                            <td style={{ "width":"9%", "text-align":"center","font-size": "12px", "font-weight": "600", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>
-                                                                                <Link fontSize="body-s" onFollow={() => onClickMetric('network','Network Usage(%)')}>Network Usage(%)</Link>
-                                                                            </td>
-                                                                            
-                                                                        </tr>
-                                                                        {clusterStats['cluster']['nodes'].map((item,key) => (
-                                                                                                 <ElasticNode
-                                                                                                    node = {item}
-                                                                                                />
-                                                                           
-                                                                           
-                                                                            ))}
-                                                            </table>
-                                                
-                                                        </Container>
+                                                            <ChartLine02 series={JSON.stringify([
+                                                                    clusterStats['cluster']['history']['getLatency'],
+                                                                    clusterStats['cluster']['history']['setLatency']
+                                                                ])} 
+                                                                title={"CallsLatency(us)"} height="230px" 
+                                                            />     
+                                                            <table style={{"width":"100%"}}>
+                                                                <tr>      
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={clusterStats['cluster']['globalLatency'] || 0}
+                                                                            title={"globalLatency(us)"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        />
+                                                                    </td>  
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={clusterStats['cluster']['getLatency'] || 0}
+                                                                            title={"getLatency(us)"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        /> 
+                                                                    </td>                                                                                                                                                                                                                                                              
+                                                                    <td style={{"width":"25%", "border-left": "2px solid " + configuration.colors.lines.separator100, "padding-left": "1em"}}>  
+                                                                        <CompMetric01 
+                                                                            value={clusterStats['cluster']['setLatency']|| 0}
+                                                                            title={"setLatency(us)"}
+                                                                            precision={0}
+                                                                            format={1}
+                                                                            fontColorValue={configuration.colors.fonts.metric100}
+                                                                            fontSizeValue={"16px"}
+                                                                        />
+                                                                    </td>
+                                                                    <td style={{"width":"25%", "padding-left": "1em"}}>  
+                                                                    </td>                                                                                                                                                                                                                                                          
+                                                                </tr>                                                                                        
+                                                            </table>                                                                           
+                                                        </Container>  
                                                     </td>
                                                 </tr>
-                                            </table>  
+                                            </table>
+                                                                                 
+
+                                            <div style={{"padding": "1em"}}>
+                                                <CustomTable02
+                                                        columnsTable={columnsTableNodes}
+                                                        visibleContent={visibleContentNodes}
+                                                        dataset={clusterStats['cluster']['nodes']}
+                                                        title={"Nodes"}
+                                                        description={""}
+                                                        pageSize={10}
+                                                        onSelectionItem={( item ) => {                                                                                    
+                                                            nodeName.current = item[0]['name'];
+                                                            gatherNodeStats();      
+                                                            setsplitPanelShow(true);     
+                                                            splitPanelIsShow.current = true;                                     
+                                                          }
+                                                        }
                                                 
+                                                />
+                                            </div>  
                                                 
                                           </>
                                           
                                       },
                                       {
-                                        label: "CloudWatch Metrics",
+                                        label: "Analytics Insight",
                                         id: "tab02",
                                         content: 
-                                          
-                                          <>    
-                                                
-                                                <table style={{"width":"100%", "padding": "1em", "background-color ": "black"}}>
-                                                <tr>  
-                                                   <td> 
-                                                   
-                                                        <Container
+                                            <div style={{"padding": "1em"}}>
+                                                <div style={{"padding": "1em"}}>
+                                                    <Container>
+                                                        <table style={{"width":"100%"}}>
+                                                            <tr>                                                                      
+                                                                <td valign="top" style={{ "width":"20%", "padding": "1em"}}>
+                                                                    <FormField
+                                                                        description="Select a metric to analyze the performance."
+                                                                        label="Performance Metric"
+                                                                        >
+                                                                        
+                                                                            <Select
+                                                                                selectedOption={selectedCloudWatchMetric}
+                                                                                onChange={({ detail }) => {
+                                                                                        cloudwatchMetric.current = { type : detail.selectedOption.type, name : detail.selectedOption.value, descriptions : detail.selectedOption.descriptions, unit : detail.selectedOption.unit, format : detail.selectedOption.format  };
+                                                                                        setSelectedCloudWatchMetric(detail.selectedOption);                                                                                            
+                                                                                        //gatherGlobalStats();
+                                                                                }
+                                                                                }
+                                                                                options={cloudwatchMetrics}
+                                                                                filteringType="auto"
+                                                                            />
+                                                                    </FormField>
+                                                                </td>
+                                                                <td valign="middle" style={{ "width":"15%","padding-left": "1em" }}>
+                                                                        
+                                                                    <FormField
+                                                                    description="Period of time for analysis."
+                                                                    label="Period"
+                                                                    >
+                                                                        
+                                                                        <Select
+                                                                        selectedOption={selectedOptionInterval}
+                                                                        onChange={({ detail }) => {
+                                                                                //optionInterval.current = detail.selectedOption.value;
+                                                                                //setSelectedOptionInterval(detail.selectedOption);                                                                                    
+                                                                                //gatherGlobalStats();
+                                                                        }}
+                                                                        options={[
+                                                                            { label: "Last hour", value: 1 },
+                                                                            { label: "Last 3 hours", value: 3 },
+                                                                            { label: "Last 6 hours", value: 6 },
+                                                                            { label: "Last 12 hours", value: 12 },
+                                                                            { label: "Last 24 hours", value: 24 }
+                                                                        ]}
+                                                                        />
+                                                                    
+                                                                    </FormField>
+                                                                        
+                                                                </td>
+                                                                <td valign="middle" style={{ "width":"15%","padding-left": "1em", "padding-right": "4em"}}>
+                                                                   
+                                                                        
+                                                                </td>
+                                                                <td style={{ "width":"50%","padding-left": "2em", "border-left": "4px solid " + configuration.colors.lines.separator100 }}>
+                                                                        <Box variant="h4">{cloudwatchMetric.current.name} ({cloudwatchMetric.current.unit})</Box>
+                                                                        <Box fontSize="body-s" color="text-body-secondary">{cloudwatchMetric.current.descriptions}</Box>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </Container>
+                                                </div>                                                    
+                                                <table style={{"width":"100%", "padding": "0em"}}>
+                                                    <tr>                                                      
+                                                        <td valign="top" style={{ "width":"35%","text-align": "center", "padding": "1em" }}>
+                                                            <Container
+                                                                    header={
+                                                                        <Header
+                                                                        variant="h2"                      
+                                                                        >
+                                                                        Summary
+                                                                        </Header>
+                                                                    }
+                                                            >
                                                                 
+                                                                <br/>   
+                                                                <div style={{ "text-align": "center" }}>
+                                                                
+                                                                <ChartPolar02 
+                                                                    title={""} 
+                                                                    height="350px" 
+                                                                    width="100%" 
+                                                                    series = {JSON.stringify(cloudwatchData['summary']['data'])}
+                                                                    labels = {JSON.stringify(cloudwatchData['summary']['categories'])}
+                                                                />
+                                                                {/** 
+                                                                <br/>     
+                                                                <br/>  
+                                                                <CompMetric01 
+                                                                    value={ shardCloudwatchMetricAnalytics['currentState']?.['value'] || 0 }
+                                                                    title={ cloudwatchMetric.current.name + " (" +  cloudwatchMetric.current.unit + ")"}
+                                                                    precision={0}
+                                                                    format={cloudwatchMetric.current.format}
+                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                    fontSizeValue={"30px"}
+                                                                    fontSizeTitle={"12px"}
+                                                                />      
+                                                                <br/>                                           
+                                                                */}
+                                                                </div>                                                            
+                                                                
+                                                                
+                                                            </Container>
+                                                        </td>
+                                                        <td valign="top" style={{ "width":"65%","text-align": "center", "padding": "1em" }}>
+                                                            <Container
                                                                 header={
-                                                                                <Header
-                                                                                  variant="h2"
-                                                                                  description={"AWS CloudWatch metrics from last 60 minutes."}
-                                                                                  actions={
-                                                                                        <Pagination
-                                                                                                  currentPageIndex={currentPageIndex}
-                                                                                                  onChange={({ detail }) => {
-                                                                                                            setCurrentPageIndex(detail.currentPageIndex);
-                                                                                                            pageId.current = detail.currentPageIndex;
-                                                                                                    }
-                                                                                                  }
-                                                                                                  pagesCount={ totalPages } 
-                                                                                        />
-                                                                                  }
-                                                                                >
-                                                                                  Performance Metrics
-                                                                                </Header>
+                                                                    <Header
+                                                                    variant="h2"     
+                                                                    actions={
+                                                                        <Toggle
+                                                                            onChange={({ detail }) =>
+                                                                                setStackedChart(detail.checked)
                                                                             }
-                                                        
-                                                        >
-                                                            <CLWChart
-                                                                  title="CPU Utilization % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CPUUtilization"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Engine CPU Utilization % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="EngineCPUUtilization"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Database Memory Usage Percentage % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="DatabaseMemoryUsagePercentage"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Database Capacity Usage Percentage % " 
-                                                                  subtitle="Average" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="DatabaseCapacityUsagePercentage"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Network Bytes In" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBytesIn"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Network Bytes Out" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBytesOut"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={2}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="NetworkBandwidthInAllowanceExceeded" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBandwidthInAllowanceExceeded"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="NetworkBandwidthOutAllowanceExceeded" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="NetworkBandwidthOutAllowanceExceeded"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="CurrConnections" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CurrConnections"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={3}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="Current Items" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CurrItems"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="GetTypeCmds" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="GetTypeCmds"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="SetTypeCmds" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="SetTypeCmds"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="GetTypeCmdsLatency" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="GetTypeCmdsLatency"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="SetTypeCmdsLatency" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="SetTypeCmdsLatency"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="CacheHits" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CacheHits"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"total"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <br/>
-                                                            <CLWChart
-                                                                  title="CacheHitRate" 
-                                                                  subtitle="Total" 
-                                                                  height="180px" 
-                                                                  color="purple" 
-                                                                  namespace="AWS/ElastiCache" 
-                                                                  dimension_name={"CacheClusterId|CacheNodeId"}
-                                                                  dimension_value={nodeList.current}
-                                                                  metric_name="CacheHitRate"
-                                                                  stat_type="Average"
-                                                                  period={60} 
-                                                                  interval={(60*1) * 60000}
-                                                                  current_metric_mode={"average"}
-                                                                  metric_precision={0}
-                                                                  format={1}
-                                                                  font_color_value={configuration.colors.fonts.metric100}
-                                                                  pageId={pageId.current}
-                                                                  itemsPerPage={itemsPerPage}
-                                                            />
-                                                            
-                                                            
-                                                        </Container>
+                                                                            checked={stackedChart}
+                                                                        >
+                                                                            Stacked
+                                                                        </Toggle>  
+                                                                    }                 
+                                                                    >
+                                                                    Historical
+                                                                    </Header>
+                                                                }
+                                                            >
+                                                                
+                                                                <table style={{"width":"100%", "padding": "1em"}}>
+                                                                    <tr>                                                      
+                                                                        <td valign="top" style={{ "width":"20%","text-align": "center" }}>
+                                                                            <CompMetric01 
+                                                                                value={ 0 }
+                                                                                title={"Average"}
+                                                                                precision={2}
+                                                                                format={cloudwatchMetric.current.format}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td>                                                            
+                                                                        <td valign="top" style={{ "width":"20%","text-align": "center"}}>
+                                                                            <CompMetric01 
+                                                                                value={ 0 }
+                                                                                title={"Maximum"}
+                                                                                precision={2}
+                                                                                format={cloudwatchMetric.current.format}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td>
+                                                                        
+                                                                        <td valign="top" style={{ "width":"20%","text-align": "center"}}>
+                                                                            <CompMetric01 
+                                                                                value={ 0 }
+                                                                                title={"Minimum"}
+                                                                                precision={2}
+                                                                                format={cloudwatchMetric.current.format}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td>         
+                                                                        <td valign="top" style={{ "width":"20%","text-align": "center"}}>
+                                                                            <CompMetric01 
+                                                                                value={ 0 }
+                                                                                title={"DataPoints"}
+                                                                                precision={0}
+                                                                                format={3}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td>                                                                                                               
+                                                                        <td valign="top" style={{ "width":"20%","text-align": "center"}}>
+                                                                            <CompMetric01 
+                                                                                value={ 0 }
+                                                                                title={"Total"}
+                                                                                precision={0}
+                                                                                format={cloudwatchMetric.current.format}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td> 
+                                                                    </tr>
+                                                                </table>
+                                                                <br/>
+                                                                <br/>
+                                                                <table style={{"width":"100%"}}>  
+                                                                    <tr>                                                            
+                                                                        <td valign="top" style={{"width": "100%", "padding-right": "2em"}}>    
+                                                                            
+                                                                            <ChartLine04 series={JSON.stringify(cloudwatchData['metrics'])}
+                                                                                title={cloudwatchMetric.current.name} 
+                                                                                height="350px" 
+                                                                                stacked={stackedChart}
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </Container>
+                                                        </td>
+                                                    </tr>
+                                                </table>                                                                                                            
+                                        </div> 
+                                          
                                                 
-                                                    </td>
-                                                </tr>
-                                            </table> 
-                                            
-                                          </>
+                                                
                                           
                                       },
                                       {
@@ -1277,7 +2176,7 @@ function App() {
                                                                                 <Header
                                                                                   variant="h2"
                                                                                 >
-                                                                                  Configuration
+                                                                                  Cluster details
                                                                                 </Header>
                                                                         }
                                                                 >
@@ -1285,11 +2184,11 @@ function App() {
                                                                       <div>
                                                                             <Box variant="awsui-key-label">Cluster name</Box>
                                                                             <div>{parameter_object_values['rds_id']}</div>
-                                                                      </div>
+                                                                      </div>  
                                                                       <div>
-                                                                            <Box variant="awsui-key-label">CacheNodeType</Box>
-                                                                            <div>{clusterStats['cluster']['size']}</div>
-                                                                      </div>
+                                                                            <Box variant="awsui-key-label">Status</Box>
+                                                                            <div>{clusterStats['cluster']['status']}</div>
+                                                                     </div>                                                                    
                                                                       <div>
                                                                             <Box variant="awsui-key-label">ConfigurationEndpoint</Box>
                                                                             <div>{parameter_object_values['rds_host']}</div>
@@ -1298,30 +2197,14 @@ function App() {
                                                                             <Box variant="awsui-key-label">Port</Box>
                                                                             <div>{parameter_object_values['rds_port']}</div>
                                                                       </div>
-                                                                    </ColumnLayout>
+                                                                    </ColumnLayout>                                                                    
                                                                     <br/>
                                                                     <br/>
                                                                     <ColumnLayout columns={4} variant="text-grid">
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">Status</Box>
-                                                                            <div>{clusterStats['cluster']['status']}</div>
-                                                                        </div>
                                                                         <div>
                                                                             <Box variant="awsui-key-label">ClusterEnabled</Box>
                                                                             <div>{parameter_object_values['rds_mode']}</div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">Shards</Box>
-                                                                            <div>{clusterStats['cluster']['totalShards']}</div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <Box variant="awsui-key-label">Nodes</Box>
-                                                                            <div>{clusterStats['cluster']['totalNodes']}</div>
-                                                                        </div>
-                                                                    </ColumnLayout>
-                                                                    <br/>
-                                                                    <br/>
-                                                                    <ColumnLayout columns={4} variant="text-grid">
+                                                                        </div>  
                                                                         <div>
                                                                             <Box variant="awsui-key-label">MultiAZ</Box>
                                                                             <div>{parameter_object_values['rds_multiaz']}</div>
@@ -1335,8 +2218,78 @@ function App() {
                                                                             <div>{clusterStats['cluster']['connectionId']}</div>
                                                                         </div>
                                                                     </ColumnLayout>
+                                                                    <br/>                                                                    
+                                                                  </Container>
+                                                                  <br/>
+                                                                  <Container 
+                                                                        header={
+                                                                                <Header
+                                                                                  variant="h2"
+                                                                                >
+                                                                                  Cluster capacity
+                                                                                </Header>
+                                                                        }
+                                                                >
+                                                                    <ColumnLayout columns={4} variant="text-grid">
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">CacheNodeType</Box>
+                                                                                <div>{clusterStats['cluster']['size']}</div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">CPUFamily</Box>
+                                                                                <div>{clusterStats['cluster']['hostCPUFamily']}</div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">Shards</Box>
+                                                                                <div>{clusterStats['cluster']['totalShards']}</div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">Nodes</Box>
+                                                                                <div>{clusterStats['cluster']['totalNodes']}</div>
+                                                                        </div>
+                                                                    </ColumnLayout>
                                                                     <br/>
                                                                     <br/>
+                                                                    
+                                                                    <ColumnLayout columns={4} variant="text-grid">
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">Node Memory</Box>
+                                                                                <div>{customFormatNumber( ( clusterStats['cluster']['hostMemory'] * 1024 * 1024 * 1024) || 0,2)}</div>
+                                                                        </div>                                                                        
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">Cluster Memory</Box>
+                                                                                <div>{customFormatNumber( (clusterStats['cluster']['hostMemory'] * 1024 * 1024 * 1024) * clusterStats['cluster']['totalNodes'] || 0,2)}</div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">Node vCPUs</Box>
+                                                                                <div>{customFormatNumberInteger( clusterStats['cluster']['hostVCPU'],0) }</div>
+                                                                        </div>
+                                                                        <div>
+                                                                                <Box variant="awsui-key-label">Cluster vCPUs</Box>
+                                                                                <div>{customFormatNumberInteger( (clusterStats['cluster']['hostVCPU'] * clusterStats['cluster']['totalNodes']) || 0 ,0) }</div>
+                                                                        </div>                                                                        
+                                                                    </ColumnLayout>                                                                    
+                                                                    <br/>
+                                                                    <br/>
+                                                                    <ColumnLayout columns={4} variant="text-grid">
+                                                                        <div>
+                                                                            <Box variant="awsui-key-label">Node network bandwidth(base)</Box>
+                                                                            <div>{customFormatNumber( clusterStats['cluster']['hostNetworkBase'] || 0 ,2) || 0 }/sec</div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <Box variant="awsui-key-label">Cluster network bandwidth(base)</Box>
+                                                                            <div>{customFormatNumber( (clusterStats['cluster']['hostNetworkBase'] * clusterStats['cluster']['totalNodes'] ) || 0  ,2) || 0}/sec</div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <Box variant="awsui-key-label">Node network bandwidth(burst)</Box>
+                                                                            <div>{customFormatNumber( clusterStats['cluster']['hostNetworkBurst'] || 0 ,2) }/sec</div>
+                                                                        </div>                                                                        
+                                                                        <div>
+                                                                            <Box variant="awsui-key-label">Cluster network bandwidth(burst)</Box>
+                                                                            <div>{customFormatNumber( ( clusterStats['cluster']['hostNetworkBurst'] * clusterStats['cluster']['totalNodes'] ) || 0  ,2) || 0}/sec</div>
+                                                                        </div>
+                                                                    </ColumnLayout>                                                                    
+                                                                    <br/>                                                                                
                                                                   </Container>
                                                 
                                                         </td>

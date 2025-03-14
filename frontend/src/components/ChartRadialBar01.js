@@ -6,7 +6,7 @@ const ChartRadial = memo(({  series, height, width, title, fontSizeTitle = "11px
     var options = {
           chart: {
             type: 'radialBar',
-            foreColor: '#C6C2C1',
+            foreColor: '#C6C2C1'
           },
           plotOptions: {
             radialBar: {

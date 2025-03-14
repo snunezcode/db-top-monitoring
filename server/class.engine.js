@@ -46,7 +46,8 @@ const timestampEqual =
 
 const convertArrayToObject = (array, key) => 
       array.reduce((acc, curr) =>(acc[curr[key]] = curr, acc), {});
-      
+    
+
 
 //--#################################################################################################### 
 //   ---------------------------------------- CLASS OBJECTS
@@ -307,9 +308,19 @@ class classCluster {
                                         this.objectMetrics.getMetricDictionary().forEach(metric => {
                                             nodeActivity[metric.name] = 0;
                                             metrics[metric.name] = 0;
+                                            var value = 0;
                                             for (let node of Object.keys(this.objectNodes)) {
-                                                metrics[metric.name] = metrics[metric.name] + ( this.objectNodes[node].getMetricValue(metric.name) || 0 );
-                                                if ( ( this.objectNodes[node].getMetricValue(metric.name) || 0 ) > 0)
+
+                                                value = this.objectNodes[node].getMetricValue(metric.name) || 0 ;
+
+                                                if (metric.name == "network"){
+                                                        if (this.objectNodes[node].getMetricValue(metric.name) > 100)
+                                                            value = 100;
+                                                }
+                                                
+                                                metrics[metric.name] = metrics[metric.name] + value;
+                                                
+                                                if ( value > 0)
                                                     nodeActivity[metric.name] = nodeActivity[metric.name] + 1 ;
                                             }
                                         });
@@ -323,6 +334,7 @@ class classCluster {
                                         //-- Update special metrics : cpu, memory, getLatency, setLatency, cacheHitRate
                                         this.objectMetrics.setItemValueCustom("cpu" , metrics["cpu"] / nodeActivity["cpu"]);
                                         this.objectMetrics.setItemValueCustom("memory" , metrics["memory"] / nodeActivity["memory"]);
+                                        this.objectMetrics.setItemValueCustom("network" , metrics["network"] / nodeActivity["network"]);
                                         this.objectMetrics.setItemValueCustom("getLatency" , metrics["getLatency"] / nodeActivity["getLatency"]);
                                         this.objectMetrics.setItemValueCustom("setLatency" , metrics["setLatency"] / nodeActivity["setLatency"]);
                                         this.objectMetrics.setItemValueCustom("globalLatency" , metrics["globalLatency"] / nodeActivity["globalLatency"]);
@@ -504,7 +516,19 @@ class classCluster {
                                     nodeList.forEach((node) => {
                                         
                                              this.objectNodes[node.nodeId] = new classNode({ 
-                                                                                properties : {...this.objectProperties, name : node.nodeId, uid : this.objectProperties.engineType + ":" + node.nodeId, networkRate : node.networkRate, size : node.nodeType, nodeId : nodeId, cacheClusterId : node.cacheClusterId,cacheNodeId : node.cacheNodeId, }, 
+                                                                                properties : {  ...this.objectProperties, 
+                                                                                                name : node.nodeId, 
+                                                                                                uid : this.objectProperties.engineType + ":" + node.nodeId,                                                                                                 
+                                                                                                hostMemory : node.hostMemory, 
+                                                                                                hostVCPU : node.hostVCPU, 
+                                                                                                hostCPUFamily : node.hostCPUFamily, 
+                                                                                                hostNetworkBurst : node.hostNetworkBurst, 
+                                                                                                hostNetworkBase : node.hostNetworkBase,
+                                                                                                size : node.nodeType, 
+                                                                                                nodeId : nodeId, 
+                                                                                                cacheClusterId : node.cacheClusterId,
+                                                                                                cacheNodeId : node.cacheNodeId, 
+                                                                                            }, 
                                                                                 connection : {...this.objectConnection,...node}, 
                                                                                 metrics : this.objectMetricList 
                                                                             });
@@ -513,7 +537,7 @@ class classCluster {
                                             /*
                                             for (let i=0; i < 90; i++) {
                                                 this.objectNodes[node.nodeId + String(i)] = new classNode({ 
-                                                                                    properties : {...this.objectProperties, name : node.nodeId + String(i), uid : this.objectProperties.engineType + ":" + node.nodeId + String(i), networkRate : node.networkRate, size : node.nodeType, nodeId : ( (nodeId-1) * 90) + i + 1, cacheClusterId : node.cacheClusterId,cacheNodeId : node.cacheNodeId, }, 
+                                                                                    properties : {...this.objectProperties, name : node.nodeId + String(i), uid : this.objectProperties.engineType + ":" + node.nodeId + String(i), hostNetworkBase : node.hostNetworkBase, size : node.nodeType, nodeId : ( (nodeId-1) * 90) + i + 1, cacheClusterId : node.cacheClusterId,cacheNodeId : node.cacheNodeId, }, 
                                                                                     connection : {...this.objectConnection,...node}, 
                                                                                     metrics : this.objectMetricList 
                                                                                 });
@@ -533,8 +557,12 @@ class classCluster {
                                              this.objectNodes[node.nodeId] = new classNode({ 
                                                                                 properties : {...this.objectProperties, 
                                                                                               name : node.nodeId, 
-                                                                                              uid : this.objectProperties.engineType + ":" + node.nodeId, 
-                                                                                              networkRate : node.networkRate, 
+                                                                                              uid : this.objectProperties.engineType + ":" + node.nodeId,                                                                                               
+                                                                                              hostMemory : node.hostMemory, 
+                                                                                              hostVCPU : node.hostVCPU, 
+                                                                                              hostCPUFamily : node.hostCPUFamily, 
+                                                                                              hostNetworkBurst : node.hostNetworkBurst, 
+                                                                                              hostNetworkBase : node.hostNetworkBase,
                                                                                               size : node.nodeType, 
                                                                                               nodeId : nodeId, 
                                                                                               instanceId : node.instanceId, 
@@ -566,8 +594,12 @@ class classCluster {
                                              this.objectNodes[node.nodeId] = new classNode({ 
                                                                                 properties : {...this.objectProperties, 
                                                                                               name : node.nodeId, 
-                                                                                              uid : this.objectProperties.engineType + ":" + node.nodeId, 
-                                                                                              networkRate : node.networkRate, 
+                                                                                              uid : this.objectProperties.engineType + ":" + node.nodeId,                                                                                               
+                                                                                              hostMemory : node.hostMemory, 
+                                                                                              hostVCPU : node.hostVCPU, 
+                                                                                              hostCPUFamily : node.hostCPUFamily, 
+                                                                                              hostNetworkBurst : node.hostNetworkBurst, 
+                                                                                              hostNetworkBase : node.hostNetworkBase,
                                                                                               size : node.nodeType, 
                                                                                               nodeId : nodeId, 
                                                                                               instanceId : node.instanceId, 
@@ -602,8 +634,12 @@ class classCluster {
                                              this.objectNodes[node.nodeId] = new classNode({ 
                                                                                 properties : {...this.objectProperties, 
                                                                                               name : node.nodeId, 
-                                                                                              uid : this.objectProperties.engineType + ":" + node.nodeId, 
-                                                                                              networkRate : node.networkRate, 
+                                                                                              uid : this.objectProperties.engineType + ":" + node.nodeId,                                                                                               
+                                                                                              hostMemory : node.hostMemory, 
+                                                                                              hostVCPU : node.hostVCPU, 
+                                                                                              hostCPUFamily : node.hostCPUFamily,                                                                                               
+                                                                                              hostNetworkBurst : node.hostNetworkBurst, 
+                                                                                              hostNetworkBase : node.hostNetworkBase,
                                                                                               size : node.nodeType, 
                                                                                               nodeId : nodeId, 
                                                                                               instanceId : node.instanceId, 
@@ -652,16 +688,24 @@ class classCluster {
           }
           
           
-          //-- Get Metric List
+          //-- Get All Cluster Data
           getAllDataCluster(object) {
                 try{
                       var nodes = [];
                       var sessions = [];
+                      var indexId = 0;
                       for (let node of Object.keys(this.objectNodes)) {
-                                var data = this.objectNodes[node].getAllDataNode();
-                                nodes.push(data);
+                                var nodeData = this.objectNodes[node].getAllDataNode();
+
+                                //--Remove history for elasticache
+                                if ( this.objectProperties.engineType=="elasticache" )
+                                    nodeData = { ...nodeData, history : {}};
+
+                                nodes.push({...nodeData, indexId : indexId});
+                                
                                 if (object.includeSessions == 1)
-                                    sessions = sessions.concat(data.sessions);
+                                    sessions = sessions.concat(nodeData.sessions);
+                                indexId++;
                       }
                       return {...this.objectProperties,...this.objectMetrics.getMetricList(), nodes : nodes, sessions : sessions };
                 }
@@ -671,7 +715,17 @@ class classCluster {
           }
           
           
-          //-- Get Metric List
+          //-- Get all data node
+          getNodeData(object) {                
+                try{                    
+                    return this.objectNodes[object.node].getAllDataNode();
+                }
+                catch(err){
+                    this.#objLog.write("getNodeData","err",err);
+                }
+          }
+
+          //-- Get node list
           getClusterNodeListIds() {
                 try {
                         var list = "";
@@ -758,7 +812,12 @@ class classCluster {
           }
           
 
+        
+   
+
 }
+
+
 
 
 //--#############
@@ -875,7 +934,7 @@ class classNode {
                                             this.objectMetrics.setItemValueCustom("cacheHitRate", (this.objectMetrics.getItemValue("keyspaceHits") /
                                                             ( this.objectMetrics.getItemValue("keyspaceHits") + this.objectMetrics.getItemValue("keyspaceMisses"))
                                                            ) * 100);
-                                            this.objectMetrics.setItemValueCustom("network", ( ( ( this.objectMetrics.getItemValue("netIn") + this.objectMetrics.getItemValue("netOut")) ) / this.objectProperties.networkRate ) * 100 );
+                                            this.objectMetrics.setItemValueCustom("network", ( ( ( this.objectMetrics.getItemValue("netIn") + this.objectMetrics.getItemValue("netOut")) ) / this.objectProperties.hostNetworkBase ) * 100 );
                             
                             break;    
                     }
@@ -1133,6 +1192,7 @@ class classRedisEngine {
                                     
                                 }
                                 
+                                console.log(options);
                                 this.#connection = redis.createClient(options);
                                 this.#connection.on('error', err => {       
                                           this.#objLog.write("#openConnection","err","Error :" + err.message + ", host : " +  + params.host);
@@ -1260,6 +1320,15 @@ class classRedisEngine {
                                             cmdScan: (( jsonCommands.hasOwnProperty('scan') ) ? parseFloat(jsonCommands['scan']['calls']) : 0) ,
                                             cmdXadd: (( jsonCommands.hasOwnProperty('xadd') ) ? parseFloat(jsonCommands['xadd']['calls']) : 0) ,
                                             cmdZadd: (( jsonCommands.hasOwnProperty('zadd') ) ? parseFloat(jsonCommands['zadd']['calls']) : 0) ,
+                                            errorstatErr: (( jsonInfo.hasOwnProperty('errorstat_ERR') ) ? parseFloat(String(jsonInfo['errorstat_ERR']).replace("count=","")) : 0) ,
+                                            errorstatMoved: (( jsonInfo.hasOwnProperty('errorstat_MOVED') ) ? parseFloat(String(jsonInfo['errorstat_MOVED']).replace("count=","")) : 0) ,
+                                            errorstatOom: (( jsonInfo.hasOwnProperty('errorstat_OOM') ) ? parseFloat(String(jsonInfo['errorstat_OOM']).replace("count=","")) : 0) ,
+
+                            };
+
+                            metrics = {...metrics, 
+                                        errorsTotal : ( metrics.errorstatErr + metrics.errorstatMoved + metrics.errorstatOom),
+                                        netTotal : ( metrics.netIn + metrics.netOut )
                             };
                                         
                             var properties = { role : jsonInfo['role'] };
@@ -2487,6 +2556,9 @@ class classPostgresqlEngine {
                                                                       password: params.password,
                                                                       port: params.port,
                                                                       connectionReconnectTimeoutMillis: 90000,
+                                                                      ssl: {
+                                                                        rejectUnauthorized: false  
+                                                                      }
                                 });
                                 
                                 
@@ -4470,6 +4542,10 @@ class classAuroraLimitlessPostgresqlEngine {
                                                                   password: params.password,
                                                                   port: params.port,
                                                                   connectionReconnectTimeoutMillis: 90000,
+                                                                  ssl: {
+                                                                    rejectUnauthorized: false  
+                                                                  }
+
                             });
                             
                             

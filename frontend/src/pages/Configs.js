@@ -11,7 +11,7 @@ export const configuration =
         "refresh-interval-aurora-pgs-sessions": 10*1000,
         "refresh-interval-dynamodb": 5*1000,
         "refresh-interval-update": 5*1000,
-        "refresh-interval-aurora-limitless": 10*1000,
+        "refresh-interval-aurora-limitless": 5*1000,
         "items-per-page-aurora": 16,
         "items-per-page-documentdb": 64,
         "api_url": "",
