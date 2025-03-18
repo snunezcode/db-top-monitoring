@@ -17,6 +17,7 @@ import FormField from "@cloudscape-design/components/form-field";
 import Select from "@cloudscape-design/components/select";
 import Toggle from "@cloudscape-design/components/toggle";
 import Button from "@cloudscape-design/components/button";
+
 import Flashbar from "@cloudscape-design/components/flashbar";
 import Icon from "@cloudscape-design/components/icon";
 import StatusIndicator from "@cloudscape-design/components/status-indicator";
@@ -41,8 +42,6 @@ import ChartBar06 from '../components/ChartBar06';
 import CustomTable02 from "../components/Table02";
 import ChartPolar02  from '../components/ChartPolar-02';
 
-
-import { elasticacheEngine, elasticacheHost } from '../catalogs/elasticache';
 
 export const splitPanelI18nStrings: SplitPanelProps.I18nStrings = {
   preferencesTitle: 'Split panel preferences',
@@ -72,8 +71,8 @@ function App() {
     //--######## Global Settings
     
     //-- Variable for Active Tabs
-    const [activeTabId, setActiveTabId] = useState("tab01");
-    const currentTabId = useRef("tab01");
+    const [activeTabId, setActiveTabId] = useState("tab02");
+    const currentTabId = useRef("tab02");
     
     
     const parameter_code_id=params.get("code_id");  
@@ -289,100 +288,53 @@ function App() {
     const visibleContentNodes = ['name', 'operations', 'connectedClients', 'getCalls', 'setCalls', 'cacheHitRate', 'errorsTotal', 'cpu', 'memory', 'network' ];
 
 
-
-
-    //-- Table nodes    
-    const columnsTableInsightNodes =  [
-            {id: 'name',header: 'Node',cell: item => 
-                ( <>                
-                    <Box variant="h4">{item.name}</Box>
-                </> )
-            ,ariaLabel: createLabelFunction('name'),sortingField: 'name',width : "20%"},                        
-            {id: 'average',header: 'Average',cell: item => 
-                ( <>                
-                    <CompMetric01 
-                        value={ item['average'] || 0 }
-                        title={"Average"}
-                        precision={1}
-                        format={1}
-                        fontColorValue={configuration.colors.fonts.metric100}
-                        fontSizeValue={"20px"}                        
-                    />    
-                </> )
-            ,ariaLabel: createLabelFunction('average'),sortingField: 'average',width : "15%"},                        
-            {id: 'p90',header: 'P90',cell: item => 
-                ( <>                
-                    <CompMetric01 
-                        value={ item['p90'] || 0 }
-                        title={"p90"}
-                        precision={1}
-                        format={1}
-                        fontColorValue={configuration.colors.fonts.metric100}
-                        fontSizeValue={"20px"}                        
-                    />    
-                </> )
-            ,ariaLabel: createLabelFunction('p90'),sortingField: 'p90',width : "15%"},                        
-            {id: 'p99',header: 'P99',cell: item => 
-                ( <>                
-                   <CompMetric01 
-                        value={ item['p99'] || 0 }
-                        title={"p99"}
-                        precision={1}
-                        format={1}
-                        fontColorValue={configuration.colors.fonts.metric100}
-                        fontSizeValue={"20px"}                        
-                    />    
-                </> )
-            ,ariaLabel: createLabelFunction('p99'),sortingField: 'p99',width : "15%"},                                    
-            {id: 'chart',header: 'Chart',cell: item => 
-                ( <>                
-                    <ChartLine04 series={JSON.stringify(
-                        [ 
-                            { name : "value", data :item['data'] }
-                        ]
-                        )}
-                        title={""} 
-                        height="170px"                         
-                        stacked={false}                        
-                    />
-
-                </> )
-            ,ariaLabel: createLabelFunction('chart'),sortingField: 'chart', width : "35%"},       
-            
-    ];
-
-    const visibleConteneInsightNodes = ['name', 'average', 'p90', 'p99', 'chart'];
-
-
-
-
-
     //-- Analytics Insight
 
-    const cloudwatchMetricsList = [       
+    const cloudwatchMetrics = [       
         {
           label: "Host-Level",
-          options: elasticacheHost
+          options: [
+                    { type : "1", label : "CPUUtilization", value : "CPUUtilization", descriptions : "The percentage of CPU utilization for the entire host. Because Valkey and Redis OSS are single-threaded, we recommend you monitor EngineCPUUtilization metric for nodes with 4 or more vCPUs.", unit : "Percentage", format : 3, ratio : 1 },          
+          
+          ]
         },
         {
             label: "Engine-Level",
-            options: elasticacheEngine 
+            options: [
+                      { type : "2", label : "SetTypeCmds", value : "SetTypeCmds", descriptions : "The total number of write types of commands. This is derived from the commandstats statistic by summing all of the mutative types of commands that operate on data (set, hset, sadd, lpop, and so on.", unit : "Count", format : 3, ratio : 60 },          
+            
+            ]
           }
       ];
-      
+    
     const [selectedCloudWatchMetric,setSelectedCloudWatchMetric] = useState({
                                                         label: "CPUUtilization",
                                                         value: "CPUUtilization"
     });
     
-    const cloudwatchMetric = useRef({ type : "1", max : 100, name : "CPUUtilization", descriptions : "The percentage of CPU utilization for the entire host. Because Valkey and Redis OSS are single-threaded, we recommend you monitor EngineCPUUtilization metric for nodes with 4 or more vCPUs.", unit : "Percentage", format : 3, ratio : "1" });
+    const cloudwatchMetric = useRef({ type : "1", name : "CPUUtilization", descriptions : "The percentage of CPU utilization for the entire host. Because Valkey and Redis OSS are single-threaded, we recommend you monitor EngineCPUUtilization metric for nodes with 4 or more vCPUs.", unit : "Percentage", format : 3, ratio : "1" });
     var metricName = useRef("");
     
     
     const [stackedChart, setStackedChart] = useState(true);
-    const [selectedOptionInterval,setSelectedOptionInterval] = useState({label: "Last 24 Hours",value: 24*60});
-    const optionInterval = useRef(24*60);
+    const [selectedOptionInterval,setSelectedOptionInterval] = useState({label: "1 Hour",value: 1});
+    const optionInterval = useRef(1);
       
+
+
+
+    //--## Raw Metrics
+    const [nodeLevelMetrics, setNodeLevelMetrics] = useState([]);
+    const [clusterLevelMetrics, setClusterLevelMetrics] = useState([]);
+    const processorRef = useRef(new ClusterPerformanceProcessor());
+
+
+    var columnsTableClusterMetrics = useRef([]);
+    var visibleContentClusterMetrics = useRef([]);
+
+    var columnsTableNodeMetrics = useRef([]);
+    var visibleContentNodeMetrics = useRef(['node', 'role' ]);
+
 
 
     //-- Analytics Insight
@@ -402,9 +354,7 @@ function App() {
                                                                                     metrics: []
                                                                                 }
                                                                     },
-                                                                    nodes: {},
-                                                                    summaryChart : { categories : [], data : [] },
-                                                                    summaryTable : []
+                                                                    nodes: {}
       });
 
 
@@ -450,14 +400,11 @@ function App() {
     }
    
 
-    //-- Main call function
     async function gatherGlobalStats() {
         gatherClusterStats();
-        gatherNodeStats();               
+        gatherNodeStats();       
+        gatherRawMetrics();        
     }
-
-
-
 
     //-- Function Cluster Gather Stats
     async function gatherClusterStats() {
@@ -508,6 +455,54 @@ function App() {
     }
 
 
+    function convertCloudwatchArrayToChartLineFormat(inputArray, ratio = 1) {
+     
+        // Transform each item in the array
+        return inputArray.map(item => {
+          // Create data array by combining timestamps and values with division
+          const data = item.Timestamps.map((timestamp, index) => {
+            // Convert timestamp to string if it's not already
+            const timestampStr = timestamp instanceof Date ? 
+              timestamp.toISOString() : String(timestamp);
+            
+            // Divide the value by the divisor parameter
+            const dividedValue = item.Values[index] / ratio ;
+            
+            return [timestampStr, dividedValue];
+          });
+          
+          // Return the new format
+          return {
+            name: item.Label,
+            data: data
+          };
+        });
+    }
+
+
+    function convertCloudwatchArrayToChartPolarFormat(inputArray, ratio = 1) {
+        // Create a new object with the required structure
+        const result = {
+          categories: [],
+          data: []
+        };
+      
+        // Sort the array by Label to ensure consistent order
+        const sortedArray = [...inputArray].sort((a, b) => a.Label.localeCompare(b.Label));
+        
+        // Extract the categories and data from the sorted array
+        sortedArray.forEach(item => {
+          result.categories.push(item.Label);
+          
+          // Divide the first value by the ratio
+          const dividedValue = item.Values[0] / ratio;
+          result.data.push(dividedValue);
+        });
+      
+        return result;
+      }
+      
+
 
     //-- Function Node Gather Stats
     async function gatherNodeStats() {
@@ -546,8 +541,106 @@ function App() {
     }
 
 
+
+     //-- Function gather raw metrics
+     async function gatherRawMetrics() {
+        
+        
+        var api_url = configuration["apps-settings"]["api_url"];
+        
+        Axios.get(`${api_url}/api/elasticache/redis/cluster/gather/raw/metrics/`,{
+                      params: { 
+                                connectionId : cnf_connection_id, 
+                                clusterId : cnf_identifier,                                 
+                                engineType : "elasticache"
+                          
+                      }
+                  }).then((data)=>{                  
+                   
+                 
+                    // Process the new snapshot
+                    processorRef.current.processSnapshot(data.data);
+                    
+                    var cluster = processorRef.current.getClusterLevelMetrics();
+                    var nodes = processorRef.current.getNodeLevelMetrics();
+
+                    if (nodes.length > 0){
+
+                        var metricCatalog = Object.keys(nodes[0]).sort();
+                        var columnListString = [           
+                            {id: 'node',header: 'Node',cell: item => item['node'] ,ariaLabel: createLabelFunction('node'),sortingField: 'node',},            
+                            {id: 'role',header: 'Role',cell: item => item['role'] ,ariaLabel: createLabelFunction('role'),sortingField: 'role',}
+                        ];
+                        var columnListNumber = [];
+
+                        for (let metricName of metricCatalog) {
+                            if (metricName != "node" && metricName != "role" ){
+                                        var columnValue = (nodes[0][metricName]);                                        
+
+                                        if ( typeof columnValue === "string"){
+                                            columnListString.push({   
+                                                            id: metricName,
+                                                            header: metricName,
+                                                            cell: item => item[metricName],
+                                                            ariaLabel: createLabelFunction(metricName),
+                                                            sortingField: metricName,
+                                            });           
+                                        }
+                                        else{
+                                            columnListNumber.push({   
+                                                id: metricName,
+                                                header: metricName,
+                                                //cell: item => customFormatNumberInteger(parseFloat(item[metricName]) || 0),
+                                                cell: item =>
+                                                ( <>                
+                                                    <CompMetric01 
+                                                        value={ item[metricName] || 0}
+                                                        title={metricName}
+                                                        precision={1}
+                                                        format={3}
+                                                        fontColorValue={configuration.colors.fonts.metric100}
+                                                        fontSizeValue={"28px"}
+                                                    />                                
+                                                </> ),                                              
+                                                ariaLabel: createLabelFunction(metricName),
+                                                sortingField: metricName,
+                                            });           
+
+                                        }
+                            
+                            }
+                        
+                        }
+
+                        // Update table column definition
+                        columnsTableNodeMetrics.current = columnListString.concat(columnListNumber);                        
+                        columnsTableClusterMetrics.current = columnListNumber;                        
+
+                        // Update the metrics values
+                        setNodeLevelMetrics(nodes);
+                        setClusterLevelMetrics(cluster);
+
+
+                    }
+
+                    
+
+              })
+              .catch((err) => {
+                  console.log('Timeout API Call : /api/elasticache/redis/cluster/gather/raw/metrics/' );
+                  console.log(err);
+                  
+              });
+              
+        
+        
+    }
+
+
      //-- Function Node Gather Stats
      async function gatherAnalysisInsightMetrics() {
+
+       
 
         var api_url = configuration["apps-settings"]["api_url"];
         
@@ -557,8 +650,8 @@ function App() {
                                 clusterId : cnf_identifier,                                 
                                 engineType : "elasticache",
                                 metric : cloudwatchMetric.current.name,
-                                period : Math.ceil(optionInterval.current / 120),  //-- 10 mins
-                                interval : optionInterval.current, //-- 60 Mins x 24 Horas
+                                period : 10,  //-- 10 mins
+                                interval : 60 * 24, //-- 60 Mins x 24 Horas
                                 namespace : "AWS/ElastiCache",
                                 stat : "Average",
                                 ratio :   cloudwatchMetric.current.ratio                                                      
@@ -567,28 +660,8 @@ function App() {
                    
                     
                     var result = formatEnhancedMetricsWithStatistics(data.data, cloudwatchMetric.current.type );
-
-                    
-                    //-- Polar Chart
-                    var categories = [];
-                    var data = [];        
-                    var summaryTable = [];            
-                    Object.keys(result['nodes']).forEach(nodeId => {
-                            categories.push(nodeId);
-                            data.push(result['nodes'][nodeId]['average']);                        
-                            summaryTable.push({ 
-                                            name : nodeId, 
-                                            average : result['nodes'][nodeId]['average'], 
-                                            p90 : result['nodes'][nodeId]['p90'], 
-                                            p99 : result['nodes'][nodeId]['p99'], 
-                                            data : result['nodes'][nodeId]['metrics'] 
-                            });
-                    });
-
-                    console.log(summaryTable);
-                    var summaryChart = sortObjectByDataValues({ categories : categories, data : data });
                     console.log(result);
-                    setAnalyticsInsight({...result, summaryChart : summaryChart, summaryTable :  summaryTable });
+                    setAnalyticsInsight(result);
 
               })
               .catch((err) => {
@@ -624,9 +697,14 @@ function App() {
       }
 
 
-    
+
     useEffect(() => {
         openClusterConnection();
+    }, []);
+    
+    
+    useEffect(() => {
+        
         const id = setInterval(gatherGlobalStats, configuration["apps-settings"]["refresh-interval-elastic"]);
         return () => clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -691,10 +769,18 @@ function App() {
             // Initialize result object structure with new format
             const result = {
                                 cluster: {
-                                            average: {
-                                            value: 0,
-                                            metrics: []
-                                    }                                    
+                                    average: {
+                                    value: 0,
+                                    metrics: []
+                                    },
+                                    p90: {
+                                    value: 0,
+                                    metrics: []
+                                    },
+                                    p95: {
+                                    value: 0,
+                                    metrics: []
+                                    }
                                 },
                                 nodes: {}
             };
@@ -709,9 +795,9 @@ function App() {
 
                 // Initialize the node in the result structure
                 result.nodes[nodeId] = {
-                    average: 0,                    
-                    p90: 0,                    
-                    p99: 0,                    
+                    average: 0,
+                    p90: 0,
+                    p95: 0,
                     metrics: []
                 };
             
@@ -734,9 +820,9 @@ function App() {
             
                 // Calculate statistics for each node
                 if (nodeValues.length > 0) {
-                    result.nodes[nodeId].average = calculateAverage(nodeValues);                    
-                    result.nodes[nodeId].p90 = calculatePercentile(nodeValues,90);  
-                    result.nodes[nodeId].p99 = calculatePercentile(nodeValues,99);  
+                    result.nodes[nodeId].average = calculateAverage(nodeValues);
+                    result.nodes[nodeId].p90 = calculatePercentile(nodeValues, 90);
+                    result.nodes[nodeId].p95 = calculatePercentile(nodeValues, 95);
                 }
 
             });
@@ -751,6 +837,8 @@ function App() {
             
             // Create maps to store values for each timestamp
             const avgTimestampMap = {};
+            const p90TimestampMap = {};
+            const p95TimestampMap = {};
             
             sortedTimestamps.forEach(timestamp => {
             // For collecting values at each timestamp across all nodes
@@ -783,13 +871,23 @@ function App() {
 
                                 result.cluster.average.metrics.push([timestamp, values]);
                                 
-            
+                                // Calculate p90 for this timestamp
+                                const p90Value = calculatePercentile(valuesAtTimestamp, 90);
+                                result.cluster.p90.metrics.push([timestamp, p90Value]);
+                                
+                                // Calculate p95 for this timestamp
+                                const p95Value = calculatePercentile(valuesAtTimestamp, 95);
+                                result.cluster.p95.metrics.push([timestamp, p95Value]);
                             }
             });
 
+
+            
             // Calculate overall statistics for all values across all nodes
             if (allValues.length > 0) {
-                result.cluster.average.value = calculateAverage(allValues);            
+                result.cluster.average.value = calculateAverage(allValues);
+                result.cluster.p90.value = calculatePercentile(allValues, 90);
+                result.cluster.p95.value = calculatePercentile(allValues, 99);
             }
             
             return result;
@@ -798,50 +896,45 @@ function App() {
       
       
       
-       //--## Calculates the average of an array of numbers       
+      /**
+       * Calculates the average of an array of numbers
+       */
       function calculateAverage(values) {
-            // Filter out zero values
-            const nonZeroValues = values.filter(value => value !== 0);
-            
-            // Handle the case when there are no non-zero values
-            if (nonZeroValues.length === 0) return 0;
-            
-            // Calculate sum of non-zero values
-            const sum = nonZeroValues.reduce((a, b) => a + b, 0);
-            
-            // Calculate average using only non-zero values and round to 2 decimal places
-            return Math.round((sum / nonZeroValues.length) * 100) / 100;
+            if (values.length === 0) return 0;
+            const sum = values.reduce((a, b) => a + b, 0);
+            return Math.round((sum / values.length) * 100) / 100; // Round to 2 decimal places
       }
       
 
-
-
-
-      //--## Calculates the sum of an array of numbers       
+      /**
+       * Calculates the sum of an array of numbers
+       */
       function calculateSum(values) {
-                var sum = values.reduce((accumulator, currentValue) => {
-                    return accumulator + currentValue
-                },0);
-                return sum;
-        }
+        var sum = values.reduce((accumulator, currentValue) => {
+            return accumulator + currentValue
+          },0);
+        return sum;
+  }
       
       
       
 
       
       
-       //--## Calculates a percentile value from an array of numbers       
+      /**
+       * Calculates a percentile value from an array of numbers
+       */
       function calculatePercentile(values, percentile) {
-            if (values.length === 0) return 0;
-            
-            // Sort the values
-            const sortedValues = [...values].sort((a, b) => a - b);
-            
-            // Calculate the index
-            const index = Math.ceil((percentile / 100) * sortedValues.length) - 1;
-            
-            // Return the percentile value (rounded to 2 decimal places)
-            return Math.round(sortedValues[Math.max(0, index)] * 100) / 100;
+        if (values.length === 0) return 0;
+        
+        // Sort the values
+        const sortedValues = [...values].sort((a, b) => a - b);
+        
+        // Calculate the index
+        const index = Math.ceil((percentile / 100) * sortedValues.length) - 1;
+        
+        // Return the percentile value (rounded to 2 decimal places)
+        return Math.round(sortedValues[Math.max(0, index)] * 100) / 100;
       }
 
       
@@ -1452,11 +1545,6 @@ function App() {
                                           setActiveTabId(detail.activeTabId);
                                           currentTabId.current=detail.activeTabId;
                                           setsplitPanelShow(false);
-                                          
-                                          if (detail.activeTabId == "tab02"){
-                                                gatherAnalysisInsightMetrics();
-                                          }
-
                                       }
                                     }
                                     activeTabId={activeTabId}
@@ -2075,20 +2163,12 @@ function App() {
                                                                             <Select
                                                                                 selectedOption={selectedCloudWatchMetric}
                                                                                 onChange={({ detail }) => {
-                                                                                        cloudwatchMetric.current = { 
-                                                                                                                    type : detail.selectedOption.type, 
-                                                                                                                    max : detail.selectedOption.max, 
-                                                                                                                    name : detail.selectedOption.value, 
-                                                                                                                    descriptions : detail.selectedOption.descriptions, 
-                                                                                                                    unit : detail.selectedOption.unit, 
-                                                                                                                    format : detail.selectedOption.format, 
-                                                                                                                    ratio : detail.selectedOption.ratio
-                                                                                        };
+                                                                                        cloudwatchMetric.current = { type : detail.selectedOption.type, name : detail.selectedOption.value, descriptions : detail.selectedOption.descriptions, unit : detail.selectedOption.unit, format : detail.selectedOption.format, ratio : detail.selectedOption.ratio  };
                                                                                         setSelectedCloudWatchMetric(detail.selectedOption);                                                                                            
                                                                                         gatherAnalysisInsightMetrics();
                                                                                 }
                                                                                 }
-                                                                                options={cloudwatchMetricsList}
+                                                                                options={cloudwatchMetrics}
                                                                                 filteringType="auto"
                                                                             />
                                                                     </FormField>
@@ -2103,15 +2183,16 @@ function App() {
                                                                         <Select
                                                                         selectedOption={selectedOptionInterval}
                                                                         onChange={({ detail }) => {
-                                                                                optionInterval.current = detail.selectedOption.value;
-                                                                                setSelectedOptionInterval(detail.selectedOption);                                                                                    
-                                                                                gatherAnalysisInsightMetrics();
+                                                                                //optionInterval.current = detail.selectedOption.value;
+                                                                                //setSelectedOptionInterval(detail.selectedOption);                                                                                    
+                                                                                //gatherGlobalStats();
                                                                         }}
                                                                         options={[
-                                                                            { label: "Last 24 hours", value: 24*60 },
-                                                                            { label: "Last 7 days", value: 24*60*7 },
-                                                                            { label: "Last 15 days", value: 24*60*15 },
-                                                                            { label: "Last 30 days", value: 24*60*30 },
+                                                                            { label: "Last hour", value: 1 },
+                                                                            { label: "Last 3 hours", value: 3 },
+                                                                            { label: "Last 6 hours", value: 6 },
+                                                                            { label: "Last 12 hours", value: 12 },
+                                                                            { label: "Last 24 hours", value: 24 }
                                                                         ]}
                                                                         />
                                                                         
@@ -2119,10 +2200,10 @@ function App() {
                                                                     </FormField>
                                                                         
                                                                 </td>
-                                                                <td valign="middle" style={{ "width":"15%","padding-left": "1em", "padding-right": "1em", "vertical-align" : "center"}}>
+                                                                <td valign="middle" style={{ "width":"15%","padding-left": "3em", "padding-right": "1em", "vertical-align" : "center"}}>
                                                                     <br/>
                                                                     <br/>
-                                                                    <Button iconName="refresh" onClick={gatherAnalysisInsightMetrics}></Button>                                                                        
+                                                                    <Button variant="primary" onClick={gatherAnalysisInsightMetrics}>Process metric</Button>                                                                        
                                                                 </td>
                                                                 <td style={{ "width":"50%","padding-left": "2em", "border-left": "4px solid " + configuration.colors.lines.separator100 }}>
                                                                         <Box variant="h4">{cloudwatchMetric.current.name} ({cloudwatchMetric.current.unit})</Box>
@@ -2141,24 +2222,65 @@ function App() {
                                                                     <Header
                                                                     variant="h2"                                                                                     
                                                                     >
-                                                                    Cluster metric analysis
+                                                                    Cluster analysis
                                                                     </Header>
                                                                 }
                                                             >
                                                                 
+                                                                <table style={{"width":"100%", "padding": "1em"}}>
+                                                                    <tr>                                                      
+                                                                        <td valign="top" style={{ "width":"33%","text-align": "center" }}>
+                                                                            <CompMetric01 
+                                                                                value={ analyticsInsight['cluster']['average']['value']  || 0 }
+                                                                                title={"Average"}
+                                                                                precision={2}
+                                                                                format={cloudwatchMetric.current.format}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td>                                                            
+                                                                        <td valign="top" style={{ "width":"33%","text-align": "center"}}>
+                                                                            <CompMetric01 
+                                                                                value={ analyticsInsight['cluster']['p90']['value']  || 0 }
+                                                                                title={"p90"}
+                                                                                precision={2}
+                                                                                format={cloudwatchMetric.current.format}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td>
+                                                                        
+                                                                        <td valign="top" style={{ "width":"33%","text-align": "center"}}>
+                                                                            <CompMetric01 
+                                                                                value={ analyticsInsight['cluster']['p95']['value']  || 0 }
+                                                                                title={"p95"}
+                                                                                precision={2}
+                                                                                format={cloudwatchMetric.current.format}
+                                                                                fontColorValue={configuration.colors.fonts.metric100}
+                                                                                fontSizeValue={"26px"}
+                                                                                fontSizeTitle={"12px"}
+                                                                            />
+                                                                        </td>                                                                                 
+                                                                    </tr>
+                                                                </table>
+                                                                <br/>
+                                                                <br/>
                                                                 <table style={{"width":"100%"}}>  
                                                                     <tr>                                                            
                                                                         <td valign="top" style={{"width": "100%", "padding-right": "2em"}}>    
                                                                             
                                                                             <ChartLine04 series={JSON.stringify(
                                                                                 [ 
-                                                                                    { name : "average", data :analyticsInsight['cluster']['average']['metrics'] }
+                                                                                    { name : "average", data :analyticsInsight['cluster']['average']['metrics'] },
+                                                                                    { name : "p90", data :analyticsInsight['cluster']['p90']['metrics'] },
+                                                                                    { name : "p95", data :analyticsInsight['cluster']['p95']['metrics'] }
                                                                                 ]
                                                                                 )}
                                                                                 title={cloudwatchMetric.current.name} 
                                                                                 height="350px" 
                                                                                 stacked={false}
-                                                                                maximum={cloudwatchMetric.current.max}
                                                                             />
                                                                         </td>
                                                                     </tr>
@@ -2179,43 +2301,94 @@ function App() {
                                                                 <br/>   
                                                                 <div style={{ "text-align": "center" }}>
                                                                 
-                                                                
-                                                                <ChartPolar02
+                                                                {/** 
+                                                                <ChartPolar02 
                                                                     title={""} 
-                                                                    height="450px" 
+                                                                    height="350px" 
                                                                     width="100%" 
-                                                                    series = {JSON.stringify(analyticsInsight['summaryChart']['data'])}
-                                                                    labels = {JSON.stringify(analyticsInsight['summaryChart']['categories'])}
-                                                                />                                                                
-                                                               
+                                                                    series = {JSON.stringify(cloudwatchData['summary']['data'])}
+                                                                    labels = {JSON.stringify(cloudwatchData['summary']['categories'])}
+                                                                />
+                                                                */}
+                                                                {/** 
+                                                                <br/>     
+                                                                <br/>  
+                                                                <CompMetric01 
+                                                                    value={ shardCloudwatchMetricAnalytics['currentState']?.['value'] || 0 }
+                                                                    title={ cloudwatchMetric.current.name + " (" +  cloudwatchMetric.current.unit + ")"}
+                                                                    precision={0}
+                                                                    format={cloudwatchMetric.current.format}
+                                                                    fontColorValue={configuration.colors.fonts.metric100}
+                                                                    fontSizeValue={"30px"}
+                                                                    fontSizeTitle={"12px"}
+                                                                />      
+                                                                <br/>                                           
+                                                                */}
                                                                 </div>                                                            
                                                                 
                                                                 
                                                             </Container>
                                                         </td>
                                                     </tr>
-                                                </table>   
-                                                <br/> 
-                                                <div style={{"padding": "1em"}}>
-                                                    <CustomTable02
-                                                            columnsTable={columnsTableInsightNodes}
-                                                            visibleContent={visibleConteneInsightNodes}
-                                                            dataset={analyticsInsight['summaryTable']}
-                                                            title={"Nodes"}
-                                                            description={""}
-                                                            pageSize={10}                                                                
-                                                                
-                                                    />                                                                                                         
-                                                </div> 
+                                                </table>                                                                                                            
                                             </div> 
                                           
                                                 
                                                 
                                           
-                                      },                                      
+                                      },
+                                      {
+                                        label: "Tabular metrics",
+                                        id: "tab03",
+                                        content: 
+                                         
+                                            <div style={{"padding": "1em"}}>
+                                                 
+                                              
+                                                <Container 
+                                                        header={
+                                                                <Header
+                                                                    variant="h2"
+                                                                >
+                                                                    Performance Metrics
+                                                                </Header>
+                                                        }
+                                                >
+
+                                                        <div style={{"padding": "1em"}}>
+                                                            <CustomTable02
+                                                                    columnsTable={columnsTableClusterMetrics.current}
+                                                                    visibleContent={visibleContentClusterMetrics.current}
+                                                                    dataset={clusterLevelMetrics}
+                                                                    title={"Cluster"}
+                                                                    description={""}
+                                                                    pageSize={10}                                                                
+                                                            
+                                                            />
+                                                    </div>   
+                                                    <br/>  
+                                                    <div style={{"padding": "1em"}}>
+                                                            <CustomTable02
+                                                                    columnsTable={columnsTableNodeMetrics.current}
+                                                                    visibleContent={visibleContentNodeMetrics.current}
+                                                                    dataset={nodeLevelMetrics}
+                                                                    title={"Nodes"}
+                                                                    description={""}
+                                                                    pageSize={10}                                                                
+                                                            
+                                                            />
+                                                    </div>                                                                            
+                                                </Container>
+                                                
+                                                 
+                                                
+                                                </div>
+                                          
+                                      },
+
                                       {
                                         label: "Cluster Information",
-                                        id: "tab03",
+                                        id: "tab04",
                                         content: 
                                          
                                           <>

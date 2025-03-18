@@ -1,7 +1,12 @@
 import {memo} from 'react';
 import Chart from 'react-apexcharts';
 
-const ChartLine = memo(({series, categories,history, height, width="100%", title, border=2, stacked = false }) => {
+const ChartLine = memo(({series, categories,history, height, width="100%", title, border=2, stacked = false, maximum = 0 }) => {
+
+    var maxOptions = {};
+    if (maximum > 0){
+      maxOptions = { max : maximum}
+    }
 
     var options = {
               chart: {
@@ -106,6 +111,7 @@ const ChartLine = memo(({series, categories,history, height, width="100%", title
                       offsetY: 0
                  },
                  min : 0,
+                 ...maxOptions,
                  labels : {
                             formatter: function(val, index) {
                                         
@@ -124,7 +130,16 @@ const ChartLine = memo(({series, categories,history, height, width="100%", title
                              },
                  },
                  
-              }
+              },
+              annotations: {
+                yaxis: [
+                    {
+                      y: maximum,
+                      strokeDashArray: 10,
+                      borderColor: 'gray'
+                    },                    
+                ],
+              },
     };
     
     

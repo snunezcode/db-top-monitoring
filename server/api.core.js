@@ -35,6 +35,7 @@ var scheduleObjects = [];
 const fs = require('fs');
 var configData = JSON.parse(fs.readFileSync('./aws-exports.json'));
 
+
 // API Application Variables
 const express = require('express');
 const cors = require('cors')
@@ -453,6 +454,54 @@ async function gatherStatsElasticacheNode(req, res) {
 
 
 
+
+//--++ ELASTICACHE : Gather raw metrics
+app.get("/api/elasticache/redis/cluster/gather/raw/metrics/", gatherRawMetricsElasticacheCluster);
+async function gatherRawMetricsElasticacheCluster(req, res) {
+    
+        // Token Validation
+        var standardToken = verifyToken(req.headers['x-token']);
+        var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+        if (standardToken.isValid === false || cognitoToken.isValid === false)
+            return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+        try
+            {
+                var params = req.query;          
+                var node = elasticacheObjectContainer[params.engineType + ":" + params.clusterId].getAllRawDataCluster({});
+                res.status(200).send(node);
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
+
+
+
+//--++ ELASTICACHE : Gather Analysis Insight Data
+app.get("/api/elasticache/redis/cluster/gather/analysis/insight/metrics/", gatherAnalysisInsightElasticacheCluster);
+async function gatherAnalysisInsightElasticacheCluster(req, res) {
+    
+        // Token Validation
+        var standardToken = verifyToken(req.headers['x-token']);
+        var cognitoToken = verifyTokenCognito(req.headers['x-token-cognito']);
+    
+        if (standardToken.isValid === false || cognitoToken.isValid === false)
+            return res.status(511).send({ data: [], message : "Token is invalid. StandardToken : " + String(standardToken.isValid) + ", CognitoToken : " + String(cognitoToken.isValid) });
+
+        try
+            {
+                var params = req.query;          
+                var result = await elasticacheObjectContainer[params.engineType + ":" + params.clusterId].getAnalysisInsightData({ ...params });
+                res.status(200).send(result);
+                
+        }
+        catch(err){
+                console.log(err);
+        }
+}
 
 
 //--++ ELASTICACHE : Close Connection

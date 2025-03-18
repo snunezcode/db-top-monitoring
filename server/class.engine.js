@@ -34,6 +34,12 @@ const {classLogging} = require('./class.logging.js');
 
 
 
+//-- Engine metric types
+const fs = require('fs');
+var metricCatalog = JSON.parse(fs.readFileSync('./engine-metric-types.json'));
+
+
+
 //--#################################################################################################### 
 //   ---------------------------------------- GENERIC FUNCTIONS
 //--#################################################################################################### 
@@ -288,6 +294,7 @@ class classCluster {
                     this.locked = true;
                     try{
                         
+                            this.objectProperties.lastSnapshot = new Date().getTime();
                             this.objectProperties.lastUpdate = new Date().toTimeString().split(' ')[0];
                             var clusterInfo;
                             switch(this.objectProperties.engineType){
@@ -714,6 +721,73 @@ class classCluster {
                 }
           }
           
+          //-- Get All Cluster Data
+          getAllRawDataCluster(object) {
+            try{
+                  var dataset = [];
+                  for (let node of Object.keys(this.objectNodes)) {                  
+                        dataset.push({ node : node, counters :  this.objectNodes[node].rawMetrics });                          
+                  }
+
+                  return { "timestamp" : this.objectProperties.lastSnapshot, dataset : dataset };
+            }
+            catch(err){
+                this.#objLog.write("getAllRawDataCluster","err",err);
+                return {};
+            }
+        }
+
+
+
+        //-- Get Analyis Insight
+        async getAnalysisInsightData(object) {
+
+            var result = {};
+            try {
+                    switch(this.objectProperties.engineType){
+                        
+                        case "elasticache":
+
+                                var dimensions = [];
+                                for (let node of Object.keys(this.objectNodes)) {
+                                    dimensions.push([
+                                        {
+                                            Name: "CacheClusterId",
+                                            Value: node
+                                        }
+                                    ]);
+
+                                }
+                                var dataset = await AWSObject.getGenericMetricsDatasetMultiDimension({  stat : object.stat, dimensions : dimensions, metric : object.metric, namespace : object.namespace, interval : object.interval, period : object.period });
+
+                                dataset.forEach(metricResult => {
+                                        
+                                        var metrics = metricResult.Timestamps.map((value, index) => {   
+                                            return [metricResult.Timestamps[index], metricResult.Values[index]/object.ratio ];                             
+                                        }); 
+
+                                        // Sort metrics by timestamp
+                                        metrics.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                                        
+                                        // Add to final result
+                                        result[metricResult.Label] = { metrics: metrics};
+                                });
+                                
+                                break;
+                                
+                   }
+                  
+            }
+            catch(err){
+                this.#objLog.write("getAnalysisInsightData","err",err);
+            }
+            
+            return result;
+            
+      }
+
+
+
           
           //-- Get all data node
           getNodeData(object) {                
@@ -840,6 +914,7 @@ class classNode {
                     this.objectMetrics = new classMetrics({ metrics : object.metrics }) ;
                     this.#objLog.properties = {...this.#objLog.properties, instance : object.properties.name}
                     this.objectSessions = [];
+                    this.rawMetrics = [];
           }
           
           
@@ -899,7 +974,9 @@ class classNode {
                     var currentData = await this.#engineConnector.getSnapshot();
                     var snapshot = {};
                     
-                    this.objectProperties = {...this.objectProperties, ...currentData['properties'] }
+                    this.objectProperties = {...this.objectProperties, ...currentData['properties'] };
+                    this.rawMetrics = currentData['rawMetrics'];
+                    
                     for (let metric of Object.keys(currentData['metrics'])) {
                         snapshot = {...snapshot, [metric] : currentData['metrics'][metric]};
                     }
@@ -1279,7 +1356,9 @@ class classRedisEngine {
         async getSnapshot(){
                 try
                 {
-                        
+                            // Raw metrics
+                            var rawMetrics = [];
+
                             //-- Node Info Stats 
                             var rawInfo = await this.#connection.info();
                             var jsonInfo = redisInfo.parse(rawInfo);
@@ -1290,12 +1369,82 @@ class classRedisEngine {
                             var commands = await this.#connection.info('Commandstats');
                             var jsonCommands = redisInfo.parse(commands);
                             
-                            for (let commandType of Object.keys(jsonCommands.commands)) {
-                                    totalCalls = totalCalls + jsonCommands.commands[commandType].calls;
-                                    totalUsec = totalUsec + jsonCommands.commands[commandType].usec; 
-                            }
-                            
                             jsonCommands = jsonCommands.commands;
+                            
+                            
+                            for (let commandType of Object.keys(jsonCommands)) {
+                                    totalCalls = totalCalls + jsonCommands[commandType].calls;
+                                    totalUsec = totalUsec + jsonCommands[commandType].usec; 
+                                    rawMetrics.push({ name : commandType, value : jsonCommands[commandType].calls, type : 1 });
+                            }
+
+
+                            var metricType = 0;
+                            var metricValue = 0;
+                            for (let metricName of Object.keys(jsonInfo)) {
+
+
+                                if (metricCatalog['elasticache']['active'].hasOwnProperty(metricName) || ( metricName.includes('errorstat') )){
+                                    
+                                    if ( metricName.includes('errorstat')){
+                                        metricType = 1;
+                                        metricValue = parseFloat(jsonInfo[metricName].split("=")[1]);
+                                        
+                                    }
+                                    else {
+                                        metricType = metricCatalog['elasticache']['active'][metricName];
+                                        metricValue = parseFloat(jsonInfo[metricName]);
+                                    }
+
+                                    switch(metricType){
+                                        case 1:
+                                        case 2:
+                                                if (jsonInfo.hasOwnProperty(metricName)){
+                                                    rawMetrics.push({ name : metricName, value : metricValue, type : metricType });
+                                                }                                        
+                                                break;    
+    
+                                        case 3:
+                                                if (jsonInfo.hasOwnProperty(metricName)){
+                                                    rawMetrics.push({ name : metricName, value : jsonInfo[metricName], type : metricType });
+                                                }                                        
+                                                break;
+    
+                                    }
+                                
+                                }
+                                
+                            }
+
+                            
+                            /*
+                            var metricType = 0;
+                            for (let metricName of Object.keys(metricCatalog['elasticache']['active'])) {
+
+                                metricType = metricCatalog['elasticache']['active'][metricName];
+                                switch(metricType){
+
+                                    case 1:
+                                    case 2:
+                                            if (jsonInfo.hasOwnProperty(metricName)){
+                                                rawMetrics.push({ name : metricName, value : parseFloat(jsonInfo[metricName]), type : metricType });
+                                            }                                        
+                                    break;
+
+
+                                    case 3:
+                                            if (jsonInfo.hasOwnProperty(metricName)){
+                                                rawMetrics.push({ name : metricName, value : jsonInfo[metricName], type : metricType });
+                                            }                                        
+                                    break;
+
+                                }
+                            }
+                            */
+
+                            
+                            
+                            
                             var metrics = {
                                             cpuUser: parseFloat(jsonInfo['used_cpu_user']),
                                             cpuSys: parseFloat(jsonInfo['used_cpu_sys']),
@@ -1332,15 +1481,18 @@ class classRedisEngine {
                             };
                                         
                             var properties = { role : jsonInfo['role'] };
-                            return { properties : properties, metrics : metrics };
+                            return { properties : properties, rawMetrics : rawMetrics, metrics : metrics };
                 }
                 catch(err){
                         this.#objLog.write("getSnapshot","err",err);
-                        return { properties : { role : "-" }, metrics : {} };
+                        return { properties : { role : "-", }, rawMetrics : [], metrics : {} };
                  
                 }
             
         }
+
+
+        
         
           
 }

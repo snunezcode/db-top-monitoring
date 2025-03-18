@@ -3,12 +3,8 @@ import Chart from 'react-apexcharts';
 
 const ChartComponent = memo(({ series, labels, title="", height="350px", width="100%"}) => {      
           
-            const [parsedSeries, setParsedSeries] = useState([]);
-              
-            useEffect(() => {
-                setParsedSeries(JSON.parse(series));
-            }, [series]);
-
+           
+            var parsedSeries=JSON.parse(series);
 
             var options = {
               chart: {
@@ -53,7 +49,7 @@ const ChartComponent = memo(({ series, labels, title="", height="350px", width="
               legend: {
                 show: true,
                 showForSingleSeries: true,
-                fontSize: '11px',
+                fontSize: '12px',
                 fontFamily: 'Lato',
                 formatter: function(seriesName, opts) {                  
                     const value = parsedSeries[opts.seriesIndex];

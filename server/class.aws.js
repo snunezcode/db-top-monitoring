@@ -1504,6 +1504,64 @@ class classAWS {
             
         }
         
+
+
+        //------#################
+        //------################# Generic Metrics Full Dataset
+        //------#################
+        
+        //-- getGenericMetricsDataset
+        async getGenericMetricsDatasetMultiDimension(object){
+            
+            try {
+                    
+                    //-- Gather Metrics from CloudWatch                    
+                    var dataQueries = [];
+                    var queryId = 0;
+                    object.dimensions.forEach(function(item) {                        
+                        dataQueries.push({
+                                Id: "m0" + String(queryId),
+                                MetricStat: {
+                                    Metric: {
+                                        Namespace: object.namespace,
+                                        MetricName: object.metric,
+                                        Dimensions: [...item]
+                                    },
+                                    Period: object.period * 60,
+                                    Stat: object.stat
+                                },
+                                Label: item[0]['Value']
+                        });
+                        queryId++;
+                        
+                    });
+                    
+                    var d_end_time = new Date();
+                    var d_start_time = new Date(d_end_time - (( object.interval  ) * 60000) );
+                    var queryClw = {
+                        MetricDataQueries: dataQueries,
+                        "StartTime": d_start_time,
+                        "EndTime": d_end_time
+                    };
+                   
+                    const command = new GetMetricDataCommand(queryClw);
+                    const data = await cloudwatch.send(command);
+                            
+                    return data.MetricDataResults;
+                    
+            }
+            catch(err){
+                
+                console.log(err);
+                return [];
+                
+            }
+            
+            
+        }
+        
+        
+
         
         //------#################
         //------################# CloudWatch Metrics Insight
@@ -1543,6 +1601,10 @@ class classAWS {
         }
         
         
+
+        
+
+
         //------#################
         //------################# API CORE
         //------#################
