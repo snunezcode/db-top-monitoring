@@ -4,7 +4,6 @@ import { createLabelFunction, customFormatNumberLong, customFormatNumber, custom
 
 import Axios from 'axios';
 import { configuration } from './Configs';
-import { ClusterPerformanceProcessor } from '../classes/clusterPerformanceProcessor';
 import { useSearchParams } from 'react-router-dom';
 import CustomHeader from "../components/Header";
 import AppLayout from "@cloudscape-design/components/app-layout";

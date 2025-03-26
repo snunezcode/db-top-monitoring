@@ -62,10 +62,13 @@ Parameters:
     Description: Select Subnet
 
   AMIId:
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Type: String
     Description: AWS AMI
-    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
-
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64
+    AllowedValues:
+      - /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64
+      - /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+     
   Username:
       Type: String
       Description: Username (email)
@@ -74,13 +77,14 @@ Parameters:
   InstanceType:
       Type: String
       Description: InstanceType
-      Default: t3a.medium
+      Default: t4g.medium
       AllowedValues:
-      - t3a.micro
-      - t3a.small
       - t3a.medium
       - t3a.large
       - t3a.xlarge
+      - t4g.medium
+      - t4g.large
+      - t4g.xlarge
   PublicAccess:
       Type: String
       Description: Assign Public IP Address

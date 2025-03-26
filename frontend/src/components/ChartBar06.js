@@ -27,24 +27,7 @@ const ChartBar = memo(({series,history, height, width="100%", title, maximum=100
               },
               dataLabels: {
                 enabled: false
-              },
-              colors : colors,
-              stroke: {
-                curve: 'smooth',
-                width: 1
-              },
-              markers: {
-                size: 3,
-                strokeWidth: 0,
-                hover: {
-                  size: 9
-                }
-              },
-              plotOptions: {
-                bar: {
-                  borderRadius: 0
-                }
-              },
+              },                  
               tooltip: {
                     theme: "dark",
                     x : { 
@@ -62,6 +45,11 @@ const ChartBar = memo(({series,history, height, width="100%", title, maximum=100
                   color : "#2ea597"
                 }
                 
+              },             
+              plotOptions: {
+                bar: {
+                  borderRadius: 5
+                }
               },
               grid: {
                 show: false,
@@ -80,6 +68,7 @@ const ChartBar = memo(({series,history, height, width="100%", title, maximum=100
                 labels: {
                           show: false,
                  },
+                 axisBorder: { show: false }, 
               },
               yaxis: {
                  tickAmount: 5,
@@ -117,7 +106,7 @@ const ChartBar = memo(({series,history, height, width="100%", title, maximum=100
                 yaxis: [
                     {
                       y: maximum,
-                      strokeDashArray: 10,
+                      strokeDashArray: 5,
                       borderColor: 'gray'
                     },                    
                 ],
